@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WerkBank | Professionelle Tischlerei-Software</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Crect x='8' y='22' width='48' height='6' rx='2' fill='%23fff'/%3E%3Crect x='12' y='28' width='5' height='24' rx='1' fill='%23fff'/%3E%3Crect x='47' y='28' width='5' height='24' rx='1' fill='%23fff'/%3E%3Crect x='17' y='38' width='30' height='4' rx='1' fill='%23fff' opacity='0.7'/%3E%3Crect x='34' y='14' width='6' height='8' rx='1' fill='%23fff'/%3E%3Crect x='42' y='14' width='6' height='8' rx='1' fill='%23fff'/%3E%3Crect x='39' y='17' width='4' height='3' rx='1' fill='%232563eb'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="style.css?v=20260301c">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- App Navigation -->
+    <nav class="app-nav">
+        <div class="app-nav-inner">
+            <a href="#/dashboard" class="nav-logo">
+                <svg viewBox="0 0 32 32" class="logo-svg">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <!-- Tischplatte -->
+                    <rect x="4" y="11" width="24" height="3" rx="1" fill="#fff"/>
+                    <!-- Beine -->
+                    <rect x="6" y="14" width="2.5" height="12" rx="0.5" fill="#fff"/>
+                    <rect x="23.5" y="14" width="2.5" height="12" rx="0.5" fill="#fff"/>
+                    <!-- Querstrebe -->
+                    <rect x="8.5" y="19" width="15" height="2" rx="0.5" fill="#fff" opacity="0.7"/>
+                    <!-- Schraubstock -->
+                    <rect x="17" y="7" width="3" height="4" rx="0.5" fill="#fff"/>
+                    <rect x="21" y="7" width="3" height="4" rx="0.5" fill="#fff"/>
+                    <rect x="19.5" y="8.5" width="2" height="1.5" rx="0.3" fill="#2563eb"/>
+                </svg>
+                <span>Werk<strong>Bank</strong></span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="#/dashboard" data-nav="dashboard" class="nav-link active">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Dashboard
+                </a>
+                <a href="#/projekte" data-nav="projekte" class="nav-link">
+                    <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    Projekte
+                </a>
+                <a href="#/kunden" data-nav="kunden" class="nav-link">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Kunden
+                </a>
+                <a href="#/zeiterfassung" data-nav="zeiterfassung" class="nav-link">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    Zeiten
+                </a>
+                <a href="#/kalender" data-nav="kalender" class="nav-link">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                    Kalender
+                </a>
+                <a href="#/finanzen" data-nav="finanzen" class="nav-link">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Finanzen
+                </a>
+                <a href="#/einstellungen" data-nav="einstellungen" class="nav-link">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    Einstellungen
+                </a>
+                <a href="#/hilfe" data-nav="hilfe" class="nav-link">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Hilfe
+                </a>
+            </div>
+            <div class="global-search-wrap">
+                <svg class="global-search-icon" viewBox="0 0 24 24" width="16" height="16"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg>
+                <input type="text" id="global-search-input" class="global-search-input" placeholder="Suchen..." autocomplete="off">
+                <div id="global-search-results" class="global-search-results hidden"></div>
+            </div>
+            <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">
+                <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section id="view-dashboard" class="view">
+        <div class="container view-container dash-container">
+            <!-- Hero Header -->
+            <div class="dash-hero">
+                <div class="dash-hero-text">
+                    <h1 class="dash-title">Willkommen zur&uuml;ck</h1>
+                    <p class="dash-subtitle" id="dash-greeting">Ihr Tischler-Cockpit auf einen Blick</p>
+                </div>
+                <div class="dash-hero-actions">
+                    <a href="#/projekt/neu" class="btn btn-glow btn-sm">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                        Neues Projekt
+                    </a>
+                    <button class="btn btn-glass btn-sm" id="btn-neuer-kunde-dash">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+                        Neuer Kunde
+                    </button>
+                </div>
+            </div>
+
+            <!-- Workflow Pipeline -->
+            <div class="workflow-pipeline">
+                <div class="workflow-step" data-step="erfassen">
+                    <div class="workflow-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <span class="workflow-label">Erfassen</span>
+                    <span class="workflow-count" id="wf-erfassen">0</span>
+                </div>
+                <div class="workflow-arrow">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="workflow-step" data-step="ausfuehren">
+                    <div class="workflow-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <span class="workflow-label">Ausf&uuml;hren</span>
+                    <span class="workflow-count" id="wf-ausfuehren">0</span>
+                </div>
+                <div class="workflow-arrow">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="workflow-step" data-step="abrechnen">
+                    <div class="workflow-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <span class="workflow-label">Abrechnen</span>
+                    <span class="workflow-count" id="wf-abrechnen">0</span>
+                </div>
+                <div class="workflow-arrow">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="workflow-step workflow-step-done" data-step="erledigt">
+                    <div class="workflow-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <span class="workflow-label">Erledigt</span>
+                    <span class="workflow-count" id="wf-erledigt">0</span>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="kpi-grid-new">
+                <div class="kpi-card-new kpi-clickable" data-kpi-filter="angeboten">
+                    <div class="kpi-icon-new kpi-icon-amber">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-number" id="kpi-offene-anzahl">0</span>
+                        <span class="kpi-title">Offene Angebote</span>
+                    </div>
+                    <span class="kpi-amount" id="kpi-offene-summe">0,00 &euro;</span>
+                </div>
+
+                <div class="kpi-card-new kpi-clickable" data-kpi-filter="beauftragt">
+                    <div class="kpi-icon-new kpi-icon-green">
+                        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-number" id="kpi-beauftragt-anzahl">0</span>
+                        <span class="kpi-title">Beauftragt</span>
+                    </div>
+                    <span class="kpi-amount" id="kpi-beauftragt-summe">0,00 &euro;</span>
+                </div>
+
+                <div class="kpi-card-new kpi-clickable" data-kpi-filter="abgeschlossen">
+                    <div class="kpi-icon-new kpi-icon-blue">
+                        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-number" id="kpi-abgeschlossen-anzahl">0</span>
+                        <span class="kpi-title">Abgeschlossen</span>
+                    </div>
+                    <span class="kpi-amount" id="kpi-abgeschlossen-summe">0,00 &euro;</span>
+                </div>
+
+                <div class="kpi-card-new kpi-clickable" data-kpi-filter="monat">
+                    <div class="kpi-icon-new kpi-icon-purple">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-number" id="kpi-monat-anzahl">0</span>
+                        <span class="kpi-title">Diesen Monat</span>
+                    </div>
+                    <span class="kpi-amount" id="kpi-monat-umsatz"></span>
+                </div>
+            </div>
+
+            <!-- Gesamtumsatz Banner -->
+            <div class="revenue-banner">
+                <div class="revenue-banner-inner">
+                    <div class="revenue-left">
+                        <span class="revenue-label">Gesamtumsatz (brutto)</span>
+                        <span class="revenue-value" id="kpi-gesamt-umsatz">0,00 &euro;</span>
+                    </div>
+                    <div class="revenue-right">
+                        <span class="revenue-label">Kunden gesamt</span>
+                        <span class="revenue-value revenue-small" id="kpi-gesamt-kunden">0</span>
+                    </div>
+                    <div class="revenue-right">
+                        <span class="revenue-label">Projekte gesamt</span>
+                        <span class="revenue-value revenue-small" id="kpi-gesamt-projekte">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="dash-charts-grid">
+                <div class="dash-card chart-card">
+                    <div class="dash-card-header">
+                        <h3>Monatliche Ums&auml;tze</h3>
+                        <span class="dash-card-badge" id="chart-year-label">2026</span>
+                    </div>
+                    <div class="chart-container" id="chart-umsatz">
+                        <!-- Canvas wird dynamisch erzeugt -->
+                    </div>
+                </div>
+
+                <div class="dash-card chart-card">
+                    <div class="dash-card-header">
+                        <h3>Projekt-Status</h3>
+                    </div>
+                    <div class="chart-container chart-donut-wrap" id="chart-status">
+                        <!-- Donut-Chart dynamisch -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Charts Row -->
+            <div class="dash-charts-grid">
+                <div class="dash-card chart-card">
+                    <div class="dash-card-header">
+                        <h3>Top Kunden nach Umsatz</h3>
+                    </div>
+                    <div class="chart-container" id="chart-top-kunden">
+                        <!-- Bar chart dynamisch -->
+                    </div>
+                </div>
+
+                <div class="dash-card chart-card">
+                    <div class="dash-card-header">
+                        <h3>Material & Arbeitskosten</h3>
+                    </div>
+                    <div class="chart-container chart-donut-wrap" id="chart-kosten">
+                        <!-- Donut dynamisch -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Projects Table -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>Letzte Projekte</h3>
+                    <a href="#/projekte" class="link-arrow">Alle anzeigen &rarr;</a>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Angebot-Nr.</th>
+                                <th>Projekt</th>
+                                <th>Kunde</th>
+                                <th>Status</th>
+                                <th>Brutto</th>
+                                <th>Erstellt</th>
+                                <th>Dokumente</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-projekte-body">
+                            <tr class="empty-row"><td colspan="8">Noch keine Projekte vorhanden.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROJEKTE LISTE ==================== -->
+    <section id="view-projekte" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Projekte</h1>
+                <div class="view-actions">
+                    <a href="#/projekt/neu" class="btn btn-primary btn-sm">+ Neues Projekt</a>
+                </div>
+            </div>
+
+            <div class="projekte-filter-bar" style="margin-bottom:20px">
+                <div class="projekte-search-wrap">
+                    <input type="text" id="projekte-suche" placeholder="Suche (Titel, Angebots-Nr., Rechnungs-Nr.)">
+                </div>
+                <div class="filter-group">
+                    <select id="filter-status">
+                        <option value="">Alle Status</option>
+                        <option value="entwurf">Entwurf</option>
+                        <option value="angeboten">Angeboten</option>
+                        <option value="beauftragt">Beauftragt</option>
+                        <option value="rechnung_gestellt">Rechnung gestellt</option>
+                        <option value="bezahlt">Bezahlt</option>
+                        <option value="abgeschlossen">Abgeschlossen</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select id="filter-kunde">
+                        <option value="">Alle Kunden</option>
+                    </select>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-toggle-btn active" data-view="cards" id="projekte-view-cards">Karten</button>
+                    <button class="view-toggle-btn" data-view="table" id="projekte-view-table">Tabelle</button>
+                </div>
+            </div>
+
+            <!-- Cards View -->
+            <div id="projekte-cards-container" class="projekte-cards-grid"></div>
+
+            <!-- Table View (hidden by default) -->
+            <div id="projekte-table-container" class="card hidden">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Angebot-Nr.</th>
+                                <th>Projekt</th>
+                                <th>Kunde</th>
+                                <th>Status</th>
+                                <th>Brutto</th>
+                                <th>Erstellt</th>
+                                <th>Dokumente</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="projekte-liste-body">
+                            <tr class="empty-row"><td colspan="8">Noch keine Projekte vorhanden.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROJEKT EDITOR ==================== -->
+    <section id="view-projekt-editor" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1 id="projekt-editor-title">Neues Projekt</h1>
+                <div class="view-actions">
+                    <button class="btn btn-secondary btn-sm" id="btn-vorlage">Vorlage laden</button>
+                    <button class="btn btn-secondary btn-sm" id="btn-als-vorlage" title="Aktuelles Projekt als wiederverwendbare Vorlage speichern">Als Vorlage speichern</button>
+                    <button class="btn btn-primary btn-sm" id="btn-projekt-speichern">Projekt speichern</button>
+                </div>
+            </div>
+
+            <!-- Angebot / Rechnung Tabs -->
+            <div class="article-tabs" id="projekt-editor-tabs">
+                <button type="button" class="article-tab article-tab-active" data-editor-tab="angebot" onclick="switchEditorTab('angebot')">Angebot</button>
+                <button type="button" class="article-tab" data-editor-tab="rechnung" id="tab-btn-rechnung" onclick="switchEditorTab('rechnung')">Rechnung</button>
+            </div>
+
+            <form id="projekt-form" novalidate>
+            <div id="tab-content-angebot">
+                <!-- Projekt-Kopfdaten -->
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        <div>
+                            <h3>Projektdaten</h3>
+                            <p>Grunddaten und Kundenzuordnung</p>
+                        </div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="proj-titel">Projekttitel *</label>
+                                <input type="text" id="proj-titel" placeholder="z.B. Einbauschrank Wohnzimmer" required>
+                                <span class="field-error" id="err-proj-titel"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="proj-kunde">Kunde</label>
+                                <select id="proj-kunde">
+                                    <option value="">-- Kein Kunde --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="proj-status">Status</label>
+                                <select id="proj-status">
+                                    <option value="entwurf">Entwurf</option>
+                                    <option value="angeboten">Angeboten</option>
+                                    <option value="beauftragt">Beauftragt</option>
+                                    <option value="rechnung_gestellt">Rechnung gestellt</option>
+                                    <option value="bezahlt">Bezahlt</option>
+                                    <option value="abgeschlossen">Abgeschlossen</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="proj-angebot-nr">Angebotsnummer</label>
+                                <input type="text" id="proj-angebot-nr" placeholder="Wird automatisch generiert">
+                            </div>
+                            <div class="form-group">
+                                <label for="proj-objekt-adresse">Objektadresse</label>
+                                <input type="text" id="proj-objekt-adresse" placeholder="z.B. Musterstr. 5, 48149 Münster">
+                            </div>
+                            <div class="form-group">
+                                <label for="proj-notizen">Notizen</label>
+                                <input type="text" id="proj-notizen" placeholder="Interne Notizen">
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="proj-leistungszeitraum">Leistungszeitraum</label>
+                                <input type="text" id="proj-leistungszeitraum" placeholder="z.B. Februar 2026">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Positionen Container -->
+                <div id="positionen-container"></div>
+
+                <button type="button" id="btn-position-add" class="btn-add btn-add-position">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    Position hinzufügen
+                </button>
+
+                <!-- Zuschläge -->
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        <div>
+                            <h3>Kalkulation (KLR)</h3>
+                            <p>Gemeinkosten, Wagnis & Gewinn, Rabatt</p>
+                        </div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3 klr-inputs">
+                            <div class="form-group">
+                                <label for="z-mgk">Materialgemeinkosten %</label>
+                                <input type="number" id="z-mgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                                <small>Lager, Handling, Beschaffung</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="z-fgk">Fertigungsgemeinkosten %</label>
+                                <input type="number" id="z-fgk" min="0" max="300" step="1" value="120" class="klr-input">
+                                <small>Maschinen, Energie, Werkzeug</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="z-vwgk">Verwaltungsgemeinkosten %</label>
+                                <input type="number" id="z-vwgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                                <small>Büro, Buchhaltung, Versicherung</small>
+                            </div>
+                        </div>
+                        <div class="form-grid-3 klr-inputs" style="margin-top:0">
+                            <div class="form-group">
+                                <label for="z-vtgk">Vertriebsgemeinkosten %</label>
+                                <input type="number" id="z-vtgk" min="0" max="20" step="0.5" value="8" class="klr-input">
+                                <small>Akquise, Angebote, Transport</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="z-wug">Wagnis & Gewinn %</label>
+                                <input type="number" id="z-wug" min="0" max="40" step="0.5" value="15" class="klr-input">
+                                <small>Gewährleistung + Unternehmerlohn</small>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3" style="margin-top:16px">
+                            <div class="form-group">
+                                <label for="z-rabatt">Rabatt %</label>
+                                <div class="pct-combo">
+                                    <select id="z-rabatt-presets" class="pct-presets">
+                                        <option value="0">0%</option>
+                                        <option value="2">2%</option>
+                                        <option value="3">3%</option>
+                                        <option value="5">5%</option>
+                                        <option value="10">10%</option>
+                                        <option value="15">15%</option>
+                                        <option value="custom">Eigener Wert</option>
+                                    </select>
+                                    <input type="number" id="z-rabatt" min="0" max="30" step="0.5" value="0" class="klr-input">
+                                    <span class="pct-unit">%</span>
+                                </div>
+                                <small>Nachlass auf Nettobetrag</small>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3" style="margin-top:16px">
+                            <div class="form-group">
+                                <label for="z-skonto-prozent">Skonto %</label>
+                                <input type="number" id="z-skonto-prozent" min="0" max="10" step="0.5" value="2" class="klr-input">
+                                <small>Rabatt bei schneller Zahlung</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="z-skonto-tage">Skonto-Frist (Tage)</label>
+                                <input type="number" id="z-skonto-tage" min="3" max="30" step="1" value="10" class="klr-input">
+                                <small>Zahlungsfrist f&uuml;r Skonto</small>
+                            </div>
+                        </div>
+
+                        <div class="montage-toggle">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="proj-montage-aktiv">
+                                <span class="toggle-text">Montage vor Ort</span>
+                            </label>
+                        </div>
+                        <div id="proj-montage-details" class="hidden">
+                            <div class="form-grid-2" style="margin-top:16px">
+                                <div class="form-group">
+                                    <label for="proj-anfahrt-km">Anfahrt (km einfach)</label>
+                                    <input type="number" id="proj-anfahrt-km" min="0" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="proj-km-satz">Kilometersatz (&euro;)</label>
+                                    <input type="number" id="proj-km-satz" min="0" step="0.05" value="0.45">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Berechnen Button -->
+                <button type="button" id="btn-berechnen" class="btn btn-calculate">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    Angebot berechnen
+                </button>
+
+                <!-- Ergebnis -->
+                <div id="ergebnis" class="result-card hidden">
+                    <div class="result-header">
+                        <h3>Ihre Kalkulation</h3>
+                        <span class="result-date" id="res-date"></span>
+                    </div>
+                    <div class="result-body" id="ergebnis-body">
+                        <!-- Dynamisch befüllt -->
+                    </div>
+                    <div class="result-footer" id="ergebnis-footer">
+                        <!-- Dynamisch befüllt -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="ergebnis-actions" class="hidden">
+                    <button type="button" id="btn-pdf" class="btn btn-pdf">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Angebot als PDF herunterladen
+                    </button>
+                </div>
+
+                <!-- Rechnungs-Infobox -->
+                <div id="rechnung-info" class="calc-card hidden" style="border-color:#8e44ad">
+                    <div class="calc-header calc-header-rechnung">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#8e44ad,#6c3483)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        <div>
+                            <h3>Rechnungsdaten</h3>
+                            <p id="rechnung-info-subtitle">Rechnung wurde erstellt</p>
+                        </div>
+                    </div>
+                    <div class="calc-body" id="rechnung-info-body">
+                        <!-- Dynamisch bef&uuml;llt -->
+                    </div>
+                </div>
+
+                <!-- Rechnungs-Aktionen -->
+                <div id="rechnung-actions" class="hidden" style="gap:12px;flex-wrap:wrap;margin-bottom:20px">
+                    <button type="button" id="btn-rechnung-erstellen" class="btn btn-primary">Rechnung erstellen</button>
+                    <button type="button" id="btn-zahlung-verbuchen" class="btn btn-zahlung">Zahlung verbuchen</button>
+                    <button type="button" id="btn-rechnung-pdf" class="btn btn-pdf">Rechnung PDF herunterladen</button>
+                </div>
+            </div><!-- /tab-content-angebot -->
+
+            <!-- ===== RECHNUNG TAB ===== -->
+            <div id="tab-content-rechnung" class="hidden">
+                <!-- Rechnungs-Info (wenn Rechnung existiert) -->
+                <div id="rechnung-tab-info" class="calc-card hidden" style="border-color:#8e44ad">
+                    <div class="calc-header calc-header-rechnung">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#8e44ad,#6c3483)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        <div>
+                            <h3>Rechnungsdaten</h3>
+                            <p id="rechnung-tab-info-subtitle">Rechnung wurde erstellt</p>
+                        </div>
+                    </div>
+                    <div class="calc-body" id="rechnung-tab-info-body"></div>
+                </div>
+
+                <!-- Kein-Rechnung Hinweis -->
+                <div id="rechnung-tab-empty" class="calc-card" style="text-align:center;padding:40px 20px">
+                    <p style="font-size:1.1rem;color:var(--text-muted);margin-bottom:16px">Noch keine Rechnung erstellt.</p>
+                    <button type="button" id="btn-rechnung-erstellen-tab" class="btn btn-primary">Rechnung erstellen</button>
+                    <p style="font-size:0.85rem;color:var(--text-muted);margin-top:12px">Die Angebot-Positionen werden als Vorlage übernommen und können hier unabhängig bearbeitet werden.</p>
+                </div>
+
+                <!-- Rechnungs-Positionen -->
+                <div id="rechnung-positionen-container"></div>
+
+                <button type="button" id="btn-rechnung-position-add" class="btn-add btn-add-position hidden">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    Position hinzuf&uuml;gen
+                </button>
+
+                <!-- Rechnungs-KLR Zuschläge -->
+                <div id="rechnung-klr-card" class="calc-card hidden">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        <div>
+                            <h3>Kalkulation Rechnung (KLR)</h3>
+                            <p>Gemeinkosten, Wagnis & Gewinn, Rabatt</p>
+                        </div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3 klr-inputs">
+                            <div class="form-group">
+                                <label for="rz-mgk">Materialgemeinkosten %</label>
+                                <input type="number" id="rz-mgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="rz-fgk">Fertigungsgemeinkosten %</label>
+                                <input type="number" id="rz-fgk" min="0" max="300" step="1" value="120" class="klr-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="rz-vwgk">Verwaltungsgemeinkosten %</label>
+                                <input type="number" id="rz-vwgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 klr-inputs" style="margin-top:0">
+                            <div class="form-group">
+                                <label for="rz-vtgk">Vertriebsgemeinkosten %</label>
+                                <input type="number" id="rz-vtgk" min="0" max="20" step="0.5" value="8" class="klr-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="rz-wug">Wagnis & Gewinn %</label>
+                                <input type="number" id="rz-wug" min="0" max="40" step="0.5" value="15" class="klr-input">
+                            </div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top:16px">
+                            <div class="form-group">
+                                <label for="rz-rabatt">Rabatt %</label>
+                                <input type="number" id="rz-rabatt" min="0" max="30" step="0.5" value="0" class="klr-input">
+                            </div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top:16px">
+                            <div class="form-group">
+                                <label for="rz-skonto-prozent">Skonto %</label>
+                                <input type="number" id="rz-skonto-prozent" min="0" max="10" step="0.5" value="2" class="klr-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="rz-skonto-tage">Skonto-Frist (Tage)</label>
+                                <input type="number" id="rz-skonto-tage" min="3" max="30" step="1" value="10" class="klr-input">
+                            </div>
+                        </div>
+                        <div class="montage-toggle">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="rz-montage-aktiv">
+                                <span class="toggle-text">Montage vor Ort</span>
+                            </label>
+                        </div>
+                        <div id="rz-montage-details" class="hidden">
+                            <div class="form-grid-2" style="margin-top:16px">
+                                <div class="form-group">
+                                    <label for="rz-anfahrt-km">Anfahrt (km einfach)</label>
+                                    <input type="number" id="rz-anfahrt-km" min="0" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="rz-km-satz">Kilometersatz (&euro;)</label>
+                                    <input type="number" id="rz-km-satz" min="0" step="0.05" value="0.45">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rechnung Berechnen -->
+                <button type="button" id="btn-rechnung-berechnen" class="btn btn-calculate hidden">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    Rechnung berechnen
+                </button>
+
+                <!-- Rechnungs-Ergebnis -->
+                <div id="rechnung-ergebnis" class="result-card hidden">
+                    <div class="result-header">
+                        <h3>Rechnungs-Kalkulation</h3>
+                        <span class="result-date" id="rechnung-res-date"></span>
+                    </div>
+                    <div class="result-body" id="rechnung-ergebnis-body"></div>
+                    <div class="result-footer" id="rechnung-ergebnis-footer"></div>
+                </div>
+
+                <!-- Rechnungs-Aktionen im Tab -->
+                <div id="rechnung-tab-actions" class="hidden" style="gap:12px;flex-wrap:wrap;margin:20px 0">
+                    <button type="button" id="btn-rechnung-pdf-tab" class="btn btn-pdf">Rechnung PDF herunterladen</button>
+                    <button type="button" id="btn-zahlung-verbuchen-tab" class="btn btn-zahlung">Zahlung verbuchen</button>
+                </div>
+            </div><!-- /tab-content-rechnung -->
+
+            </form>
+        </div>
+    </section>
+
+    <!-- ==================== KUNDEN LISTE ==================== -->
+    <section id="view-kunden" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Kunden</h1>
+                <div class="view-actions">
+                    <div class="kunden-search-wrap">
+                        <input type="text" id="kunden-suche" placeholder="Kunde suchen (Name, Firma, Ort...)">
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" data-view="cards" id="kunden-view-cards">Karten</button>
+                        <button class="view-toggle-btn" data-view="table" id="kunden-view-table">Tabelle</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="btn-neuer-kunde">+ Neuer Kunde</button>
+                </div>
+            </div>
+
+            <!-- Cards View -->
+            <div id="kunden-cards-container" class="kunden-cards-grid"></div>
+
+            <!-- Table View (hidden by default) -->
+            <div id="kunden-table-container" class="card hidden">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Kunden-Nr.</th>
+                                <th>Name</th>
+                                <th>Firma</th>
+                                <th>Ort</th>
+                                <th>Telefon</th>
+                                <th>E-Mail</th>
+                                <th>Projekte</th>
+                                <th>Umsatz</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="kunden-liste-body">
+                            <tr class="empty-row"><td colspan="9">Noch keine Kunden vorhanden.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FINANZEN / STEUER ==================== -->
+    <section id="view-finanzen" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Finanzen &amp; Steuer&uuml;bersicht</h1>
+                <div class="view-actions">
+                    <div class="form-group" style="margin:0;min-width:120px">
+                        <select id="finanzen-jahr" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem"></select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jahresübersicht KPIs -->
+            <div class="finanzen-kpi-row">
+                <div class="finanzen-kpi-card">
+                    <span class="finanzen-kpi-label">Netto-Umsatz</span>
+                    <span class="finanzen-kpi-value" id="fin-netto-umsatz">0,00 &euro;</span>
+                    <span class="finanzen-kpi-sub">Summe aller bezahlten Rechnungen (netto)</span>
+                </div>
+                <div class="finanzen-kpi-card">
+                    <span class="finanzen-kpi-label">Brutto-Umsatz</span>
+                    <span class="finanzen-kpi-value" id="fin-brutto-umsatz">0,00 &euro;</span>
+                    <span class="finanzen-kpi-sub">Summe aller bezahlten Rechnungen (brutto)</span>
+                </div>
+                <div class="finanzen-kpi-card finanzen-kpi-highlight">
+                    <span class="finanzen-kpi-label">MwSt. vereinnahmt</span>
+                    <span class="finanzen-kpi-value" id="fin-mwst-gesamt">0,00 &euro;</span>
+                    <span class="finanzen-kpi-sub">An das Finanzamt abzuf&uuml;hren</span>
+                </div>
+                <div class="finanzen-kpi-card finanzen-kpi-warning">
+                    <span class="finanzen-kpi-label">Offene Forderungen</span>
+                    <span class="finanzen-kpi-value" id="fin-offene-forderungen">0,00 &euro;</span>
+                    <span class="finanzen-kpi-sub">Unbezahlte Rechnungen (brutto)</span>
+                </div>
+            </div>
+
+            <!-- Quartalsübersicht -->
+            <div class="calc-card" style="margin-bottom:24px">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </span>
+                    <div><h3>Quartals&uuml;bersicht &mdash; UStVA-Hilfe</h3><p>Werte f&uuml;r die Umsatzsteuer-Voranmeldung</p></div>
+                </div>
+                <div class="calc-body">
+                    <div class="table-wrap">
+                        <table class="data-table finanzen-table">
+                            <thead>
+                                <tr>
+                                    <th>Zeitraum</th>
+                                    <th style="text-align:right">Netto-Umsatz</th>
+                                    <th style="text-align:right">MwSt. vereinnahmt</th>
+                                    <th style="text-align:right">Brutto-Umsatz</th>
+                                    <th style="text-align:right">Rechnungen</th>
+                                    <th style="text-align:right">davon bezahlt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finanzen-quartal-body"></tbody>
+                            <tfoot id="finanzen-quartal-foot"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monatsdetails -->
+            <div class="calc-card" style="margin-bottom:24px">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#10b981,#059669)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </span>
+                    <div><h3>Monats&uuml;bersicht</h3><p>Detaillierte Aufstellung pro Monat</p></div>
+                </div>
+                <div class="calc-body">
+                    <div class="table-wrap">
+                        <table class="data-table finanzen-table">
+                            <thead>
+                                <tr>
+                                    <th>Monat</th>
+                                    <th style="text-align:right">Netto</th>
+                                    <th style="text-align:right">MwSt.</th>
+                                    <th style="text-align:right">Brutto</th>
+                                    <th style="text-align:right">Rechnungen</th>
+                                    <th style="text-align:right">Bezahlt</th>
+                                    <th style="text-align:right">Offen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finanzen-monat-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offene Rechnungen -->
+            <div class="calc-card">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#dc3545,#c0392b)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </span>
+                    <div><h3>Offene Rechnungen</h3><p>&Uuml;berf&auml;llige und ausstehende Zahlungen</p></div>
+                </div>
+                <div class="calc-body">
+                    <div class="table-wrap">
+                        <table class="data-table finanzen-table">
+                            <thead>
+                                <tr>
+                                    <th>RE-Nr.</th>
+                                    <th>Projekt</th>
+                                    <th>Kunde</th>
+                                    <th style="text-align:right">Brutto</th>
+                                    <th>Rechnungsdatum</th>
+                                    <th>F&auml;llig am</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="finanzen-offene-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hinweis -->
+            <div style="margin-top:20px;padding:16px;background:var(--cream);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text-light);border:1px solid var(--border)">
+                <strong>Hinweis:</strong> Diese &Uuml;bersicht dient als Orientierungshilfe f&uuml;r Ihre Buchhaltung. Die MwSt.-Betr&auml;ge basieren auf der Differenz zwischen Brutto und Netto Ihrer Rechnungen. F&uuml;r die offizielle Steuererkl&auml;rung wenden Sie sich bitte an Ihren Steuerberater. Die Werte basieren auf dem <strong>Ist-Versteuerungsprinzip</strong> (Zahlungszeitpunkt).
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ZEITERFASSUNG ==================== -->
+    <section id="view-zeiterfassung" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Zeiterfassung</h1>
+                <div class="view-actions">
+                    <button class="btn btn-glow btn-sm" id="btn-zeit-neu">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                        Neuer Eintrag
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stoppuhr -->
+            <div class="calc-card">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#10b981,#059669)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </span>
+                    <div><h3>Stoppuhr</h3><p>Arbeitszeit live mitlaufen lassen</p></div>
+                </div>
+                <div class="calc-body">
+                    <div class="timer-row">
+                        <div class="timer-display" id="timer-display">00:00:00</div>
+                        <div class="timer-controls">
+                            <button class="btn btn-glow btn-sm" id="btn-timer-start">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
+                                Start
+                            </button>
+                            <button class="btn btn-glass btn-sm" id="btn-timer-pause" style="display:none">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/></svg>
+                                Pause
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="btn-timer-stop" style="display:none">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
+                                Stopp
+                            </button>
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:180px">
+                            <select id="timer-projekt" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem">
+                                <option value="">Projekt zuordnen...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Zusammenfassung -->
+            <div class="zeit-summary-row">
+                <div class="zeit-summary-card">
+                    <span class="zeit-summary-label">Heute</span>
+                    <span class="zeit-summary-value" id="zeit-heute">0:00 h</span>
+                </div>
+                <div class="zeit-summary-card">
+                    <span class="zeit-summary-label">Diese Woche</span>
+                    <span class="zeit-summary-value" id="zeit-woche">0:00 h</span>
+                </div>
+                <div class="zeit-summary-card">
+                    <span class="zeit-summary-label">Dieser Monat</span>
+                    <span class="zeit-summary-value" id="zeit-monat">0:00 h</span>
+                </div>
+                <div class="zeit-summary-card">
+                    <span class="zeit-summary-label">Offene Stunden</span>
+                    <span class="zeit-summary-value" id="zeit-offen">0:00 h</span>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="filter-row" style="margin-bottom:16px">
+                <div class="form-group" style="margin:0;flex:1;max-width:220px">
+                    <select id="zeit-filter-projekt" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem">
+                        <option value="">Alle Projekte</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;flex:1;max-width:160px">
+                    <input type="date" id="zeit-filter-von" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem" placeholder="Von">
+                </div>
+                <div class="form-group" style="margin:0;flex:1;max-width:160px">
+                    <input type="date" id="zeit-filter-bis" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem" placeholder="Bis">
+                </div>
+            </div>
+
+            <!-- Zeiteintr&auml;ge Tabelle -->
+            <div class="calc-card">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="2"/></svg>
+                    </span>
+                    <div><h3>Zeiteintr&auml;ge</h3><p>Alle erfassten Arbeitszeiten</p></div>
+                </div>
+                <div class="calc-body">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Projekt</th>
+                                    <th>T&auml;tigkeit</th>
+                                    <th>Typ</th>
+                                    <th>Start</th>
+                                    <th>Ende</th>
+                                    <th>Dauer</th>
+                                    <th>Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="zeit-liste-body">
+                                <tr class="empty-row"><td colspan="8">Noch keine Zeiteintr&auml;ge vorhanden.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== KALENDER ==================== -->
+    <section id="view-kalender" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Kalender &amp; Einsatzplanung</h1>
+                <div class="view-actions" style="gap:8px;display:flex;align-items:center;flex-wrap:wrap">
+                    <button class="btn btn-glow btn-sm" id="btn-termin-neu">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                        Neuer Termin
+                    </button>
+                    <div style="display:flex;align-items:center;gap:4px">
+                        <button class="btn btn-glass btn-sm" id="cal-prev">&#9664;</button>
+                        <span id="cal-monat-label" style="font-weight:600;min-width:160px;text-align:center;font-size:1.05rem"></span>
+                        <button class="btn btn-glass btn-sm" id="cal-next">&#9654;</button>
+                    </div>
+                    <button class="btn btn-glass btn-sm" id="cal-heute">Heute</button>
+                </div>
+            </div>
+
+            <!-- Filter-Leiste -->
+            <div class="cal-filter-bar" id="cal-filter-bar">
+                <button class="cal-filter-chip cal-filter-alle active" onclick="resetCalFilter()">Alle</button>
+                <button class="cal-filter-chip active" data-filter="aufmass" style="--chip-color:#8b5cf6" onclick="toggleCalFilter('aufmass')">Aufma&szlig;</button>
+                <button class="cal-filter-chip active" data-filter="werkstatt" style="--chip-color:#3b82f6" onclick="toggleCalFilter('werkstatt')">Werkstatt</button>
+                <button class="cal-filter-chip active" data-filter="montage" style="--chip-color:#f59e0b" onclick="toggleCalFilter('montage')">Montage</button>
+                <button class="cal-filter-chip active" data-filter="lieferung" style="--chip-color:#10b981" onclick="toggleCalFilter('lieferung')">Lieferung</button>
+                <button class="cal-filter-chip active" data-filter="kundenbesuch" style="--chip-color:#ec4899" onclick="toggleCalFilter('kundenbesuch')">Kundenbesuch</button>
+                <button class="cal-filter-chip active" data-filter="sonstiges" style="--chip-color:#6b7280" onclick="toggleCalFilter('sonstiges')">Sonstiges</button>
+                <button class="cal-filter-chip active" data-filter="frist" style="--chip-color:#dc3545" onclick="toggleCalFilter('frist')">Frist/F&auml;lligkeit</button>
+                <button class="cal-filter-chip active" data-filter="projekt" style="--chip-color:#3b82f6" onclick="toggleCalFilter('projekt')">Projekt-Events</button>
+                <button class="cal-filter-chip active" data-filter="zahlung" style="--chip-color:#10b981" onclick="toggleCalFilter('zahlung')">Zahlungen</button>
+            </div>
+
+            <!-- Monatsansicht -->
+            <div class="kalender-grid" id="kalender-grid">
+                <div class="cal-header-cell">Mo</div>
+                <div class="cal-header-cell">Di</div>
+                <div class="cal-header-cell">Mi</div>
+                <div class="cal-header-cell">Do</div>
+                <div class="cal-header-cell">Fr</div>
+                <div class="cal-header-cell">Sa</div>
+                <div class="cal-header-cell">So</div>
+            </div>
+
+            <!-- Legende -->
+            <div class="cal-legende">
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#8b5cf6"></span> Aufma&szlig;</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#3b82f6"></span> Werkstatt</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#f59e0b"></span> Montage</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#10b981"></span> Lieferung</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#ec4899"></span> Kundenbesuch</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#6b7280"></span> Sonstiges</span>
+                <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#dc3545"></span> Frist/F&auml;lligkeit</span>
+            </div>
+
+            <!-- Tagesansicht -->
+            <div id="cal-tagesansicht" class="cal-tagesansicht" style="display:none">
+                <div class="cal-tag-header">
+                    <h2 id="cal-tag-titel"></h2>
+                    <button class="btn btn-glass btn-sm" id="cal-tag-schliessen">&times; Schlie&szlig;en</button>
+                </div>
+                <div id="cal-tag-termine" class="cal-tag-termine"></div>
+                <button class="btn btn-glow btn-sm" id="btn-termin-tag" style="margin-top:12px">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                    Termin f&uuml;r diesen Tag
+                </button>
+            </div>
+
+            <!-- Kommende Termine -->
+            <div class="calc-card" style="margin-top:20px">
+                <div class="calc-header">
+                    <span class="calc-step" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                    </span>
+                    <div><h3>Kommende Termine</h3><p>Die n&auml;chsten 14 Tage</p></div>
+                </div>
+                <div class="calc-body">
+                    <div id="cal-kommende-liste" class="cal-kommende-liste">
+                        <p style="color:var(--text-light)">Keine kommenden Termine.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== EINSTELLUNGEN ==================== -->
+    <section id="view-einstellungen" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Einstellungen</h1>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Design / Theme -->
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="white" stroke-width="2"/></svg>
+                        </span>
+                        <div><h3>Design</h3><p>Farbschema der Anwendung</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="theme-switcher">
+                            <button class="theme-btn theme-btn-active" data-theme="light">
+                                <span class="theme-btn-preview theme-preview-light"></span>
+                                <span class="theme-btn-label">Hell</span>
+                            </button>
+                            <button class="theme-btn" data-theme="dark">
+                                <span class="theme-btn-preview theme-preview-dark"></span>
+                                <span class="theme-btn-label">Dunkel</span>
+                            </button>
+                            <button class="theme-btn" data-theme="midnight">
+                                <span class="theme-btn-preview theme-preview-midnight"></span>
+                                <span class="theme-btn-label">Mitternacht</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        <div><h3>Allgemein</h3><p>MwSt, Währung, Angebotsnummern</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-mwst">MwSt-Satz</label>
+                                <select id="set-mwst">
+                                    <option value="19">19%</option>
+                                    <option value="7">7%</option>
+                                    <option value="0">0%</option>
+                                    <option value="custom">Eigener Wert</option>
+                                </select>
+                            </div>
+                            <div class="form-group hidden" id="set-mwst-custom-wrap">
+                                <label for="set-mwst-custom">MwSt % (eigener Wert)</label>
+                                <input type="number" id="set-mwst-custom" min="0" max="100" step="0.1" value="19">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-waehrung">Währung</label>
+                                <select id="set-waehrung">
+                                    <option value="EUR">&euro; Euro</option>
+                                    <option value="CHF">CHF Franken</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="montage-toggle" style="margin-bottom:16px">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="set-kleinunternehmer">
+                                <span class="toggle-text">Kleinunternehmerregelung (§ 19 UStG) - Keine MwSt. ausweisen</span>
+                            </label>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-angebot-prefix">Angebots-Prefix</label>
+                                <input type="text" id="set-angebot-prefix" value="ANG-" placeholder="ANG-">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-zahlungsbedingung">Zahlungsbedingung (Tage)</label>
+                                <input type="number" id="set-zahlungsbedingung" min="0" value="14">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-gueltigkeit">Gültigkeitsdauer (Tage)</label>
+                                <input type="number" id="set-gueltigkeit" min="0" value="30">
+                            </div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top:0">
+                            <div class="form-group">
+                                <label for="set-skonto-prozent">Standard-Skonto %</label>
+                                <input type="number" id="set-skonto-prozent" min="0" max="10" step="0.5" value="2">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-skonto-tage">Skonto-Frist (Tage)</label>
+                                <input type="number" id="set-skonto-tage" min="0" max="30" step="1" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-kunden-prefix">Kunden-Nr. Prefix</label>
+                                <input type="text" id="set-kunden-prefix" value="KD-" placeholder="KD-">
+                            </div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top:0">
+                            <div class="form-group">
+                                <label for="set-ausfuehrungszeitraum">Standard-Ausführungszeitraum</label>
+                                <input type="text" id="set-ausfuehrungszeitraum" placeholder="ca. 6-8 Wochen nach Auftragserteilung" value="ca. 6-8 Wochen nach Auftragserteilung">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        <div><h3>Rechnungseinstellungen</h3><p>Rechnungsnummer, Zahlungsziel, Bankverbindung</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-rechnung-prefix">Rechnungs-Prefix</label>
+                                <input type="text" id="set-rechnung-prefix" value="RE-" placeholder="RE-">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-zahlungsziel">Standard-Zahlungsziel (Tage)</label>
+                                <input type="number" id="set-zahlungsziel" min="0" value="30">
+                            </div>
+                        </div>
+                        <h4 style="margin:16px 0 12px;color:var(--primary)">Bankverbindung (f&uuml;r Rechnungen)</h4>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="set-bank-inhaber">Kontoinhaber</label>
+                                <input type="text" id="set-bank-inhaber" placeholder="Max Mustermann">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-bank-iban">IBAN</label>
+                                <input type="text" id="set-bank-iban" placeholder="DE89 3704 0044 0532 0130 00">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-bank-bic">BIC</label>
+                                <input type="text" id="set-bank-bic" placeholder="COBADEFFXXX">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-bank-name">Bankname</label>
+                                <input type="text" id="set-bank-name" placeholder="Commerzbank">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </span>
+                        <div><h3>Firmendaten</h3><p>Für PDF-Angebote</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-firma-name">Firmenname</label>
+                                <input type="text" id="set-firma-name" placeholder="Tischlerei Mustermann">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-rechtsform">Rechtsform</label>
+                                <input type="text" id="set-firma-rechtsform" placeholder="z.B. Einzelunternehmen, GmbH">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-ansprechpartner">Ansprechpartner / Inhaber</label>
+                                <input type="text" id="set-firma-ansprechpartner" placeholder="Max Meister">
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-firma-strasse">Straße & Nr.</label>
+                                <input type="text" id="set-firma-strasse" placeholder="Werkstr. 12">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-plz">PLZ</label>
+                                <input type="text" id="set-firma-plz" placeholder="48143">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-ort">Ort</label>
+                                <input type="text" id="set-firma-ort" placeholder="Münster">
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-firma-telefon">Telefon</label>
+                                <input type="text" id="set-firma-telefon" placeholder="0251 / 123456">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-fax">Fax (optional)</label>
+                                <input type="text" id="set-firma-fax" placeholder="0251 / 123457">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-email">E-Mail</label>
+                                <input type="email" id="set-firma-email" placeholder="info@tischlerei.de">
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-firma-website">Website</label>
+                                <input type="text" id="set-firma-website" placeholder="www.tischlerei-mustermann.de">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-steuernr">Steuernummer</label>
+                                <input type="text" id="set-firma-steuernr" placeholder="123/456/78901">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-firma-ustid">USt-IdNr. (optional)</label>
+                                <input type="text" id="set-firma-ustid" placeholder="DE123456789">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="set-firma-logo">Firmenlogo (für PDF)</label>
+                            <input type="file" id="set-firma-logo" accept="image/*" class="file-input">
+                            <div id="set-logo-preview" class="logo-preview hidden">
+                                <img id="set-logo-img" alt="Logo" />
+                                <button type="button" id="set-logo-remove" class="btn-remove-small">Entfernen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                        </span>
+                        <div><h3>Standard-Kalkulation (KLR)</h3><p>Standardwerte für neue Projekte</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3 klr-inputs">
+                            <div class="form-group">
+                                <label for="set-std-mgk">Materialgemeinkosten %</label>
+                                <input type="number" id="set-std-mgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                                <small>% auf Materialeinzelkosten</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-fgk">Fertigungsgemeinkosten %</label>
+                                <input type="number" id="set-std-fgk" min="0" max="300" step="1" value="120" class="klr-input">
+                                <small>% auf Fertigungseinzelkosten</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-vwgk">Verwaltungsgemeinkosten %</label>
+                                <input type="number" id="set-std-vwgk" min="0" max="30" step="0.5" value="10" class="klr-input">
+                                <small>% auf Herstellkosten</small>
+                            </div>
+                        </div>
+                        <div class="form-grid-3 klr-inputs" style="margin-top:0">
+                            <div class="form-group">
+                                <label for="set-std-vtgk">Vertriebsgemeinkosten %</label>
+                                <input type="number" id="set-std-vtgk" min="0" max="20" step="0.5" value="8" class="klr-input">
+                                <small>% auf Herstellkosten</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-wug">Wagnis & Gewinn %</label>
+                                <input type="number" id="set-std-wug" min="0" max="40" step="0.5" value="15" class="klr-input">
+                                <small>% auf Selbstkosten</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </span>
+                        <div><h3>Kalkulatorische Kosten (Hilfsrechner)</h3><p>Hilft bei der Ermittlung Ihrer GK-Sätze</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-kalk-unternehmerlohn">Kalk. Unternehmerlohn (&euro;/Monat)</label>
+                                <input type="number" id="set-kalk-unternehmerlohn" min="0" step="100" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-kalk-miete">Kalk. Miete (&euro;/Monat)</label>
+                                <input type="number" id="set-kalk-miete" min="0" step="50" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-kalk-abschreibung">Kalk. Abschreibung (&euro;/Monat)</label>
+                                <input type="number" id="set-kalk-abschreibung" min="0" step="50" value="0">
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="set-kalk-zinsen">Kalk. Zinsen (&euro;/Monat)</label>
+                                <input type="number" id="set-kalk-zinsen" min="0" step="10" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-kalk-produktivstunden">Produktive Stunden/Monat</label>
+                                <input type="number" id="set-kalk-produktivstunden" min="1" step="1" value="140">
+                            </div>
+                            <div class="form-group" style="display:flex;align-items:flex-end">
+                                <div id="kalk-kosten-ergebnis" class="klr-hilfsrechner-result">
+                                    <small>Kalk. Kosten/Stunde: <strong id="kalk-pro-stunde">0,00 &euro;</strong></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        </span>
+                        <div><h3>Standard-Stundensätze</h3><p>Werden bei neuen Projekten verwendet</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="set-std-helfer">Helfer / Azubi (&euro;/Std)</label>
+                                <input type="number" id="set-std-helfer" min="0" step="1" value="42">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-geselle">Geselle (&euro;/Std)</label>
+                                <input type="number" id="set-std-geselle" min="0" step="1" value="52">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-fachgeselle">Fachgeselle (&euro;/Std)</label>
+                                <input type="number" id="set-std-fachgeselle" min="0" step="1" value="58">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-meister">Meister Werkstatt (&euro;/Std)</label>
+                                <input type="number" id="set-std-meister" min="0" step="1" value="68">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-meister-bau">Meister Baustelle (&euro;/Std)</label>
+                                <input type="number" id="set-std-meister-bau" min="0" step="1" value="75">
+                            </div>
+                            <div class="form-group">
+                                <label for="set-std-planung">Planung / Techniker (&euro;/Std)</label>
+                                <input type="number" id="set-std-planung" min="0" step="1" value="85">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </span>
+                        <div><h3>Eigene Artikel</h3><p>Eigene Beschläge, Oberflächen & Materialien verwalten</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="article-tabs">
+                            <button type="button" class="article-tab article-tab-active" data-article-tab="beschlaege" onclick="switchArticleTab('beschlaege')">Beschläge</button>
+                            <button type="button" class="article-tab" data-article-tab="oberflaechen" onclick="switchArticleTab('oberflaechen')">Oberflächen</button>
+                            <button type="button" class="article-tab" data-article-tab="materialien" onclick="switchArticleTab('materialien')">Materialien</button>
+                        </div>
+                        <div id="eigene-beschlaege-content" class="article-tab-content">
+                            <!-- Dynamisch befüllt -->
+                        </div>
+                        <div id="eigene-oberflaechen-content" class="article-tab-content hidden">
+                            <!-- Dynamisch befüllt -->
+                        </div>
+                        <div id="eigene-materialien-content" class="article-tab-content hidden">
+                            <!-- Dynamisch befüllt -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </span>
+                        <div><h3>Eigene Vorlagen</h3><p>Projekt-Vorlagen f&uuml;r wiederkehrende Auftr&auml;ge</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <div id="eigene-vorlagen-content">
+                            <!-- Dynamisch bef&uuml;llt -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datensicherung -->
+                <div class="calc-card">
+                    <div class="calc-header">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </span>
+                        <div><h3>Datensicherung</h3><p>Export &amp; Import aller Daten (Projekte, Kunden, Einstellungen, Artikel)</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px">Alle Daten werden nur lokal in Ihrem Browser gespeichert. Erstellen Sie regelm&auml;&szlig;ig eine Sicherungskopie, um Datenverlust zu vermeiden.</p>
+                        <div class="form-grid-2">
+                            <div>
+                                <button type="button" id="btn-export-data" class="btn btn-primary" style="width:100%">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Daten exportieren
+                                </button>
+                                <small style="display:block;margin-top:8px;color:var(--text-muted)">Speichert alle Daten als JSON-Datei</small>
+                            </div>
+                            <div>
+                                <label class="btn btn-secondary" style="width:100%;cursor:pointer;text-align:center;justify-content:center" for="import-file-input">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    Daten importieren
+                                </label>
+                                <input type="file" id="import-file-input" accept=".json" style="display:none">
+                                <small style="display:block;margin-top:8px;color:var(--text-muted)">Stellt Daten aus einer JSON-Sicherung wieder her</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-settings-save" class="btn btn-primary" style="width:100%">Einstellungen speichern</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== HILFE ==================== -->
+    <section id="view-hilfe" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header">
+                <h1>Hilfe &amp; Anleitung</h1>
+                <p style="color:var(--text-light);margin-top:4px">Alles, was Sie f&uuml;r die Arbeit mit WerkBank wissen m&uuml;ssen</p>
+            </div>
+
+            <div class="hilfe-grid">
+                <!-- Karte 1: Schnellstart -->
+                <div class="hilfe-card calc-card" id="hilfe-schnellstart">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </span>
+                        <div><h3>Schnellstart &mdash; In 5 Schritten zum ersten Angebot</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="hilfe-steps">
+                            <div class="hilfe-step">
+                                <span class="hilfe-step-badge">1</span>
+                                <div>
+                                    <strong>Firmendaten anlegen</strong>
+                                    <p>Gehen Sie zu <a href="#/einstellungen">Einstellungen</a> und tragen Sie Firmennamen, Adresse, Telefon, E-Mail, Steuernummer und Bankverbindung ein. Laden Sie Ihr Firmenlogo hoch. Diese Daten erscheinen auf allen PDF-Dokumenten.</p>
+                                </div>
+                            </div>
+                            <div class="hilfe-step">
+                                <span class="hilfe-step-badge">2</span>
+                                <div>
+                                    <strong>KLR-Zuschl&auml;ge pr&uuml;fen</strong>
+                                    <p>Unter <a href="#/einstellungen">Einstellungen &rarr; Standard KLR-S&auml;tze</a> k&ouml;nnen Sie MGK, FGK, VWGK, VTGK und W&amp;G an Ihren Betrieb anpassen. Diese Werte werden bei jedem neuen Projekt automatisch vorbelegt.</p>
+                                </div>
+                            </div>
+                            <div class="hilfe-step">
+                                <span class="hilfe-step-badge">3</span>
+                                <div>
+                                    <strong>Kunde anlegen</strong>
+                                    <p>Erstellen Sie Ihren ersten Kunden unter <a href="#/kunden">Kunden</a>. Geben Sie Name, Firma, Adresse, Telefon und E-Mail ein. Die Kundendaten werden automatisch in Angebote und Rechnungen &uuml;bernommen.</p>
+                                </div>
+                            </div>
+                            <div class="hilfe-step">
+                                <span class="hilfe-step-badge">4</span>
+                                <div>
+                                    <strong>Projekt erstellen &amp; Positionen hinzuf&uuml;gen</strong>
+                                    <p>Legen Sie ein <a href="#/projekt/neu">neues Projekt</a> an, w&auml;hlen Sie den Kunden aus und f&uuml;gen Sie Positionen hinzu. Pro Position w&auml;hlen Sie Material, Beschl&auml;ge, Arbeitszeiten und Oberfl&auml;chenbehandlung.</p>
+                                </div>
+                            </div>
+                            <div class="hilfe-step">
+                                <span class="hilfe-step-badge">5</span>
+                                <div>
+                                    <strong>Angebot berechnen &amp; PDF erstellen</strong>
+                                    <p>Klicken Sie auf &bdquo;Angebot berechnen&ldquo;. Die App erstellt automatisch die komplette Kalkulation inkl. aller Zuschl&auml;ge. Laden Sie das fertige Angebot als PDF herunter.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard erklärt -->
+                <div class="hilfe-card calc-card" id="hilfe-dashboard">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </span>
+                        <div><h3>Das Dashboard verstehen</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">Das Dashboard ist Ihre Kommandozentrale &mdash; hier sehen Sie alles Wichtige auf einen Blick:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>KPI-Karten (oben)</strong> &mdash; Zeigen Offene Angebote, Beauftragte Projekte, Offene Rechnungen und den Gesamtumsatz. <em>Klicken Sie auf eine Karte, um die Projektliste entsprechend zu filtern!</em></div>
+                            <div class="hilfe-term"><strong>Umsatz&uuml;bersicht</strong> &mdash; Zeigt Ihren monatlichen Umsatz als Balkendiagramm, den Jahresumsatz und die Kundenanzahl.</div>
+                            <div class="hilfe-term"><strong>Top Kunden nach Umsatz</strong> &mdash; Ihre umsatzst&auml;rksten Kunden auf einen Blick.</div>
+                            <div class="hilfe-term"><strong>Letzte Projekte</strong> &mdash; Schnellzugriff auf Ihre aktuellsten Projekte mit Status, Betrag und Aktions-Buttons.</div>
+                            <div class="hilfe-term"><strong>Schnellaktionen</strong> &mdash; Die Buttons &bdquo;Neues Projekt&ldquo; und &bdquo;Neuer Kunde&ldquo; erm&ouml;glichen sofortigen Start.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kundenverwaltung -->
+                <div class="hilfe-card calc-card" id="hilfe-kunden">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </span>
+                        <div><h3>Kundenverwaltung</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">Unter <a href="#/kunden">Kunden</a> verwalten Sie alle Ihre Auftraggeber:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Kunde anlegen</strong> &mdash; Klicken Sie auf &bdquo;+ Neuer Kunde&ldquo;. Pflichtfelder: Nachname. Optional: Anrede, Vorname, Firma, Adresse, Telefon, E-Mail, Notizen.</div>
+                            <div class="hilfe-term"><strong>Kundennummer</strong> &mdash; Wird automatisch vergeben (z.B. KD-001). Den Prefix k&ouml;nnen Sie unter <a href="#/einstellungen">Einstellungen</a> &auml;ndern.</div>
+                            <div class="hilfe-term"><strong>Kundenkarten</strong> &mdash; Jede Karte zeigt Name, Kontaktdaten, und KPIs (Anzahl Projekte, offene Angebote, offene Rechnungen, Gesamtumsatz).</div>
+                            <div class="hilfe-term"><strong>Projekte pro Kunde</strong> &mdash; Klicken Sie auf &bdquo;Projekte&ldquo; in der Kundenkarte, um alle zugeordneten Projekte mit Status und Betrag zu sehen.</div>
+                            <div class="hilfe-term"><strong>Dringlichkeit</strong> &mdash; Kunden mit &uuml;berf&auml;lligen Rechnungen werden farblich hervorgehoben (rot = &uuml;berf&auml;llig, orange = bald f&auml;llig).</div>
+                            <div class="hilfe-term"><strong>Suche</strong> &mdash; Durchsucht Name, Firma, Ort, E-Mail und Telefonnummer in Echtzeit.</div>
+                            <div class="hilfe-term"><strong>Schnellaktionen</strong> &mdash; Direkt aus der Kundenkarte: neues Projekt anlegen, Kunden bearbeiten oder l&ouml;schen.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projekte & Positionen -->
+                <div class="hilfe-card calc-card" id="hilfe-projekte">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        </span>
+                        <div><h3>Projekte &amp; Positionen anlegen</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px"><strong>Ein Projekt</strong> entspricht einem Auftrag oder Angebot f&uuml;r einen Kunden. Jedes Projekt besteht aus einer oder mehreren <strong>Positionen</strong> (Bauteile/Leistungen).</p>
+
+                        <h4 style="margin:16px 0 8px;color:var(--wood-1)">Projekt anlegen</h4>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Titel</strong> &mdash; Beschreibender Name des Projekts (z.B. &bdquo;Einbauk&uuml;che M&uuml;ller&ldquo;)</div>
+                            <div class="hilfe-term"><strong>Kunde zuweisen</strong> &mdash; W&auml;hlen Sie den Kunden aus der Dropdown-Liste. Noch kein Kunde? Legen Sie ihn zuerst unter <a href="#/kunden">Kunden</a> an.</div>
+                            <div class="hilfe-term"><strong>Angebotsnummer</strong> &mdash; Wird automatisch vergeben. Format und Prefix k&ouml;nnen Sie in den Einstellungen anpassen.</div>
+                        </div>
+
+                        <h4 style="margin:16px 0 8px;color:var(--wood-1)">Position hinzuf&uuml;gen</h4>
+                        <p style="margin-bottom:10px">Jede Position beschreibt ein Bauteil oder eine Leistung mit folgenden Angaben:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Positionsname</strong> &mdash; z.B. &bdquo;Unterschrank 60cm&ldquo;, &bdquo;Arbeitsplatte K&uuml;che&ldquo;</div>
+                            <div class="hilfe-term"><strong>Material</strong> &mdash; Kategorie w&auml;hlen (Spanplatte, MDF, Multiplex, Massivholz etc.), dann Typ und St&auml;rke. Der Preis pro m&sup2; wird automatisch berechnet.</div>
+                            <div class="hilfe-term"><strong>Abmessungen</strong> &mdash; L&auml;nge, Breite und Anzahl eingeben. Die Fl&auml;che wird automatisch berechnet.</div>
+                            <div class="hilfe-term"><strong>Verschnitt</strong> &mdash; Prozentualer Aufschlag auf die Materialfl&auml;che (typisch 10&ndash;15%). Ber&uuml;cksichtigt Zuschnittverluste.</div>
+                            <div class="hilfe-term"><strong>Beschl&auml;ge</strong> &mdash; Scharniere, Griffe, Ausz&uuml;ge, Verbinder etc. aus der vordefinierten Liste w&auml;hlen oder eigene anlegen.</div>
+                            <div class="hilfe-term"><strong>Arbeitszeit</strong> &mdash; Stunden pro Qualifikationsstufe (Lehrling, Geselle, Meister). Die Stundenlohnkosten werden aus den Einstellungen &uuml;bernommen.</div>
+                            <div class="hilfe-term"><strong>Oberfl&auml;che</strong> &mdash; Lackierung, &Ouml;lung, Lasur, Furnier etc. W&auml;hlen Sie die Behandlung und Fl&auml;che.</div>
+                        </div>
+                        <p style="margin-top:12px;font-size:0.88rem;color:var(--text-light)">Die Zwischensumme wird live pro Position angezeigt. Klicken Sie auf den Positions-Header, um Details ein-/auszuklappen.</p>
+                    </div>
+                </div>
+
+                <!-- Kalkulation erklärt -->
+                <div class="hilfe-card calc-card" id="hilfe-kalkulation">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        <div><h3>Kalkulation nach KLR &mdash; Schritt f&uuml;r Schritt</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">Die App rechnet nach dem Schema der <strong>Kosten- und Leistungsrechnung (KLR)</strong>, wie sie im Handwerk &uuml;blich ist. So setzt sich der Angebotspreis zusammen:</p>
+
+                        <div style="padding:14px;background:var(--cream);border-radius:var(--radius-sm);margin-bottom:16px;font-size:0.88rem;line-height:1.8">
+                            <strong>Materialeinzelkosten</strong> (Plattenwerkstoffe, Holz etc.)<br>
+                            + <strong>MGK</strong> (Materialgemeinkosten)<br>
+                            = <em>Materialkosten gesamt</em><br><br>
+                            <strong>Fertigungseinzelkosten</strong> (Arbeitsstunden &times; Stundenlohn)<br>
+                            + <strong>FGK</strong> (Fertigungsgemeinkosten)<br>
+                            = <em>Fertigungskosten gesamt</em><br><br>
+                            = <strong>Herstellkosten</strong><br>
+                            + <strong>VWGK</strong> (Verwaltungsgemeinkosten)<br>
+                            + <strong>VTGK</strong> (Vertriebsgemeinkosten)<br>
+                            = <strong>Selbstkosten</strong><br>
+                            + <strong>W&amp;G</strong> (Wagnis &amp; Gewinn)<br>
+                            = <strong>Angebotspreis (netto)</strong><br>
+                            + MwSt.<br>
+                            = <strong>Angebotspreis (brutto)</strong>
+                        </div>
+
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>MGK</strong> (Materialgemeinkosten) &mdash; Zuschlag f&uuml;r Lager, Handling und Beschaffung auf die Materialeinzelkosten. <em>Typisch: 8&ndash;15%</em></div>
+                            <div class="hilfe-term"><strong>FGK</strong> (Fertigungsgemeinkosten) &mdash; Zuschlag f&uuml;r Maschinen, Energie und Werkzeuge auf die Fertigungseinzelkosten. <em>Typisch: 80&ndash;150%</em></div>
+                            <div class="hilfe-term"><strong>VWGK</strong> (Verwaltungsgemeinkosten) &mdash; B&uuml;ro, Buchhaltung und Versicherungen. <em>Typisch: 8&ndash;12%</em></div>
+                            <div class="hilfe-term"><strong>VTGK</strong> (Vertriebsgemeinkosten) &mdash; Akquise, Angebotserstellung und Transport. <em>Typisch: 5&ndash;10%</em></div>
+                            <div class="hilfe-term"><strong>W&amp;G</strong> (Wagnis &amp; Gewinn) &mdash; Gew&auml;hrleistungsrisiko und Unternehmerlohn. <em>Typisch: 10&ndash;20%</em></div>
+                        </div>
+                        <div style="margin-top:16px;padding:12px;background:var(--cream);border-radius:var(--radius-sm)">
+                            <strong>Verschnitt</strong> wird pro Position als Prozentsatz auf die Materialfl&auml;che aufgeschlagen.<br>
+                            <strong>Rabatt</strong> wird auf den Nettobetrag gew&auml;hrt.<br>
+                            <strong>Skonto</strong> ist ein Nachlass bei schneller Zahlung (z.B. 2% bei Zahlung innerhalb 10 Tagen).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projekt-Workflow -->
+                <div class="hilfe-card calc-card" id="hilfe-workflow">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </span>
+                        <div><h3>Der Projekt-Workflow</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:16px">Jedes Projekt durchl&auml;uft diese Stufen &mdash; Sie k&ouml;nnen den Status jederzeit &auml;ndern:</p>
+                        <div class="hilfe-workflow">
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-entwurf">Entwurf</span>
+                                <small>Projekt wird erstellt und kalkuliert</small>
+                            </div>
+                            <div class="hilfe-wf-arrow">&rarr;</div>
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-angeboten">Angeboten</span>
+                                <small>PDF wurde an den Kunden gesendet</small>
+                            </div>
+                            <div class="hilfe-wf-arrow">&rarr;</div>
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-beauftragt">Beauftragt</span>
+                                <small>Kunde hat den Auftrag erteilt</small>
+                            </div>
+                            <div class="hilfe-wf-arrow">&rarr;</div>
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-rechnung_gestellt">Rechnung</span>
+                                <small>Rechnung wurde erstellt und versendet</small>
+                            </div>
+                            <div class="hilfe-wf-arrow">&rarr;</div>
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-bezahlt">Bezahlt</span>
+                                <small>Zahlung ist eingegangen</small>
+                            </div>
+                            <div class="hilfe-wf-arrow">&rarr;</div>
+                            <div class="hilfe-wf-step">
+                                <span class="status-badge status-abgeschlossen">Abgeschlossen</span>
+                                <small>Projekt ist komplett erledigt</small>
+                            </div>
+                        </div>
+                        <p style="margin-top:14px;font-size:0.88rem;color:var(--text-light)">Den Status k&ouml;nnen Sie direkt in der Projektliste per Dropdown &auml;ndern, ohne das Projekt &ouml;ffnen zu m&uuml;ssen. Auch in der Kunden&uuml;bersicht ist der Status pro Projekt sicht- und &auml;nderbar.</p>
+                    </div>
+                </div>
+
+                <!-- PDF-Dokumente -->
+                <div class="hilfe-card calc-card" id="hilfe-pdf">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        <div><h3>PDF-Dokumente erstellen</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">WerkBank erstellt professionelle PDF-Dokumente direkt im Browser:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Angebot-PDF</strong> &mdash; Wird nach dem Berechnen generiert. Enth&auml;lt: Firmenkopf mit Logo, Kundenadresse, alle Positionen mit Einzelpreisen, Zuschlagskalkulation, Netto/Brutto, Skonto-Hinweis, Zahlungsbedingungen und G&uuml;ltigkeitsdauer.</div>
+                            <div class="hilfe-term"><strong>Rechnungs-PDF</strong> &mdash; Verf&uuml;gbar nach Erstellen einer Rechnung. Enth&auml;lt zus&auml;tzlich: Rechnungsnummer, Rechnungsdatum, Bankverbindung (IBAN/BIC), Zahlungsziel und &sect;35a-Hinweis.</div>
+                            <div class="hilfe-term"><strong>Voraussetzungen</strong> &mdash; F&uuml;r professionelle PDFs tragen Sie Ihre Firmendaten und Logo unter <a href="#/einstellungen">Einstellungen</a> ein. Ohne Logo erscheint nur der Firmenname.</div>
+                            <div class="hilfe-term"><strong>&sect;35a-Hinweis</strong> &mdash; Wird automatisch auf Rechnungen eingef&uuml;gt. Weist den Kunden auf die steuerliche Absetzbarkeit von Handwerkerleistungen hin.</div>
+                            <div class="hilfe-term"><strong>Download</strong> &mdash; PDFs werden im Browser generiert und sofort als Download angeboten. Keine Internetverbindung n&ouml;tig!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rechnungen & Zahlungen -->
+                <div class="hilfe-card calc-card" id="hilfe-rechnungen">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#0891b2,#0e7490)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        </span>
+                        <div><h3>Rechnungen &amp; Zahlungen verwalten</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Rechnung erstellen</strong> &mdash; Sobald ein Projekt den Status &bdquo;Beauftragt&ldquo; hat, erscheint der Button &bdquo;RE erstellen&ldquo;. Die Rechnung &uuml;bernimmt alle Daten aus dem Angebot.</div>
+                            <div class="hilfe-term"><strong>Rechnungsnummer</strong> &mdash; Wird automatisch fortlaufend vergeben. Format und Prefix k&ouml;nnen Sie in den Einstellungen anpassen.</div>
+                            <div class="hilfe-term"><strong>Zahlung verbuchen</strong> &mdash; Bei offenen Rechnungen erscheint der Button &bdquo;Zahlung&ldquo;. Klicken Sie darauf, um den Zahlungseingang zu best&auml;tigen. Datum und Betrag werden gespeichert.</div>
+                            <div class="hilfe-term"><strong>&Uuml;berf&auml;llige Rechnungen</strong> &mdash; Rechnungen, deren Zahlungsfrist &uuml;berschritten ist, werden auf dem Dashboard und in der Kunden&uuml;bersicht rot markiert.</div>
+                            <div class="hilfe-term"><strong>Skonto</strong> &mdash; Wird auf dem Angebot und der Rechnung ausgewiesen. Standard: 2% bei Zahlung innerhalb von 10 Tagen (anpassbar in Einstellungen).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Einstellungen -->
+                <div class="hilfe-card calc-card" id="hilfe-einstellungen">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#64748b,#475569)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9"/></svg>
+                        </span>
+                        <div><h3>Einstellungen im Detail</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">Unter <a href="#/einstellungen">Einstellungen</a> passen Sie WerkBank an Ihren Betrieb an. Alle Karten lassen sich durch Klick auf die &Uuml;berschrift auf-/zuklappen:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Allgemein</strong> &mdash; MwSt-Satz (19%, 7%, eigener Wert), W&auml;hrung (&euro;/CHF), Kleinunternehmerregelung (&sect;19 UStG), Angebots-Prefix, Zahlungsbedingung, G&uuml;ltigkeit, Skonto, Kunden-Nr. Prefix, Ausf&uuml;hrungszeitraum.</div>
+                            <div class="hilfe-term"><strong>Firmendaten</strong> &mdash; Name, Stra&szlig;e, PLZ/Ort, Telefon, E-Mail, Website, Steuernummer, USt-IdNr. Diese Daten erscheinen im PDF-Kopf.</div>
+                            <div class="hilfe-term"><strong>Logo</strong> &mdash; Laden Sie Ihr Firmenlogo als Bild hoch (JPG/PNG, max. 2 MB empfohlen). Es erscheint oben links auf allen PDFs.</div>
+                            <div class="hilfe-term"><strong>Bankverbindung</strong> &mdash; IBAN, BIC, Kontoinhaber, Bankname. Erscheint auf Rechnungs-PDFs.</div>
+                            <div class="hilfe-term"><strong>Standard KLR-S&auml;tze</strong> &mdash; Voreinstellungen f&uuml;r MGK, FGK, VWGK, VTGK und W&amp;G. Werden bei jedem neuen Projekt automatisch &uuml;bernommen.</div>
+                            <div class="hilfe-term"><strong>Stundenlohns&auml;tze</strong> &mdash; Festlegung der Stundenlohnkosten pro Qualifikation (Lehrling, Geselle, Meister).</div>
+                            <div class="hilfe-term"><strong>Eigene Artikel</strong> &mdash; Erstellen Sie eigene Beschl&auml;ge, Oberfl&auml;chenbehandlungen und Materialien, die in der Positions-Auswahl erscheinen.</div>
+                            <div class="hilfe-term"><strong>Datensicherung</strong> &mdash; Export/Import aller Daten als JSON-Datei (siehe Datensicherung).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vorlagen -->
+                <div class="hilfe-card calc-card" id="hilfe-vorlagen">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18M9 21V9"/></svg>
+                        </span>
+                        <div><h3>Vorlagen nutzen</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="margin-bottom:12px">Vorlagen sparen Zeit bei wiederkehrenden Projekten:</p>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Vorlage erstellen</strong> &mdash; &Ouml;ffnen Sie ein fertig konfiguriertes Projekt und klicken Sie auf &bdquo;Als Vorlage speichern&ldquo;. Alle Positionen, Materialien und Einstellungen werden gespeichert.</div>
+                            <div class="hilfe-term"><strong>Vorlage laden</strong> &mdash; Beim Erstellen eines neuen Projekts k&ouml;nnen Sie eine gespeicherte Vorlage ausw&auml;hlen. Alle Positionen werden &uuml;bernommen und k&ouml;nnen angepasst werden.</div>
+                            <div class="hilfe-term"><strong>Beispiel</strong> &mdash; Erstellen Sie eine Vorlage &bdquo;Standard-Unterschrank 60cm&ldquo; mit allen typischen Materialien, Beschl&auml;gen und Arbeitszeiten. Bei jedem neuen K&uuml;chenprojekt laden Sie diese Vorlage und passen nur die Kundenw&uuml;nsche an.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datensicherung -->
+                <div class="hilfe-card calc-card" id="hilfe-datensicherung">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#dc3545,#c0392b)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </span>
+                        <div><h3>Datensicherung &mdash; Wichtig!</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="alert-warning-box">
+                            <strong style="color:var(--danger)">Wichtig:</strong> Alle Daten werden <strong>nur lokal in Ihrem Browser</strong> gespeichert (IndexedDB). Wenn Sie den Browser-Cache l&ouml;schen, den Browser wechseln oder den Computer neu aufsetzen, sind die Daten weg!
+                        </div>
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>Export</strong> &mdash; Unter <a href="#/einstellungen">Einstellungen &rarr; Datensicherung</a> k&ouml;nnen Sie alle Daten als JSON-Datei exportieren. <em>Empfehlung: Machen Sie mindestens w&ouml;chentlich ein Backup!</em></div>
+                            <div class="hilfe-term"><strong>Import</strong> &mdash; Eine zuvor exportierte JSON-Datei kann wieder importiert werden. <strong>Achtung:</strong> Beim Import werden alle bestehenden Daten &uuml;berschrieben!</div>
+                            <div class="hilfe-term"><strong>Was wird gesichert?</strong> &mdash; Alle Projekte, Kunden, Einstellungen, eigene Artikel, Vorlagen und Rechnungen.</div>
+                            <div class="hilfe-term"><strong>Tipp</strong> &mdash; Speichern Sie die Backup-Datei in einem Cloud-Ordner (z.B. Google Drive, Dropbox, OneDrive), dann ist sie zus&auml;tzlich gegen Datenverlust gesch&uuml;tzt.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div class="hilfe-card calc-card" id="hilfe-faq">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </span>
+                        <div><h3>H&auml;ufige Fragen (FAQ)</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="hilfe-faq-list">
+                            <div class="hilfe-faq-item">
+                                <strong>Wo werden meine Daten gespeichert?</strong>
+                                <p>Alle Daten werden ausschlie&szlig;lich lokal in Ihrem Browser gespeichert (IndexedDB). Es werden keine Daten an externe Server &uuml;bertragen. Ihre Kunden- und Projektdaten verlassen nie Ihr Ger&auml;t.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Kann ich die App auf mehreren Ger&auml;ten nutzen?</strong>
+                                <p>Da die Daten lokal gespeichert werden, sind sie an den jeweiligen Browser gebunden. Sie k&ouml;nnen aber &uuml;ber Export/Import Ihre Daten zwischen Ger&auml;ten &uuml;bertragen.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Wie &auml;ndere ich den MwSt-Satz?</strong>
+                                <p>Unter <a href="#/einstellungen">Einstellungen &rarr; Allgemein</a>. Sie k&ouml;nnen 19%, 7%, 0% oder einen eigenen Wert w&auml;hlen. Bei Kleinunternehmerregelung (&sect;19 UStG) wird keine MwSt. ausgewiesen.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Kann ich eigene Materialien und Beschl&auml;ge anlegen?</strong>
+                                <p>Ja! Unter <a href="#/einstellungen">Einstellungen &rarr; Eigene Artikel</a> k&ouml;nnen Sie eigene Materialien, Beschl&auml;ge und Oberfl&auml;chenbehandlungen mit individuellen Preisen anlegen.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Wie erstelle ich eine Rechnung?</strong>
+                                <p>Setzen Sie den Projektstatus auf &bdquo;Beauftragt&ldquo;. Dann erscheint der Button &bdquo;RE erstellen&ldquo; in der Projektliste und in der Kunden&uuml;bersicht. Die Rechnung &uuml;bernimmt automatisch alle Daten aus dem Angebot.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Wie funktioniert der Verschnitt?</strong>
+                                <p>Der Verschnitt wird pro Position als Prozentsatz angegeben (z.B. 10%). Er wird auf die berechnete Materialfl&auml;che aufgeschlagen, bevor der Materialpreis berechnet wird. So werden Zuschnittverluste ber&uuml;cksichtigt.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Was passiert, wenn ich meinen Browser-Cache l&ouml;sche?</strong>
+                                <p>Dann gehen alle Daten verloren! Erstellen Sie daher regelm&auml;&szlig;ig Backups &uuml;ber <a href="#/einstellungen">Einstellungen &rarr; Datensicherung &rarr; Export</a>.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Kann ich die W&auml;hrung &auml;ndern?</strong>
+                                <p>Ja, unter <a href="#/einstellungen">Einstellungen &rarr; Allgemein</a> k&ouml;nnen Sie zwischen Euro (&euro;) und Schweizer Franken (CHF) w&auml;hlen.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Wie l&ouml;sche ich einen Kunden?</strong>
+                                <p>In der <a href="#/kunden">Kunden&uuml;bersicht</a> finden Sie auf jeder Kundenkarte den Button &bdquo;L&ouml;schen&ldquo;. Es erscheint eine Best&auml;tigungsabfrage. Hinweis: Zugeordnete Projekte bleiben erhalten.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Wie passe ich die KLR-Zuschl&auml;ge an meinen Betrieb an?</strong>
+                                <p>Unter <a href="#/einstellungen">Einstellungen &rarr; Standard KLR-S&auml;tze</a>. Die dort hinterlegten Werte werden automatisch bei jedem neuen Projekt voreingestellt. Sie k&ouml;nnen sie aber auch pro Projekt individuell &auml;ndern.</p>
+                            </div>
+                            <div class="hilfe-faq-item">
+                                <strong>Brauche ich eine Internetverbindung?</strong>
+                                <p>Nur beim ersten Laden der Seite. Danach funktioniert alles offline &mdash; auch die PDF-Erstellung. Schriftarten und Bibliotheken werden beim ersten Aufruf geladen.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tipps & Tricks -->
+                <div class="hilfe-card calc-card" id="hilfe-tipps">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,var(--accent),var(--wood-2))">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/><line x1="9" y1="21" x2="15" y2="21"/><line x1="10" y1="17" x2="10" y2="21"/><line x1="14" y1="17" x2="14" y2="21"/></svg>
+                        </span>
+                        <div><h3>Tipps &amp; Tricks f&uuml;r effizientes Arbeiten</h3></div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="hilfe-terms">
+                            <div class="hilfe-term"><strong>KPI-Karten filtern</strong> &mdash; Die Karten auf dem Dashboard sind klickbar. Klick auf &bdquo;Offene Angebote&ldquo; filtert direkt die Projektliste &mdash; so sehen Sie sofort, was noch aussteht.</div>
+                            <div class="hilfe-term"><strong>Vorlagen nutzen</strong> &mdash; Speichern Sie h&auml;ufige Projekte als Vorlage (&bdquo;Als Vorlage speichern&ldquo;) und laden Sie diese bei neuen Projekten. Spart enorm viel Zeit!</div>
+                            <div class="hilfe-term"><strong>Eigene Artikel pflegen</strong> &mdash; Unter <a href="#/einstellungen">Einstellungen</a> k&ouml;nnen Sie eigene Beschl&auml;ge, Oberfl&auml;chen und Materialien mit Ihren Einkaufspreisen anlegen.</div>
+                            <div class="hilfe-term"><strong>KLR-S&auml;tze vorbelegen</strong> &mdash; Hinterlegen Sie Ihre betrieblichen GK-S&auml;tze in den Einstellungen, damit neue Projekte sofort korrekt kalkulieren.</div>
+                            <div class="hilfe-term"><strong>Schneller Statuswechsel</strong> &mdash; Den Status k&ouml;nnen Sie direkt in der Projektliste oder in der Kunden&uuml;bersicht per Dropdown &auml;ndern, ohne das Projekt &ouml;ffnen zu m&uuml;ssen.</div>
+                            <div class="hilfe-term"><strong>Kunden-Projekte</strong> &mdash; In der Kunden&uuml;bersicht k&ouml;nnen Sie alle Projekte eines Kunden aufklappen &mdash; inkl. Status, Betrag und Schnellaktionen (PDF, Rechnung, Zahlung).</div>
+                            <div class="hilfe-term"><strong>Suche nutzen</strong> &mdash; Die Suchleiste in der Kunden- und Projektliste filtert in Echtzeit. Suchen Sie nach Name, Firma, Ort oder Projekttitel.</div>
+                            <div class="hilfe-term"><strong>Regelm&auml;&szlig;ig sichern</strong> &mdash; Machen Sie mindestens einmal pro Woche ein Backup &uuml;ber Einstellungen &rarr; Datensicherung. Es dauert nur Sekunden!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== IMPRESSUM ==================== -->
+    <section id="view-impressum" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header"><h1>Impressum</h1></div>
+            <div class="card legal-card">
+                <h2>Angaben gemäß § 5 TMG</h2>
+                <p><strong>[Firmenname]</strong><br>[Straße Nr.]<br>[PLZ Ort]</p>
+                <h3>Kontakt</h3>
+                <p>Telefon: [Telefonnummer]<br>E-Mail: [E-Mail-Adresse]</p>
+                <h3>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h3>
+                <p>[Name]<br>[Adresse]</p>
+                <h3>Haftungsausschluss</h3>
+                <p>Die Inhalte dieser Anwendung wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Die berechneten Preise dienen als Kalkulationshilfe und stellen keine verbindlichen Angebote dar.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== DATENSCHUTZ ==================== -->
+    <section id="view-datenschutz" class="view hidden">
+        <div class="container view-container">
+            <div class="view-header"><h1>Datenschutzerklärung</h1></div>
+            <div class="card legal-card">
+                <h2>1. Datenschutz auf einen Blick</h2>
+                <h3>Allgemeine Hinweise</h3>
+                <p>Diese Anwendung speichert alle Daten ausschließlich lokal in Ihrem Browser (IndexedDB). Es werden keine Daten an externe Server übertragen.</p>
+                <h3>Datenerfassung in dieser Anwendung</h3>
+                <p>Alle eingegebenen Daten (Kunden, Projekte, Einstellungen) werden lokal in Ihrem Browser gespeichert und verlassen Ihr Gerät nicht.</p>
+                <h2>2. Hosting</h2>
+                <p>[Informationen zum Hosting-Anbieter einfügen]</p>
+                <h2>3. Allgemeine Hinweise und Pflichtinformationen</h2>
+                <h3>Datenschutz</h3>
+                <p>Die Betreiber dieser Anwendung nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p>
+                <h3>Hinweis zur verantwortlichen Stelle</h3>
+                <p>[Name und Kontaktdaten der verantwortlichen Stelle einfügen]</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== MODAL: Kunde ==================== -->
+    <div id="modal-kunde" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-kunde-title">Neuer Kunde</h3>
+                <button class="modal-close" id="modal-kunde-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="kunde-form" novalidate>
+                    <input type="hidden" id="kunde-id">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="kunde-anrede">Anrede</label>
+                            <select id="kunde-anrede">
+                                <option value="">--</option>
+                                <option value="Herr">Herr</option>
+                                <option value="Frau">Frau</option>
+                                <option value="Firma">Firma</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="kunde-firma">Firma</label>
+                            <input type="text" id="kunde-firma" placeholder="Firmenname (optional)">
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="kunde-vorname">Vorname *</label>
+                            <input type="text" id="kunde-vorname" required placeholder="Max">
+                            <span class="field-error" id="err-kunde-vorname"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="kunde-nachname">Nachname *</label>
+                            <input type="text" id="kunde-nachname" required placeholder="Mustermann">
+                            <span class="field-error" id="err-kunde-nachname"></span>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="kunde-strasse">Straße & Nr.</label>
+                            <input type="text" id="kunde-strasse" placeholder="Musterstr. 5">
+                        </div>
+                        <div class="form-group form-grid-2-inner">
+                            <div>
+                                <label for="kunde-plz">PLZ</label>
+                                <input type="text" id="kunde-plz" placeholder="48149">
+                            </div>
+                            <div>
+                                <label for="kunde-ort">Ort</label>
+                                <input type="text" id="kunde-ort" placeholder="Münster">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="kunde-telefon">Telefon</label>
+                            <input type="text" id="kunde-telefon" placeholder="0251 / 123456">
+                        </div>
+                        <div class="form-group">
+                            <label for="kunde-email">E-Mail</label>
+                            <input type="email" id="kunde-email" placeholder="max@beispiel.de">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="kunde-notizen">Notizen</label>
+                        <textarea id="kunde-notizen" rows="2" placeholder="Interne Notizen"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" id="modal-kunde-cancel">Abbrechen</button>
+                <button type="button" class="btn btn-primary btn-sm" id="modal-kunde-save">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: Vorlage ==================== -->
+    <div id="modal-vorlage" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Vorlage laden</h3>
+                <button class="modal-close" id="modal-vorlage-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="vorlage-grid" id="vorlage-grid">
+                    <!-- Dynamisch befüllt -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: Bestätigung ==================== -->
+    <div id="modal-confirm" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="confirm-title">Bestätigung</h3>
+                <button class="modal-close" id="modal-confirm-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" id="confirm-cancel">Abbrechen</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirm-ok">Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zahlung verbuchen Modal -->
+    <div id="modal-zahlung" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Zahlung verbuchen</h3>
+                <button class="modal-close" id="modal-zahlung-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom:16px">
+                    <label for="zahlung-datum">Bezahlt am</label>
+                    <input type="date" id="zahlung-datum">
+                </div>
+                <div class="form-group" style="margin-bottom:16px">
+                    <label for="zahlung-betrag">Gezahlter Betrag (&euro;)</label>
+                    <input type="number" id="zahlung-betrag" min="0" step="0.01">
+                </div>
+                <p id="zahlung-skonto-hinweis" class="text-success" style="font-size:0.85rem;margin-top:8px"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" id="modal-zahlung-cancel">Abbrechen</button>
+                <button type="button" class="btn btn-primary btn-sm" id="modal-zahlung-ok">Zahlung verbuchen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <p>&copy; 2026 WerkBank. Alle Preise ohne Gew&auml;hr.</p>
+                <div class="footer-links">
+                    <a href="#/impressum">Impressum</a>
+                    <a href="#/datenschutz">Datenschutz</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" crossorigin="anonymous"></script>
+    <script>
+        if (typeof window.jspdf === 'undefined') {
+            console.warn('jsPDF CDN nicht geladen, versuche Fallback...');
+            var s = document.createElement('script');
+            s.src = 'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js';
+            s.crossOrigin = 'anonymous';
+            document.head.appendChild(s);
+        }
+    </script>
+    <script src="app.js?v=20260301c"></script>
+</body>
+</html>
