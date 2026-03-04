@@ -795,6 +795,7 @@ async function renderDashboard() {
     // KPIs
     const offene = projekte.filter(p => p.status === 'angeboten');
     const beauftragt = projekte.filter(p => p.status === 'beauftragt');
+    const inProduktion = projekte.filter(p => p.status === 'in_produktion');
     const abgeschlossen = projekte.filter(p => p.status === 'abgeschlossen');
     const monat = projekte.filter(p => {
         const d = new Date(p.erstelltAm);
@@ -805,6 +806,8 @@ async function renderDashboard() {
     document.getElementById('kpi-offene-summe').textContent = formatCurrency(offene.reduce((s, p) => s + (p.brutto || 0), 0));
     document.getElementById('kpi-beauftragt-anzahl').textContent = beauftragt.length;
     document.getElementById('kpi-beauftragt-summe').textContent = formatCurrency(beauftragt.reduce((s, p) => s + (p.brutto || 0), 0));
+    document.getElementById('kpi-produktion-anzahl').textContent = inProduktion.length;
+    document.getElementById('kpi-produktion-summe').textContent = formatCurrency(inProduktion.reduce((s, p) => s + (p.brutto || 0), 0));
     document.getElementById('kpi-abgeschlossen-anzahl').textContent = abgeschlossen.length;
     document.getElementById('kpi-abgeschlossen-summe').textContent = formatCurrency(abgeschlossen.reduce((s, p) => s + (p.brutto || 0), 0));
     document.getElementById('kpi-monat-anzahl').textContent = monat.length;
@@ -812,7 +815,7 @@ async function renderDashboard() {
     if (monatUmsatzEl) monatUmsatzEl.textContent = formatCurrency(monat.reduce((s, p) => s + (p.brutto || 0), 0));
 
     // Revenue banner
-    const gesamtUmsatz = projekte.filter(p => ['beauftragt', 'rechnung_gestellt', 'bezahlt', 'abgeschlossen'].includes(p.status))
+    const gesamtUmsatz = projekte.filter(p => ['beauftragt', 'in_produktion', 'rechnung_gestellt', 'bezahlt', 'abgeschlossen'].includes(p.status))
         .reduce((s, p) => s + (p.brutto || 0), 0);
     const gUmsatzEl = document.getElementById('kpi-gesamt-umsatz');
     if (gUmsatzEl) gUmsatzEl.textContent = formatCurrency(gesamtUmsatz);
@@ -1049,12 +1052,12 @@ function renderKostenDonut(projekte) {
 }
 
 function statusLabel(s) {
-    const map = { entwurf: 'Entwurf', angeboten: 'Angeboten', beauftragt: 'Beauftragt', rechnung_gestellt: 'Rechnung gestellt', bezahlt: 'Bezahlt', abgeschlossen: 'Abgeschlossen' };
+    const map = { entwurf: 'Entwurf', angeboten: 'Angeboten', beauftragt: 'Beauftragt', in_produktion: 'In Produktion', rechnung_gestellt: 'Rechnung gestellt', bezahlt: 'Bezahlt', abgeschlossen: 'Abgeschlossen' };
     return map[s] || s;
 }
 
 function buildStatusInlineSelect(projektId, currentStatus) {
-    const statuses = ['entwurf', 'angeboten', 'beauftragt', 'rechnung_gestellt', 'bezahlt', 'abgeschlossen'];
+    const statuses = ['entwurf', 'angeboten', 'beauftragt', 'in_produktion', 'rechnung_gestellt', 'bezahlt', 'abgeschlossen'];
     const options = statuses.map(s =>
         `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${statusLabel(s)}</option>`
     ).join('');
@@ -1772,8 +1775,6 @@ async function initProjektEditor(projekt) {
         document.getElementById('z-skonto-tage').value = z.skontoTage != null ? z.skontoTage : stdSkontoTage;
 
         const m = projekt.montage || {};
-        document.getElementById('proj-montage-aktiv').checked = !!m.aktiv;
-        document.getElementById('proj-montage-details').classList.toggle('hidden', !m.aktiv);
         document.getElementById('proj-anfahrtpauschale').value = m.anfahrtpauschale || m.anfahrtKm * 2 * (m.kmSatz || 0.45) || 0;
         document.getElementById('proj-gebrauchsmittel').value = m.gebrauchsmittel || 0;
         document.getElementById('proj-montage-personal-container').innerHTML = '';
@@ -1815,8 +1816,6 @@ async function initProjektEditor(projekt) {
         document.getElementById('z-skonto-prozent').value = stdSkontoProzent;
         document.getElementById('z-skonto-tage').value = stdSkontoTage;
 
-        document.getElementById('proj-montage-aktiv').checked = false;
-        document.getElementById('proj-montage-details').classList.add('hidden');
         document.getElementById('proj-anfahrtpauschale').value = 0;
         document.getElementById('proj-gebrauchsmittel').value = 0;
         document.getElementById('proj-montage-personal-container').innerHTML = '';
@@ -2440,9 +2439,8 @@ function berechneAlles() {
     const vtgkBetrag = herstellKosten * vtgkProzent;
 
     let anfahrtKosten = 0;
-    let montageResult = null;
-    if (document.getElementById('proj-montage-aktiv').checked) {
-        montageResult = calcMontageKosten('proj');
+    let montageResult = calcMontageKosten('proj');
+    if (montageResult && montageResult.gesamt > 0) {
         anfahrtKosten = montageResult.gesamt;
     }
 
@@ -2707,7 +2705,7 @@ async function saveProjekt() {
             skontoTage: parseInt(document.getElementById('z-skonto-tage').value) || 10
         },
         montage: {
-            aktiv: document.getElementById('proj-montage-aktiv').checked,
+            aktiv: true,
             anfahrtpauschale: parseFloat(document.getElementById('proj-anfahrtpauschale').value) || 0,
             personal: collectMontagePersonal('proj-montage-personal-container'),
             gebrauchsmittel: parseFloat(document.getElementById('proj-gebrauchsmittel').value) || 0
@@ -4419,14 +4417,6 @@ function initEvents() {
     // Kunde dropdown -> auto-fill address
     document.getElementById('proj-kunde').addEventListener('change', function () {
         fillKundeDetails(this.value);
-    });
-
-    // Montage toggle in project editor
-    document.getElementById('proj-montage-aktiv').addEventListener('change', function () {
-        document.getElementById('proj-montage-details').classList.toggle('hidden', !this.checked);
-        if (this.checked && document.getElementById('proj-montage-personal-container').children.length === 0) {
-            addMontageWorkerRow('proj-montage-personal-container');
-        }
     });
 
     // Montage personal add button
@@ -6157,11 +6147,12 @@ function initKalender() {
 // ==================== DASHBOARD WORKFLOW ====================
 async function updateWorkflowPipeline() {
     const projekte = await dbGetAll('projekte');
-    let erfassen = 0, ausfuehren = 0, abrechnen = 0, erledigt = 0;
+    let erfassen = 0, ausfuehren = 0, produktion = 0, abrechnen = 0, erledigt = 0;
     projekte.forEach(p => {
         switch (p.status) {
             case 'entwurf': case 'angeboten': erfassen++; break;
             case 'beauftragt': ausfuehren++; break;
+            case 'in_produktion': produktion++; break;
             case 'rechnung_gestellt': abrechnen++; break;
             case 'bezahlt': case 'abgeschlossen': erledigt++; break;
         }
@@ -6169,6 +6160,7 @@ async function updateWorkflowPipeline() {
     const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
     el('wf-erfassen', erfassen);
     el('wf-ausfuehren', ausfuehren);
+    el('wf-produktion', produktion);
     el('wf-abrechnen', abrechnen);
     el('wf-erledigt', erledigt);
 }
@@ -6208,6 +6200,18 @@ async function init() {
         } else {
             await router();
         }
+        // Projekt-Editor: Sektionen klappbar machen
+        document.querySelectorAll('.section-toggle').forEach(header => {
+            header.addEventListener('click', () => {
+                const sectionId = header.dataset.section;
+                const body = document.getElementById('section-' + sectionId);
+                if (body) {
+                    body.classList.toggle('hidden');
+                    header.classList.toggle('section-open');
+                }
+            });
+        });
+
         // Einstellungen-Cards standardmäßig einklappen
         document.querySelectorAll('#view-einstellungen .calc-card').forEach(card => {
             card.classList.add('collapsed');

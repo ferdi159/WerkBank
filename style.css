@@ -542,10 +542,16 @@ body {
 
 .kpi-icon-amber,
 .kpi-icon-green,
+.kpi-icon-orange,
 .kpi-icon-blue,
 .kpi-icon-purple {
     background: #f1f5f9;
     color: #475569;
+}
+
+.kpi-icon-orange {
+    background: #fff7ed;
+    color: #ea580c;
 }
 
 .kpi-data {
@@ -979,6 +985,11 @@ body {
     color: #155724;
 }
 
+.status-in_produktion {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
 .status-rechnung_gestellt {
     background: #e8daef;
     color: #6c3483;
@@ -1119,6 +1130,28 @@ body {
 
 .calc-body {
     padding: 24px;
+}
+
+/* Klappbare Sektionen im Projekt-Editor */
+.section-toggle {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.section-toggle:hover {
+    background: var(--bg-hover, #f8fafc);
+}
+
+.section-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+    color: var(--text-light, #94a3b8);
+}
+
+.section-open .section-chevron {
+    transform: rotate(180deg);
 }
 
 /* Einklappbare Cards (Einstellungen & Hilfe) */
@@ -1393,10 +1426,10 @@ input::placeholder {
 
 .montage-worker-header {
     display: grid;
-    grid-template-columns: 70px 2fr 90px 90px 36px;
-    gap: 8px;
+    grid-template-columns: 50px 150px 75px 75px 32px;
+    gap: 6px;
     padding: 4px 10px;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-light);
     text-transform: uppercase;
@@ -1405,13 +1438,20 @@ input::placeholder {
 
 .montage-worker-row {
     display: grid;
-    grid-template-columns: 70px 2fr 90px 90px 36px;
-    gap: 8px;
-    margin-bottom: 8px;
-    padding: 10px;
+    grid-template-columns: 50px 150px 75px 75px 32px;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding: 8px 10px;
     background: var(--cream);
     border-radius: var(--radius-sm);
     align-items: center;
+}
+
+.montage-pauschalen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
 }
 
 .montage-worker-row input,
@@ -2327,6 +2367,12 @@ input::placeholder {
     border-color: #a3d9b1;
 }
 
+.status-inline.status-in_produktion {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border-color: #fdba74;
+}
+
 .status-inline.status-rechnung_gestellt {
     background-color: #e8daef;
     color: #6c3483;
@@ -2676,6 +2722,7 @@ select.pos-kategorie optgroup option {
 .projekt-card.status-entwurf::before { background: #999; }
 .projekt-card.status-angeboten::before { background: #d4a24a; }
 .projekt-card.status-beauftragt::before { background: #2980b9; }
+.projekt-card.status-in_produktion::before { background: #ea580c; }
 .projekt-card.status-rechnung_gestellt::before { background: #8e44ad; }
 .projekt-card.status-bezahlt::before { background: #27ae60; }
 .projekt-card.status-abgeschlossen::before { background: #1a5c2e; }
@@ -4300,8 +4347,8 @@ select.pos-kategorie optgroup option {
     color: #60a5fa;
 }
 [data-theme="dark"] .status-in_produktion {
-    background: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
+    background: rgba(234, 88, 12, 0.2);
+    color: #fb923c;
 }
 [data-theme="dark"] .status-rechnung_gestellt {
     background: rgba(236, 72, 153, 0.2);
@@ -4580,8 +4627,8 @@ select.pos-kategorie optgroup option {
     color: #58a6ff;
 }
 [data-theme="midnight"] .status-in_produktion {
-    background: rgba(139, 92, 246, 0.15);
-    color: #a78bfa;
+    background: rgba(234, 88, 12, 0.15);
+    color: #fb923c;
 }
 [data-theme="midnight"] .status-rechnung_gestellt {
     background: rgba(236, 72, 153, 0.15);
