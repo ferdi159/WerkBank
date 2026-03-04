@@ -1774,8 +1774,14 @@ async function initProjektEditor(projekt) {
         const m = projekt.montage || {};
         document.getElementById('proj-montage-aktiv').checked = !!m.aktiv;
         document.getElementById('proj-montage-details').classList.toggle('hidden', !m.aktiv);
-        document.getElementById('proj-anfahrt-km').value = m.anfahrtKm || 0;
-        document.getElementById('proj-km-satz').value = m.kmSatz || 0.45;
+        document.getElementById('proj-anfahrtpauschale').value = m.anfahrtpauschale || m.anfahrtKm * 2 * (m.kmSatz || 0.45) || 0;
+        document.getElementById('proj-gebrauchsmittel').value = m.gebrauchsmittel || 0;
+        document.getElementById('proj-montage-personal-container').innerHTML = '';
+        if (m.personal && m.personal.length > 0) {
+            m.personal.forEach(p => addMontageWorkerRow('proj-montage-personal-container', p));
+        } else {
+            addMontageWorkerRow('proj-montage-personal-container');
+        }
 
         // Rebuild positions
         document.getElementById('positionen-container').innerHTML = '';
@@ -1811,8 +1817,10 @@ async function initProjektEditor(projekt) {
 
         document.getElementById('proj-montage-aktiv').checked = false;
         document.getElementById('proj-montage-details').classList.add('hidden');
-        document.getElementById('proj-anfahrt-km').value = 0;
-        document.getElementById('proj-km-satz').value = 0.45;
+        document.getElementById('proj-anfahrtpauschale').value = 0;
+        document.getElementById('proj-gebrauchsmittel').value = 0;
+        document.getElementById('proj-montage-personal-container').innerHTML = '';
+        addMontageWorkerRow('proj-montage-personal-container');
 
         document.getElementById('positionen-container').innerHTML = '';
         positionCounter = 0;
@@ -2086,6 +2094,89 @@ function buildBeschlagRow(data) {
     </div>`;
 }
 
+function buildMontageWorkerRow(data) {
+    const typ = data ? data.mitarbeiterTyp : 'Geselle';
+    const satz = data ? data.stundensatz : 52;
+    const std = data ? data.stunden : 0;
+    const anz = data ? (data.anzahl || 1) : 1;
+    return `<div class="montage-worker-row">
+        <input type="number" class="montage-anzahl" min="1" value="${anz}" placeholder="Anz.">
+        <select class="montage-typ">
+            <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi</option>
+            <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle</option>
+            <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle</option>
+            <option value="68" ${typ === 'Meister Werkstatt' || satz == 68 ? 'selected' : ''}>Meister Werkstatt</option>
+            <option value="75" ${typ === 'Meister Baustelle' || satz == 75 ? 'selected' : ''}>Meister Baustelle</option>
+        </select>
+        <input type="number" class="montage-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std">
+        <input type="number" class="montage-stunden" min="0" step="0.5" value="${std}" placeholder="Std">
+        <button type="button" class="btn-remove-worker" onclick="removeMontageWorker(this)" title="Entfernen">&times;</button>
+    </div>`;
+}
+
+function addMontageWorkerRow(containerId, data) {
+    const container = document.getElementById(containerId);
+    container.insertAdjacentHTML('beforeend', buildMontageWorkerRow(data));
+    const row = container.lastElementChild;
+    const typSelect = row.querySelector('.montage-typ');
+    typSelect.addEventListener('change', function () {
+        row.querySelector('.montage-satz').value = this.value;
+    });
+}
+
+function removeMontageWorker(btn) {
+    const container = btn.closest('.montage-worker-row').parentElement;
+    if (container.querySelectorAll('.montage-worker-row').length <= 1) {
+        showToast('Mindestens ein Mitarbeiter erforderlich', 'warning');
+        return;
+    }
+    btn.closest('.montage-worker-row').remove();
+}
+
+function collectMontagePersonal(containerId) {
+    const rows = document.querySelectorAll('#' + containerId + ' .montage-worker-row');
+    const personal = [];
+    rows.forEach(row => {
+        const typSelect = row.querySelector('.montage-typ');
+        personal.push({
+            anzahl: parseInt(row.querySelector('.montage-anzahl').value) || 1,
+            mitarbeiterTyp: typSelect.options[typSelect.selectedIndex].text,
+            stundensatz: parseFloat(row.querySelector('.montage-satz').value) || 0,
+            stunden: parseFloat(row.querySelector('.montage-stunden').value) || 0
+        });
+    });
+    return personal;
+}
+
+function calcMontageKosten(prefix) {
+    const anfahrt = parseFloat(document.getElementById(prefix + '-anfahrtpauschale').value) || 0;
+    const gebrauchsmittel = parseFloat(document.getElementById(prefix + '-gebrauchsmittel').value) || 0;
+    const containerId = prefix + '-montage-personal-container';
+    const personal = collectMontagePersonal(containerId);
+    let personalKosten = 0;
+    const personalDetails = [];
+    personal.forEach(p => {
+        const kosten = p.anzahl * p.stundensatz * p.stunden;
+        personalKosten += kosten;
+        if (p.stunden > 0) {
+            personalDetails.push({
+                anzahl: p.anzahl,
+                typ: p.mitarbeiterTyp,
+                stundensatz: p.stundensatz,
+                stunden: p.stunden,
+                kosten: kosten
+            });
+        }
+    });
+    return {
+        anfahrt,
+        personalKosten,
+        personalDetails,
+        gebrauchsmittel,
+        gesamt: anfahrt + personalKosten + gebrauchsmittel
+    };
+}
+
 function buildArbeitszeitRow(data) {
     const typ = data ? data.mitarbeiterTyp : 'Fachgeselle';
     const satz = data ? data.stundensatz : 58;
@@ -2349,10 +2440,10 @@ function berechneAlles() {
     const vtgkBetrag = herstellKosten * vtgkProzent;
 
     let anfahrtKosten = 0;
+    let montageResult = null;
     if (document.getElementById('proj-montage-aktiv').checked) {
-        const km = parseFloat(document.getElementById('proj-anfahrt-km').value) || 0;
-        const kmSatz = parseFloat(document.getElementById('proj-km-satz').value) || 0.45;
-        anfahrtKosten = km * 2 * kmSatz;
+        montageResult = calcMontageKosten('proj');
+        anfahrtKosten = montageResult.gesamt;
     }
 
     const selbstKosten = herstellKosten + vwgkBetrag + vtgkBetrag + anfahrtKosten;
@@ -2395,6 +2486,7 @@ function berechneAlles() {
         wugProzent: parseFloat(document.getElementById('z-wug').value),
         angebotspreis,
         anfahrtKosten,
+        montageResult,
         rabattBetrag,
         rabattProzent: parseFloat(document.getElementById('z-rabatt').value),
         netto,
@@ -2541,7 +2633,12 @@ function renderErgebnis(calc) {
         <div class="result-row bold" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px"><span>Herstellkosten</span><span>${formatCurrency(calc.herstellKosten)}</span></div>
         <div class="result-row light"><span>+ Verwaltungs-GK (${calc.vwgkProzent}%)</span><span>${formatCurrency(calc.vwgkBetrag)}</span></div>
         <div class="result-row light"><span>+ Vertriebs-GK (${calc.vtgkProzent}%)</span><span>${formatCurrency(calc.vtgkBetrag)}</span></div>
-        ${calc.anfahrtKosten > 0 ? `<div class="result-row light"><span>+ Anfahrt/Montage</span><span>${formatCurrency(calc.anfahrtKosten)}</span></div>` : ''}
+        ${calc.montageResult ? `
+            <div class="result-row light"><span>+ Montagekosten gesamt</span><span>${formatCurrency(calc.anfahrtKosten)}</span></div>
+            ${calc.montageResult.anfahrt > 0 ? `<div class="result-row sub"><span>Anfahrtpauschale</span><span>${formatCurrency(calc.montageResult.anfahrt)}</span></div>` : ''}
+            ${calc.montageResult.personalDetails.map(p => `<div class="result-row sub"><span>${p.anzahl}× ${escapeHtml(p.typ)} (${p.stunden}h × ${p.stundensatz}€)</span><span>${formatCurrency(p.kosten)}</span></div>`).join('')}
+            ${calc.montageResult.gebrauchsmittel > 0 ? `<div class="result-row sub"><span>Gebrauchsmittel</span><span>${formatCurrency(calc.montageResult.gebrauchsmittel)}</span></div>` : ''}
+        ` : ''}
         <div class="result-row bold"><span>= Selbstkosten</span><span>${formatCurrency(calc.selbstKosten)}</span></div>
 
         <div class="result-row light" style="margin-top:8px"><span>+ Wagnis & Gewinn (${calc.wugProzent}%)</span><span>${formatCurrency(calc.wugBetrag)}</span></div>
@@ -2611,8 +2708,9 @@ async function saveProjekt() {
         },
         montage: {
             aktiv: document.getElementById('proj-montage-aktiv').checked,
-            anfahrtKm: parseFloat(document.getElementById('proj-anfahrt-km').value) || 0,
-            kmSatz: parseFloat(document.getElementById('proj-km-satz').value) || 0.45
+            anfahrtpauschale: parseFloat(document.getElementById('proj-anfahrtpauschale').value) || 0,
+            personal: collectMontagePersonal('proj-montage-personal-container'),
+            gebrauchsmittel: parseFloat(document.getElementById('proj-gebrauchsmittel').value) || 0
         },
         brutto: letzteBerechnung ? letzteBerechnung.brutto : null,
         netto: letzteBerechnung ? letzteBerechnung.netto : null,
@@ -3730,8 +3828,14 @@ function loadRechnungKLR(projekt) {
     const m = rd.montage || {};
     document.getElementById('rz-montage-aktiv').checked = !!m.aktiv;
     document.getElementById('rz-montage-details').classList.toggle('hidden', !m.aktiv);
-    document.getElementById('rz-anfahrt-km').value = m.anfahrtKm || 0;
-    document.getElementById('rz-km-satz').value = m.kmSatz || 0.45;
+    document.getElementById('rz-anfahrtpauschale').value = m.anfahrtpauschale || m.anfahrtKm * 2 * (m.kmSatz || 0.45) || 0;
+    document.getElementById('rz-gebrauchsmittel').value = m.gebrauchsmittel || 0;
+    document.getElementById('rz-montage-personal-container').innerHTML = '';
+    if (m.personal && m.personal.length > 0) {
+        m.personal.forEach(p => addMontageWorkerRow('rz-montage-personal-container', p));
+    } else {
+        addMontageWorkerRow('rz-montage-personal-container');
+    }
 }
 
 function updateRechnungTabInfo(projekt) {
@@ -3837,10 +3941,10 @@ function berechneRechnung() {
     const vtgkBetrag = herstellKosten * vtgkProzent;
 
     let anfahrtKosten = 0;
+    let montageResult = null;
     if (document.getElementById('rz-montage-aktiv').checked) {
-        const km = parseFloat(document.getElementById('rz-anfahrt-km').value) || 0;
-        const kmSatz = parseFloat(document.getElementById('rz-km-satz').value) || 0.45;
-        anfahrtKosten = km * 2 * kmSatz;
+        montageResult = calcMontageKosten('rz');
+        anfahrtKosten = montageResult.gesamt;
     }
 
     const selbstKosten = herstellKosten + vwgkBetrag + vtgkBetrag + anfahrtKosten;
@@ -3882,6 +3986,7 @@ function berechneRechnung() {
         wugProzent: parseFloat(document.getElementById('rz-wug').value),
         angebotspreis,
         anfahrtKosten,
+        montageResult,
         rabattBetrag,
         rabattProzent: parseFloat(document.getElementById('rz-rabatt').value),
         netto,
@@ -3921,7 +4026,12 @@ function renderRechnungErgebnis(b) {
             <div class="res-label res-subtotal">Herstellkosten</div><div class="res-value res-subtotal">${formatCurrency(b.herstellKosten)}</div>
             <div class="res-label">+ VwGK (${b.vwgkProzent}%)</div><div class="res-value">${formatCurrency(b.vwgkBetrag)}</div>
             <div class="res-label">+ VtGK (${b.vtgkProzent}%)</div><div class="res-value">${formatCurrency(b.vtgkBetrag)}</div>
-            ${b.anfahrtKosten > 0 ? `<div class="res-label">+ Anfahrt</div><div class="res-value">${formatCurrency(b.anfahrtKosten)}</div>` : ''}
+            ${b.montageResult ? `
+                <div class="res-label">+ Montagekosten</div><div class="res-value">${formatCurrency(b.anfahrtKosten)}</div>
+                ${b.montageResult.anfahrt > 0 ? `<div class="res-label res-sub">  Anfahrtpauschale</div><div class="res-value res-sub">${formatCurrency(b.montageResult.anfahrt)}</div>` : ''}
+                ${b.montageResult.personalDetails.map(p => `<div class="res-label res-sub">  ${p.anzahl}\u00d7 ${escapeHtml(p.typ)} (${p.stunden}h)</div><div class="res-value res-sub">${formatCurrency(p.kosten)}</div>`).join('')}
+                ${b.montageResult.gebrauchsmittel > 0 ? `<div class="res-label res-sub">  Gebrauchsmittel</div><div class="res-value res-sub">${formatCurrency(b.montageResult.gebrauchsmittel)}</div>` : ''}
+            ` : ''}
             <div class="res-label res-subtotal">Selbstkosten</div><div class="res-value res-subtotal">${formatCurrency(b.selbstKosten)}</div>
             <div class="res-label">+ W&amp;G (${b.wugProzent}%)</div><div class="res-value">${formatCurrency(b.wugBetrag)}</div>
             ${b.rabattBetrag > 0 ? `<div class="res-label">- Rabatt (${b.rabattProzent}%)</div><div class="res-value">-${formatCurrency(b.rabattBetrag)}</div>` : ''}
@@ -3962,8 +4072,9 @@ async function saveRechnungsDaten() {
     };
     projekt.rechnungsDaten.montage = {
         aktiv: document.getElementById('rz-montage-aktiv').checked,
-        anfahrtKm: parseFloat(document.getElementById('rz-anfahrt-km').value) || 0,
-        kmSatz: parseFloat(document.getElementById('rz-km-satz').value) || 0.45
+        anfahrtpauschale: parseFloat(document.getElementById('rz-anfahrtpauschale').value) || 0,
+        personal: collectMontagePersonal('rz-montage-personal-container'),
+        gebrauchsmittel: parseFloat(document.getElementById('rz-gebrauchsmittel').value) || 0
     };
 
     if (letzteRechnungsBerechnung) {
@@ -4313,6 +4424,14 @@ function initEvents() {
     // Montage toggle in project editor
     document.getElementById('proj-montage-aktiv').addEventListener('change', function () {
         document.getElementById('proj-montage-details').classList.toggle('hidden', !this.checked);
+        if (this.checked && document.getElementById('proj-montage-personal-container').children.length === 0) {
+            addMontageWorkerRow('proj-montage-personal-container');
+        }
+    });
+
+    // Montage personal add button
+    document.getElementById('btn-add-montage-personal').addEventListener('click', function () {
+        addMontageWorkerRow('proj-montage-personal-container');
     });
 
     // Rabatt preset + input sync
@@ -4535,6 +4654,13 @@ function initEvents() {
     // Rechnung-Tab montage toggle
     document.getElementById('rz-montage-aktiv').addEventListener('change', function() {
         document.getElementById('rz-montage-details').classList.toggle('hidden', !this.checked);
+        if (this.checked && document.getElementById('rz-montage-personal-container').children.length === 0) {
+            addMontageWorkerRow('rz-montage-personal-container');
+        }
+    });
+
+    document.getElementById('btn-add-rz-montage-personal').addEventListener('click', function () {
+        addMontageWorkerRow('rz-montage-personal-container');
     });
 
     // Zahlung Modal
@@ -4637,7 +4763,7 @@ async function seedDemoData() {
                 pos('Schiebetüren', 'mdf', 'egger-mdf-lackiert', 19, 2400, 1000, { anzahl: 2, oberflaecheTyp: 'lack-seidenmatt', arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 6 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 3, skontoProzent: 2, skontoTage: 10 },
-            montage: { aktiv: true, anfahrtKm: 15, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 15, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 4 }], gebrauchsmittel: 25 },
             brutto: 8450.20, netto: 7101.01, erstelltAm: monthsAgo(10, 5), geaendertAm: monthsAgo(8, 12)
         },
         {
@@ -4651,7 +4777,7 @@ async function seedDemoData() {
                 pos('Rückwand mit Fächern', 'mdf', 'egger-mdf-lackiert', 19, 2200, 1800, { oberflaecheTyp: 'lack-hochglanz', arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 6 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 45, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 45, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 40 },
             brutto: 12780.50, netto: 10739.92, erstelltAm: monthsAgo(9, 10), geaendertAm: monthsAgo(7, 5)
         },
         {
@@ -4664,7 +4790,7 @@ async function seedDemoData() {
                 pos('Schreibtische', 'leimholz', 'pollmeier-buche', 25, 1200, 600, { anzahl: 5, oberflaecheTyp: 'oel-natur', arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 12 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 5 },
-            montage: { aktiv: true, anfahrtKm: 80, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 75, personal: [{ anzahl: 3, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 50 },
             brutto: 18950.00, netto: 15924.37, erstelltAm: monthsAgo(8, 1), geaendertAm: monthsAgo(5, 20)
         },
         {
@@ -4678,7 +4804,7 @@ async function seedDemoData() {
                 pos('Rückwand', 'mdf', 'egger-mdf-roh', 6, 2800, 1260, { arbeitszeiten: [{ mitarbeiterTyp: 'Azubi', stundensatz: 15, stunden: 3 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 25, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 25, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 5 }], gebrauchsmittel: 20 },
             brutto: 6320.80, netto: 5311.60, erstelltAm: monthsAgo(6, 18), geaendertAm: monthsAgo(4, 10)
         },
         {
@@ -4691,7 +4817,7 @@ async function seedDemoData() {
                 pos('Beleuchtungsleisten', 'mdf', 'mdf-schwarz', 12, 3000, 80, { arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 4 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 2 },
-            montage: { aktiv: true, anfahrtKm: 60, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 55, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 45 },
             brutto: 14250.00, netto: 11974.79, erstelltAm: monthsAgo(4, 5), geaendertAm: monthsAgo(2, 15)
         },
         // --- Beauftragte Projekte (aktuell in Arbeit) ---
@@ -4707,7 +4833,7 @@ async function seedDemoData() {
                 pos('Rückbuffet', 'multiplex', 'eiche', 21, 3000, 450, { beschlaege: [{ typ: 'topfband-110', anzahl: 12 }], arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 12 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 35, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 35, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 6 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 6 }], gebrauchsmittel: 30 },
             brutto: 22400.00, netto: 18823.53, erstelltAm: monthsAgo(3, 10), geaendertAm: monthsAgo(1, 5),
             lieferDatum: monthsAgo(1, 15), montageDatum: monthsAgo(1, 18)
         },
@@ -4722,7 +4848,7 @@ async function seedDemoData() {
                 pos('Kücheninsel', 'spanplatte', 'egger-perfectsense-matt', 19, 1800, 900, { beschlaege: [{ typ: 'vollauszug', anzahl: 6 }], arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 10 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 20, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 20, personal: [{ anzahl: 1, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 6 }], gebrauchsmittel: 15 },
             brutto: 16800.00, netto: 14117.65, erstelltAm: monthsAgo(2, 8), geaendertAm: monthsAgo(0, 15),
             lieferDatum: monthsAgo(0, 25), montageDatum: monthsAgo(0, 28)
         },
@@ -4736,7 +4862,7 @@ async function seedDemoData() {
                 pos('Wandpaneele Flur', 'tischlerplatte', 'buche', 16, 2400, 1200, { oberflaecheTyp: 'oel-natur', arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 16 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 5 },
-            montage: { aktiv: true, anfahrtKm: 80, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 75, personal: [{ anzahl: 3, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 50 },
             brutto: 15200.00, netto: 12773.11, erstelltAm: monthsAgo(1, 20), geaendertAm: monthsAgo(0, 10),
             lieferDatum: monthsAgo(0, 5), montageDatum: monthsAgo(0, 8)
         },
@@ -4751,7 +4877,7 @@ async function seedDemoData() {
                 pos('Kochinsel', 'leimholz', 'nussbaum', 25, 2400, 1100, { oberflaecheTyp: 'oel-natur', beschlaege: [{ typ: 'vollauszug', anzahl: 8 }], arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 20 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 120, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 110, personal: [{ anzahl: 3, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 10 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 10 }], gebrauchsmittel: 60 },
             brutto: 38500.00, netto: 32352.94, erstelltAm: monthsAgo(1, 5), geaendertAm: monthsAgo(0, 20)
         },
         {
@@ -4764,7 +4890,7 @@ async function seedDemoData() {
                 pos('Mittelinsel mit Schubladen', 'mdf', 'egger-mdf-lackiert', 19, 1400, 700, { oberflaecheTyp: 'lack-seidenmatt', beschlaege: [{ typ: 'vollauszug', anzahl: 6 }], arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 8 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 3 },
-            montage: { aktiv: true, anfahrtKm: 25, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 25, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 5 }], gebrauchsmittel: 20 },
             brutto: 11200.00, netto: 9411.76, erstelltAm: monthsAgo(0, 18), geaendertAm: monthsAgo(0, 18)
         },
         {
@@ -4776,7 +4902,7 @@ async function seedDemoData() {
                 pos('Tresenplatte', 'leimholz', 'eiche-dl', 40, 3800, 500, { oberflaecheTyp: 'oel-natur', arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 8 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 60, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 55, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 45 },
             brutto: 9850.00, netto: 8277.31, erstelltAm: monthsAgo(0, 12), geaendertAm: monthsAgo(0, 12)
         },
         // --- Entwurf (in Planung) ---
@@ -4788,7 +4914,7 @@ async function seedDemoData() {
                 pos('Tischplatte', 'leimholz', 'nussbaum', 40, 3600, 1200, { oberflaecheTyp: 'oel-natur', arbeitszeiten: [{ mitarbeiterTyp: 'Meister', stundensatz: 55, stunden: 12 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: false, anfahrtKm: 0, kmSatz: 0.45 },
+            montage: { aktiv: false, anfahrtpauschale: 0, personal: [], gebrauchsmittel: 0 },
             brutto: 7200.00, netto: 6050.42, erstelltAm: monthsAgo(0, 5), geaendertAm: monthsAgo(0, 5)
         },
         {
@@ -4800,7 +4926,7 @@ async function seedDemoData() {
                 pos('Hutablage + Spiegel', 'multiplex', 'birke-bb', 15, 1800, 300, { arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 3 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 3 },
-            montage: { aktiv: true, anfahrtKm: 15, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 15, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 4 }], gebrauchsmittel: 25 },
             brutto: 4850.00, netto: 4075.63, erstelltAm: monthsAgo(0, 8), geaendertAm: monthsAgo(0, 8)
         },
         // --- Kanzlei Hartmann (Kunde 9) ---
@@ -4816,7 +4942,7 @@ async function seedDemoData() {
                 pos('Sideboard', 'leimholz', 'nussbaum', 22, 2000, 500, { oberflaecheTyp: 'oel-natur', beschlaege: [{ typ: 'topfband-110', anzahl: 4 }], arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 8 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 55, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 50, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 6 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 6 }], gebrauchsmittel: 30 },
             brutto: 19450.00, netto: 16344.54, erstelltAm: monthsAgo(5, 1), geaendertAm: monthsAgo(3, 8)
         },
         {
@@ -4829,7 +4955,7 @@ async function seedDemoData() {
                 pos('Beistelltische', 'leimholz', 'nussbaum', 22, 600, 600, { anzahl: 3, oberflaecheTyp: 'oel-natur', arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 6 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 2 },
-            montage: { aktiv: true, anfahrtKm: 55, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 50, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 6 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 6 }], gebrauchsmittel: 30 },
             brutto: 13500.00, netto: 11344.54, erstelltAm: monthsAgo(1, 12), geaendertAm: monthsAgo(0, 18)
         },
         // --- Andreas Wagner – Neubau Bodensee (Kunde 10) ---
@@ -4844,7 +4970,7 @@ async function seedDemoData() {
                 pos('Hängeschränke oben', 'spanplatte', 'egger-eurodekor-holz', 19, 1200, 350, { anzahl: 4, beschlaege: [{ typ: 'topfband-110', anzahl: 8 }], arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 8 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 40, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 40, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }], gebrauchsmittel: 35 },
             brutto: 12800.00, netto: 10756.30, erstelltAm: monthsAgo(0, 14), geaendertAm: monthsAgo(0, 14)
         },
         {
@@ -4857,7 +4983,7 @@ async function seedDemoData() {
                 pos('Spiegelschrank', 'mdf', 'egger-mdf-lackiert', 16, 1400, 200, { oberflaecheTyp: 'lack-seidenmatt', beschlaege: [{ typ: 'topfband-110', anzahl: 4 }], arbeitszeiten: [{ mitarbeiterTyp: 'Geselle', stundensatz: 42, stunden: 5 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 0 },
-            montage: { aktiv: true, anfahrtKm: 40, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 40, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }], gebrauchsmittel: 35 },
             brutto: 5400.00, netto: 4537.82, erstelltAm: monthsAgo(0, 3), geaendertAm: monthsAgo(0, 3)
         },
         // --- Weiteres Projekt Dr. Weber (Kunde 2) ---
@@ -4872,7 +4998,7 @@ async function seedDemoData() {
                 pos('Ablagekonsolen', 'mdf', 'egger-mdf-lackiert', 22, 1200, 400, { anzahl: 3, oberflaecheTyp: 'lack-seidenmatt', arbeitszeiten: [{ mitarbeiterTyp: 'Azubi', stundensatz: 15, stunden: 6 }] })
             ],
             zuschlaege: { mgk: 10, fgk: 120, vwgk: 10, vtgk: 8, wug: 15, rabatt: 3 },
-            montage: { aktiv: true, anfahrtKm: 45, kmSatz: 0.45 },
+            montage: { aktiv: true, anfahrtpauschale: 45, personal: [{ anzahl: 2, mitarbeiterTyp: 'Geselle', stundensatz: 52, stunden: 8 }, { anzahl: 1, mitarbeiterTyp: 'Meister Baustelle', stundensatz: 75, stunden: 8 }], gebrauchsmittel: 40 },
             brutto: 16200.00, netto: 13613.45, erstelltAm: monthsAgo(2, 5), geaendertAm: monthsAgo(0, 12)
         }
     ];

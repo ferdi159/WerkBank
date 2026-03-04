@@ -510,14 +510,38 @@
                             </label>
                         </div>
                         <div id="proj-montage-details" class="hidden">
-                            <div class="form-grid-2" style="margin-top:16px">
-                                <div class="form-group">
-                                    <label for="proj-anfahrt-km">Anfahrt (km einfach)</label>
-                                    <input type="number" id="proj-anfahrt-km" min="0" value="0">
+                            <div class="calc-card montage-card" style="margin-top:16px">
+                                <div class="calc-header">
+                                    <span class="calc-step" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                                    </span>
+                                    <div><h3>Montagekosten</h3><p>Anfahrt, Personal &amp; Verbrauchsmaterial</p></div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="proj-km-satz">Kilometersatz (&euro;)</label>
-                                    <input type="number" id="proj-km-satz" min="0" step="0.05" value="0.45">
+                                <div class="calc-body">
+                                    <div class="form-group">
+                                        <label for="proj-anfahrtpauschale">Anfahrtpauschale (&euro;)</label>
+                                        <input type="number" id="proj-anfahrtpauschale" min="0" step="1" value="0">
+                                    </div>
+
+                                    <div class="montage-subsection-label">Montage-Personal</div>
+                                    <div class="montage-worker-header">
+                                        <span>Anzahl</span>
+                                        <span>Qualifikation</span>
+                                        <span>&euro;/Std</span>
+                                        <span>Stunden</span>
+                                        <span></span>
+                                    </div>
+                                    <div id="proj-montage-personal-container"></div>
+                                    <button type="button" class="btn-add btn-add-sm" id="btn-add-montage-personal">
+                                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Mitarbeiter hinzuf&uuml;gen
+                                    </button>
+
+                                    <div class="form-group" style="margin-top:16px">
+                                        <label for="proj-gebrauchsmittel">Pauschale Gebrauchsmittel (&euro;)</label>
+                                        <small class="montage-hint">Kleber, Schrauben, D&uuml;bel, Silikon etc.</small>
+                                        <input type="number" id="proj-gebrauchsmittel" min="0" step="1" value="0">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -666,14 +690,38 @@
                             </label>
                         </div>
                         <div id="rz-montage-details" class="hidden">
-                            <div class="form-grid-2" style="margin-top:16px">
-                                <div class="form-group">
-                                    <label for="rz-anfahrt-km">Anfahrt (km einfach)</label>
-                                    <input type="number" id="rz-anfahrt-km" min="0" value="0">
+                            <div class="calc-card montage-card" style="margin-top:16px">
+                                <div class="calc-header">
+                                    <span class="calc-step" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                                    </span>
+                                    <div><h3>Montagekosten</h3><p>Anfahrt, Personal &amp; Verbrauchsmaterial</p></div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="rz-km-satz">Kilometersatz (&euro;)</label>
-                                    <input type="number" id="rz-km-satz" min="0" step="0.05" value="0.45">
+                                <div class="calc-body">
+                                    <div class="form-group">
+                                        <label for="rz-anfahrtpauschale">Anfahrtpauschale (&euro;)</label>
+                                        <input type="number" id="rz-anfahrtpauschale" min="0" step="1" value="0">
+                                    </div>
+
+                                    <div class="montage-subsection-label">Montage-Personal</div>
+                                    <div class="montage-worker-header">
+                                        <span>Anzahl</span>
+                                        <span>Qualifikation</span>
+                                        <span>&euro;/Std</span>
+                                        <span>Stunden</span>
+                                        <span></span>
+                                    </div>
+                                    <div id="rz-montage-personal-container"></div>
+                                    <button type="button" class="btn-add btn-add-sm" id="btn-add-rz-montage-personal">
+                                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Mitarbeiter hinzuf&uuml;gen
+                                    </button>
+
+                                    <div class="form-group" style="margin-top:16px">
+                                        <label for="rz-gebrauchsmittel">Pauschale Gebrauchsmittel (&euro;)</label>
+                                        <small class="montage-hint">Kleber, Schrauben, D&uuml;bel, Silikon etc.</small>
+                                        <input type="number" id="rz-gebrauchsmittel" min="0" step="1" value="0">
+                                    </div>
                                 </div>
                             </div>
                         </div>
