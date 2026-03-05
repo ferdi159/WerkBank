@@ -444,13 +444,39 @@
                     </div>
                 </div>
 
-                <!-- Positionen Container -->
-                <div id="positionen-container"></div>
+                <!-- Projekttitel als Überschrift -->
+                <h2 id="schraenke-titel" class="schraenke-titel"></h2>
 
-                <button type="button" id="btn-position-add" class="btn-add btn-add-position">
+                <!-- Schränke Container -->
+                <div id="schraenke-container"></div>
+
+                <button type="button" id="btn-schrank-add" class="btn-add btn-add-position">
                     <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                    Position hinzufügen
+                    Schrank hinzufügen
                 </button>
+
+                <!-- Globale Arbeitszeit -->
+                <div class="calc-card section-collapsible arbeitszeit-card">
+                    <div class="calc-header section-toggle" data-section="arbeitszeit">
+                        <span class="calc-step">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <div>
+                            <h3>Arbeitszeit</h3>
+                        </div>
+                        <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="section-body hidden" id="section-arbeitszeit">
+                        <div id="global-arbeitszeit-container"></div>
+                        <button type="button" class="btn-add btn-add-sm" id="btn-arbeitszeit-add">
+                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                            Arbeitszeit hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legacy Positionen Container (hidden, für Rechnung-Tab) -->
+                <div id="positionen-container" style="display:none"></div>
 
                 <!-- Zuschläge -->
                 <div class="calc-card section-collapsible">

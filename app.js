@@ -171,13 +171,28 @@ const oberflaecheLookup = {};
 oberflaecheOptionen.forEach(g => g.items.forEach(i => { oberflaecheLookup[i.value] = i; }));
 
 const beschlagOptionen = [
-    { group: 'Scharniere', items: [
-        { value: '4.20', name: 'Blum CLIP top BLUMOTION 110°', price: 4.20 },
-        { value: '2.80', name: 'Blum CLIP top Standard 110°', price: 2.80 },
-        { value: '4.00', name: 'Hettich Sensys 110° Soft-close', price: 4.00 },
-        { value: '2.50', name: 'Hettich Sensys 110° Standard', price: 2.50 },
-        { value: '4.50', name: 'Grass Tiomos 110° Soft-close', price: 4.50 },
-        { value: '1.00_mp', name: 'Blum Kreuzmontageplatte', price: 1.00 },
+    { group: 'Topfbänder aufschlagend', items: [
+        { value: 'blum-clip-bm-110-auf', name: 'Blum CLIP top BLUMOTION 110° aufschl.', price: 4.20 },
+        { value: 'blum-clip-std-110-auf', name: 'Blum CLIP top Standard 110° aufschl.', price: 2.80 },
+        { value: 'blum-clip-bm-155-auf', name: 'Blum CLIP top BLUMOTION 155° aufschl.', price: 6.50 },
+        { value: 'hettich-sensys-sc-110-auf', name: 'Hettich Sensys 110° Soft-close aufschl.', price: 4.00 },
+        { value: 'hettich-sensys-std-110-auf', name: 'Hettich Sensys 110° Standard aufschl.', price: 2.50 },
+        { value: 'grass-tiomos-sc-110-auf', name: 'Grass Tiomos 110° Soft-close aufschl.', price: 4.50 },
+        { value: 'grass-tiomos-std-110-auf', name: 'Grass Tiomos 110° Standard aufschl.', price: 3.00 },
+    ]},
+    { group: 'Topfbänder einschlagend', items: [
+        { value: 'blum-clip-bm-110-ein', name: 'Blum CLIP top BLUMOTION 110° einschl.', price: 4.20 },
+        { value: 'blum-clip-std-110-ein', name: 'Blum CLIP top Standard 110° einschl.', price: 2.80 },
+        { value: 'hettich-sensys-sc-110-ein', name: 'Hettich Sensys 110° Soft-close einschl.', price: 4.00 },
+        { value: 'hettich-sensys-std-110-ein', name: 'Hettich Sensys 110° Standard einschl.', price: 2.50 },
+        { value: 'grass-tiomos-sc-110-ein', name: 'Grass Tiomos 110° Soft-close einschl.', price: 4.50 },
+        { value: 'grass-tiomos-std-110-ein', name: 'Grass Tiomos 110° Standard einschl.', price: 3.00 },
+    ]},
+    { group: 'Montageplatten', items: [
+        { value: 'blum-kreuzmp-0', name: 'Blum Kreuzmontageplatte 0mm', price: 1.00 },
+        { value: 'blum-kreuzmp-3', name: 'Blum Kreuzmontageplatte 3mm Distanz', price: 1.20 },
+        { value: 'hettich-mp-0', name: 'Hettich Montageplatte 0mm', price: 0.90 },
+        { value: 'grass-mp-0', name: 'Grass Montageplatte 0mm', price: 1.10 },
     ]},
     { group: 'Schubkastensysteme', items: [
         { value: '19.00', name: 'Blum TANDEMBOX antaro M 30kg', price: 19.00 },
@@ -219,6 +234,126 @@ const beschlagOptionen = [
 // Flat lookup for beschlaege
 const beschlagLookup = {};
 beschlagOptionen.forEach(g => g.items.forEach(i => { beschlagLookup[i.value] = i; }));
+
+// Legacy-Aliase für alte gespeicherte Projekte
+beschlagLookup['4.20'] = { value: '4.20', name: 'Blum CLIP top BLUMOTION 110°', price: 4.20 };
+beschlagLookup['2.80'] = { value: '2.80', name: 'Blum CLIP top Standard 110°', price: 2.80 };
+beschlagLookup['4.00'] = { value: '4.00', name: 'Hettich Sensys 110° Soft-close', price: 4.00 };
+beschlagLookup['2.50'] = { value: '2.50', name: 'Hettich Sensys 110° Standard', price: 2.50 };
+beschlagLookup['4.50'] = { value: '4.50', name: 'Grass Tiomos 110° Soft-close', price: 4.50 };
+beschlagLookup['1.00_mp'] = { value: '1.00_mp', name: 'Blum Kreuzmontageplatte', price: 1.00 };
+
+// ==================== VERBINDUNGSMITTEL ====================
+const verbindungsmittelOptionen = [
+    { group: 'Dübel', items: [
+        { value: 'holzduebel-6x30', name: 'Holzdübel 6×30mm', price: 0.03 },
+        { value: 'holzduebel-8x40', name: 'Holzdübel 8×40mm', price: 0.04 },
+        { value: 'holzduebel-10x40', name: 'Holzdübel 10×40mm', price: 0.05 },
+        { value: 'riffelduebel-6x30', name: 'Riffeldübel 6×30mm', price: 0.04 },
+        { value: 'riffelduebel-8x40', name: 'Riffeldübel 8×40mm', price: 0.05 },
+    ]},
+    { group: 'Schrauben', items: [
+        { value: 'spax-3x30', name: 'SPAX 3×30mm Senkkopf', price: 0.04 },
+        { value: 'spax-3.5x35', name: 'SPAX 3,5×35mm Senkkopf', price: 0.05 },
+        { value: 'spax-4x40', name: 'SPAX 4×40mm Senkkopf', price: 0.06 },
+        { value: 'spax-4x50', name: 'SPAX 4×50mm Senkkopf', price: 0.07 },
+        { value: 'spax-5x60', name: 'SPAX 5×60mm Senkkopf', price: 0.09 },
+        { value: 'spax-5x80', name: 'SPAX 5×80mm Senkkopf', price: 0.12 },
+        { value: 'spax-6x100', name: 'SPAX 6×100mm Senkkopf', price: 0.18 },
+        { value: 'konf-4x50', name: 'Konfirmatsschraube 5×50mm', price: 0.08 },
+        { value: 'konf-7x50', name: 'Konfirmatsschraube 7×50mm', price: 0.10 },
+        { value: 'konf-7x70', name: 'Konfirmatsschraube 7×70mm', price: 0.12 },
+    ]},
+    { group: 'Exzenter & Bolzen', items: [
+        { value: 'exzenter-15', name: 'Exzenter Ø15mm komplett', price: 0.85 },
+        { value: 'exzenter-25', name: 'Exzenter Ø25mm komplett', price: 1.20 },
+        { value: 'rastex-15', name: 'Häfele Rastex 15 Verbinder', price: 1.50 },
+        { value: 'vb-36-bolzen', name: 'VB 36 Bolzen + Hülse', price: 0.90 },
+        { value: 'minifix-15', name: 'Minifix 15 Verbinder', price: 1.10 },
+    ]},
+    { group: 'Leimverbindungen', items: [
+        { value: 'holzleim-d3', name: 'Holzleim D3 (pro Fuge)', price: 0.10 },
+        { value: 'holzleim-d4', name: 'Holzleim D4 wasserfest (pro Fuge)', price: 0.15 },
+        { value: 'pu-leim', name: 'PU-Leim (pro Fuge)', price: 0.25 },
+    ]},
+    { group: 'Flachdübel (Lamello)', items: [
+        { value: 'lamello-0', name: 'Flachdübel Nr. 0 (47mm)', price: 0.06 },
+        { value: 'lamello-10', name: 'Flachdübel Nr. 10 (53mm)', price: 0.07 },
+        { value: 'lamello-20', name: 'Flachdübel Nr. 20 (56mm)', price: 0.08 },
+        { value: 'domino-4x20', name: 'Festool Domino 4×20mm', price: 0.12 },
+        { value: 'domino-5x30', name: 'Festool Domino 5×30mm', price: 0.15 },
+        { value: 'domino-6x40', name: 'Festool Domino 6×40mm', price: 0.18 },
+        { value: 'domino-8x50', name: 'Festool Domino 8×50mm', price: 0.22 },
+        { value: 'domino-10x50', name: 'Festool Domino 10×50mm', price: 0.30 },
+    ]},
+    { group: 'Winkel & Eckverbinder', items: [
+        { value: 'winkel-40', name: 'Winkelverbinder 40×40mm verzinkt', price: 0.35 },
+        { value: 'winkel-60', name: 'Winkelverbinder 60×60mm verzinkt', price: 0.50 },
+        { value: 'eckwinkel-50', name: 'Eckwinkel 50×50mm Stahl', price: 0.45 },
+        { value: 'trapezverbinder', name: 'Trapezverbinder AP', price: 1.80 },
+        { value: 'moebel-winkel-kunststoff', name: 'Möbelwinkel Kunststoff weiß', price: 0.15 },
+    ]},
+    { group: 'Nägel & Stifte', items: [
+        { value: 'stift-23ga-25', name: 'Mikrostift 23GA 25mm', price: 0.01 },
+        { value: 'stift-23ga-35', name: 'Mikrostift 23GA 35mm', price: 0.01 },
+        { value: 'nagel-1.2x25', name: 'Stauchkopfnagel 1,2×25mm', price: 0.02 },
+        { value: 'nagel-1.2x35', name: 'Stauchkopfnagel 1,2×35mm', price: 0.02 },
+    ]},
+];
+
+const verbindungsmittelLookup = {};
+verbindungsmittelOptionen.forEach(g => g.items.forEach(i => { verbindungsmittelLookup[i.value] = i; }));
+
+// ==================== KANTENMATERIAL ====================
+const kantenMaterial = [
+    { group: 'ABS-Kanten 0,4 mm', items: [
+        { value: 'abs-04-weiss', name: 'ABS 0,4mm weiß glatt', price: 0.35 },
+        { value: 'abs-04-weiss-perl', name: 'ABS 0,4mm weiß Perlstruktur', price: 0.40 },
+        { value: 'abs-04-dekor', name: 'ABS 0,4mm Dekor passend', price: 0.55 },
+        { value: 'abs-04-schwarz', name: 'ABS 0,4mm schwarz', price: 0.38 },
+    ]},
+    { group: 'ABS-Kanten 2 mm', items: [
+        { value: 'abs-2-weiss', name: 'ABS 2mm weiß glatt', price: 0.85 },
+        { value: 'abs-2-weiss-perl', name: 'ABS 2mm weiß Perlstruktur', price: 0.95 },
+        { value: 'abs-2-dekor', name: 'ABS 2mm Dekor passend', price: 1.20 },
+        { value: 'abs-2-schwarz', name: 'ABS 2mm schwarz', price: 0.90 },
+    ]},
+    { group: 'PP-Kanten', items: [
+        { value: 'pp-04', name: 'PP 0,4mm uni', price: 0.30 },
+        { value: 'pp-2', name: 'PP 2mm uni', price: 0.75 },
+    ]},
+    { group: 'Massivholz-Kanten', items: [
+        { value: 'massiv-buche', name: 'Massivholz Buche', price: 2.80 },
+        { value: 'massiv-eiche', name: 'Massivholz Eiche', price: 3.50 },
+        { value: 'massiv-nussbaum', name: 'Massivholz Nussbaum', price: 5.20 },
+        { value: 'massiv-ahorn', name: 'Massivholz Ahorn', price: 3.20 },
+        { value: 'massiv-fichte', name: 'Massivholz Fichte', price: 1.80 },
+    ]},
+    { group: 'Furnier-Kanten', items: [
+        { value: 'furnier-buche', name: 'Furnierkante Buche', price: 1.20 },
+        { value: 'furnier-eiche', name: 'Furnierkante Eiche', price: 1.60 },
+        { value: 'furnier-nussbaum', name: 'Furnierkante Nussbaum', price: 2.40 },
+    ]},
+    { group: 'Aluminium-Kanten', items: [
+        { value: 'alu-natur', name: 'Alu-Kante natur eloxiert', price: 4.50 },
+        { value: 'alu-schwarz', name: 'Alu-Kante schwarz eloxiert', price: 5.20 },
+    ]}
+];
+
+const kantenLookup = {};
+kantenMaterial.forEach(g => g.items.forEach(i => { kantenLookup[i.value] = i; }));
+
+function buildKantenOptions() {
+    let html = '<option value="">-- Auswählen --</option>';
+    kantenMaterial.forEach(g => {
+        html += '<optgroup label="' + escapeHtml(g.group) + '">';
+        g.items.forEach(i => {
+            html += '<option value="' + i.value + '">' + escapeHtml(i.name) + ' (' + i.price.toFixed(2).replace('.', ',') + '\u20ac/lfm)</option>';
+        });
+        html += '</optgroup>';
+    });
+    return html;
+}
 
 // ==================== VORLAGEN ====================
 // Eigene Vorlagen werden aus IndexedDB geladen
@@ -1755,8 +1890,13 @@ async function initProjektEditor(projekt) {
     const stdSkontoProzent = await getSetting('standardSkontoProzent', 2);
     const stdSkontoTage = await getSetting('standardSkontoTage', 10);
 
+    // Projekttitel-Überschrift sync
+    const schraenkeTitelEl = document.getElementById('schraenke-titel');
+
     if (projekt) {
         document.getElementById('proj-titel').value = projekt.titel || '';
+        schraenkeTitelEl.textContent = projekt.titel || '';
+        schraenkeTitelEl.classList.toggle('hidden', !projekt.titel);
         document.getElementById('proj-kunde').value = projekt.kundeId || '';
         document.getElementById('proj-status').value = projekt.status || 'entwurf';
         document.getElementById('proj-angebot-nr').value = projekt.angebotNr || '';
@@ -1784,16 +1924,50 @@ async function initProjektEditor(projekt) {
             addMontageWorkerRow('proj-montage-personal-container');
         }
 
-        // Rebuild positions
+        // Rebuild schraenke
+        document.getElementById('schraenke-container').innerHTML = '';
+        schrankCounter = 0;
+        if (projekt.schraenke && projekt.schraenke.length > 0) {
+            projekt.schraenke.forEach(s => addSchrankBlock(s));
+        } else if (projekt.positionen && projekt.positionen.length > 0) {
+            // Legacy conversion: alte Positionen als Schränke laden
+            projekt.positionen.forEach(pos => addSchrankBlock(convertLegacyPosition(pos)));
+        } else {
+            addSchrankBlock();
+        }
+
+        // Global Arbeitszeit
+        const globalArbeitContainer = document.getElementById('global-arbeitszeit-container');
+        if (globalArbeitContainer) {
+            globalArbeitContainer.innerHTML = '';
+            if (projekt.arbeitszeiten && projekt.arbeitszeiten.length > 0) {
+                projekt.arbeitszeiten.forEach(a => {
+                    globalArbeitContainer.insertAdjacentHTML('beforeend', buildArbeitszeitRow(a));
+                });
+            } else if (projekt.positionen && projekt.positionen.length > 0) {
+                // Legacy: sammle Arbeitszeiten aus alten Positionen
+                const allAz = [];
+                projekt.positionen.forEach(pos => {
+                    if (pos.arbeitszeiten) allAz.push(...pos.arbeitszeiten);
+                });
+                if (allAz.length > 0) {
+                    allAz.forEach(a => globalArbeitContainer.insertAdjacentHTML('beforeend', buildArbeitszeitRow(a)));
+                } else {
+                    globalArbeitContainer.insertAdjacentHTML('beforeend', buildArbeitszeitRow());
+                }
+            } else {
+                globalArbeitContainer.insertAdjacentHTML('beforeend', buildArbeitszeitRow());
+            }
+            bindMitarbeiterSelects(globalArbeitContainer);
+        }
+
+        // Legacy positions for Rechnung-Tab reference
         document.getElementById('positionen-container').innerHTML = '';
         positionCounter = 0;
-        if (projekt.positionen && projekt.positionen.length > 0) {
-            projekt.positionen.forEach(pos => addPositionBlock(pos));
-        } else {
-            addPositionBlock();
-        }
     } else {
         document.getElementById('proj-titel').value = '';
+        schraenkeTitelEl.textContent = '';
+        schraenkeTitelEl.classList.add('hidden');
         document.getElementById('proj-kunde').value = '';
         document.getElementById('proj-status').value = 'entwurf';
         document.getElementById('proj-objekt-adresse').value = '';
@@ -1821,9 +1995,21 @@ async function initProjektEditor(projekt) {
         document.getElementById('proj-montage-personal-container').innerHTML = '';
         addMontageWorkerRow('proj-montage-personal-container');
 
+        // Schraenke
+        document.getElementById('schraenke-container').innerHTML = '';
+        schrankCounter = 0;
+        addSchrankBlock();
+
+        // Global Arbeitszeit
+        const globalArbeitContainer = document.getElementById('global-arbeitszeit-container');
+        if (globalArbeitContainer) {
+            globalArbeitContainer.innerHTML = '';
+            globalArbeitContainer.insertAdjacentHTML('beforeend', buildArbeitszeitRow());
+            bindMitarbeiterSelects(globalArbeitContainer);
+        }
+
         document.getElementById('positionen-container').innerHTML = '';
         positionCounter = 0;
-        addPositionBlock();
     }
 
     clearFieldErrors('projekt-form');
@@ -1853,8 +2039,1165 @@ function setRabattCombo(value) {
     }
 }
 
+// ==================== SCHRANK SYSTEM ====================
+let schrankCounter = 0;
+
+// --- DRY Helpers for Material/Oberfläche/Kanten inside Schrank sub-sections ---
+
+function buildMaterialSelectGroup(prefix) {
+    return `<div class="form-grid-3">
+        <div class="form-group">
+            <label>Kategorie</label>
+            <select class="${prefix}-kategorie">${buildKategorieOptions()}</select>
+        </div>
+        <div class="form-group">
+            <label>Typ</label>
+            <select class="${prefix}-typ" disabled><option value="">-- Erst Kategorie --</option></select>
+        </div>
+        <div class="form-group">
+            <label>Stärke</label>
+            <select class="${prefix}-staerke" disabled><option value="">-- Erst Typ --</option></select>
+        </div>
+    </div>`;
+}
+
+function buildOberflaecheGroup(prefix) {
+    return `<div class="sub-section">
+        <label class="toggle-label">
+            <input type="checkbox" class="${prefix}-oberflaeche-aktiv">
+            <span class="toggle-text">Oberflächenbehandlung</span>
+        </label>
+        <div class="${prefix}-oberflaeche-details hidden">
+            <div class="${prefix}-oberflaeche-rows" style="margin-top:8px">
+                ${buildOberflaecheRow(prefix)}
+            </div>
+            <button type="button" class="btn-add btn-add-sm ${prefix}-add-oberflaeche" style="margin-top:6px">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Produkt hinzufügen
+            </button>
+        </div>
+    </div>`;
+}
+
+function buildOberflaecheRow(prefix, data) {
+    const typ = data ? data.typ : '';
+    const anstriche = data ? data.anstriche : 2;
+    return `<div class="oberflaeche-row">
+        <div class="form-grid-3" style="align-items:end">
+            <div class="form-group">
+                <label>Produkt</label>
+                <select class="${prefix}-oberflaeche-typ">${buildOberflaecheOptions(typ)}</select>
+            </div>
+            <div class="form-group">
+                <label>Anstriche</label>
+                <select class="${prefix}-oberflaeche-anstriche">
+                    <option value="1" ${anstriche == 1 ? 'selected' : ''}>1 Anstrich</option>
+                    <option value="2" ${anstriche == 2 ? 'selected' : ''}>2 Anstriche</option>
+                    <option value="3" ${anstriche == 3 ? 'selected' : ''}>3 Anstriche</option>
+                </select>
+            </div>
+            <div class="form-group oberflaeche-liter-display">
+                <span class="oberflaeche-liter-value">—</span>
+                <button type="button" class="btn-remove-oberflaeche" title="Entfernen">&times;</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+function buildKantenGroup(prefix) {
+    // Korpus hat spezielle Plattenseiten-Checkboxen
+    const isKorpus = prefix === 'korpus';
+    const kantenCheckboxes = isKorpus ? `
+            <div class="kanten-platten-grid">
+                <div class="kanten-platte-group">
+                    <span class="kanten-platte-label">Seiten</span>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-vorne" checked> vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-links"> links</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-rechts"> rechts</label>
+                </div>
+                <div class="kanten-platte-group">
+                    <span class="kanten-platte-label">Boden</span>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-vorne" checked> vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-hinten" checked> hinten</label>
+                </div>
+                <div class="kanten-platte-group">
+                    <span class="kanten-platte-label">Deckel</span>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-vorne" checked> vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-hinten" checked> hinten</label>
+                </div>
+                <div class="kanten-platte-group">
+                    <span class="kanten-platte-label">Extras</span>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="zwischenboden-vorne" checked> Zw.boden vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="einlegeboden-vorne" checked> Einl.boden vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="mittelseite-vorne" checked> Mittelseite vorne</label>
+                </div>
+            </div>
+            <div class="kanten-lfm-display">
+                <small>Auto-Laufmeter: <span class="${prefix}-kanten-lfm-auto">0,00</span> m</small>
+            </div>` : '';
+
+    return `<div class="sub-section">
+        <label class="toggle-label">
+            <input type="checkbox" class="${prefix}-kanten-aktiv">
+            <span class="toggle-text">Kantenbearbeitung</span>
+        </label>
+        <div class="${prefix}-kanten-details hidden">
+            <div class="form-grid-2" style="margin-top:12px">
+                <div class="form-group">
+                    <label>Kantenmaterial</label>
+                    <select class="${prefix}-kanten-typ">${buildKantenOptions()}</select>
+                </div>
+                <div class="form-group">
+                    <label>Zusätzl. Laufmeter (manuell)</label>
+                    <input type="number" class="${prefix}-kanten-lfm-extra" min="0" step="0.1" value="0" placeholder="0">
+                </div>
+            </div>${kantenCheckboxes}
+        </div>
+    </div>`;
+}
+
+function populateTypSelectGeneric(katSelect, typEl, staerkeEl, preselect) {
+    const kategorie = katSelect.value;
+    typEl.innerHTML = '<option value="">-- Auswählen --</option>';
+    staerkeEl.innerHTML = '<option value="">-- Erst Typ --</option>';
+    staerkeEl.disabled = true;
+
+    if (kategorie && materialDaten[kategorie]) {
+        typEl.disabled = false;
+        const eigeneMats = eigeneArtikelMaterialien.filter(m => m.kategorie === kategorie);
+        if (eigeneMats.length > 0) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = 'Eigene Materialien';
+            eigeneMats.forEach(m => {
+                const option = document.createElement('option');
+                option.value = 'eigen_' + m.id;
+                option.textContent = m.name + ' (ab ' + m.basisPreis + '\u20ac/m\u00b2)';
+                option.dataset.basispreis = m.basisPreis;
+                optgroup.appendChild(option);
+            });
+            typEl.appendChild(optgroup);
+        }
+        const typen = materialDaten[kategorie].typen;
+        for (const [key, data] of Object.entries(typen)) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = data.name + ' (ab ' + data.basisPreis + '\u20ac/m\u00b2)';
+            option.dataset.basispreis = data.basisPreis;
+            typEl.appendChild(option);
+        }
+        if (preselect) typEl.value = preselect;
+    } else {
+        typEl.disabled = true;
+    }
+}
+
+function populateStaerkeSelectGeneric(typSelect, katEl, staerkeEl, preselect) {
+    const kategorie = katEl.value;
+    staerkeEl.innerHTML = '<option value="">-- Auswählen --</option>';
+
+    if (kategorie && typSelect.value && materialDaten[kategorie]) {
+        staerkeEl.disabled = false;
+        const staerken = materialDaten[kategorie].staerken;
+        const basisPreis = parseFloat(typSelect.options[typSelect.selectedIndex].dataset.basispreis);
+        const preisProMm = materialDaten[kategorie].preisProMm;
+        const basisStaerke = staerken[Math.floor(staerken.length / 2)];
+
+        staerken.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s;
+            const preisAufschlag = (s - basisStaerke) * preisProMm;
+            const endpreis = Math.max(basisPreis + preisAufschlag, basisPreis * 0.6);
+            option.dataset.preis = endpreis.toFixed(2);
+            option.textContent = s + ' mm (' + endpreis.toFixed(2) + '\u20ac/m\u00b2)';
+            staerkeEl.appendChild(option);
+        });
+        if (preselect) staerkeEl.value = String(preselect);
+    } else {
+        staerkeEl.disabled = true;
+    }
+}
+
+// --- Schrank-Extra-Row (Zwischenboden, Einlegeboden, Mittelseite) ---
+function buildExtraRow(type, data) {
+    const labels = {
+        zwischenboden: 'Zwischenboden',
+        einlegeboden: 'Einlegeboden',
+        mittelseite: 'Mittelseite'
+    };
+    const label = labels[type] || type;
+    return `<div class="korpus-extra-row" data-extra-type="${type}">
+        <div class="extra-row-header">
+            <span class="extra-label">${escapeHtml(label)}</span>
+            <button type="button" class="btn-remove-extra" title="Entfernen">&times;</button>
+        </div>
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label>Anzahl</label>
+                <input type="number" class="extra-anzahl" min="1" value="${data ? data.anzahl : 1}">
+            </div>
+            <div class="form-group">
+                <label>Materialpreisaufschlag</label>
+                <input type="checkbox" class="extra-eigenes-material" ${data && data.eigenesMaterial ? 'checked' : ''}>
+                <small>Eigenes Material</small>
+            </div>
+        </div>
+    </div>`;
+}
+
+// --- addSchrankBlock ---
+function addSchrankBlock(data) {
+    schrankCounter++;
+    const idx = schrankCounter;
+    const container = document.getElementById('schraenke-container');
+
+    const block = document.createElement('div');
+    block.className = 'calc-card schrank-block';
+    block.dataset.schrankIdx = idx;
+    block.innerHTML = `
+        <div class="calc-header schrank-header" data-toggle-schrank="${idx}">
+            <span class="calc-step">${idx}</span>
+            <div class="position-title-wrap">
+                <h3 class="schrank-title-display">${escapeHtml(data ? data.bezeichnung : 'Schrank ' + idx)}</h3>
+                <p class="pos-subtitle">Klicken zum Auf-/Zuklappen</p>
+            </div>
+            <span class="pos-sum schrank-sum" id="schrank-sum-${idx}">0,00 \u20ac</span>
+            <button type="button" class="btn-remove-pos btn-remove-schrank" data-remove-schrank="${idx}" title="Schrank entfernen">&times;</button>
+        </div>
+        <div class="calc-body schrank-body${data ? '' : ' hidden'}" id="schrank-body-${idx}">
+            <div class="form-grid-3">
+                <div class="form-group" style="grid-column: 1 / -1">
+                    <label class="label-required">Bezeichnung</label>
+                    <input type="text" class="schrank-bezeichnung" value="${escapeHtml(data ? data.bezeichnung : '')}" placeholder="z.B. Unterschrank Spüle">
+                </div>
+            </div>
+
+            <!-- KORPUS -->
+            <div class="schrank-section">
+                <div class="schrank-section-header${data ? '' : ' collapsed'}" data-toggle-section="korpus-${idx}">
+                    <h4>Korpus</h4>
+                    <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-korpus-${idx}">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Höhe (mm)</label>
+                            <input type="number" class="korpus-hoehe" min="1" step="1" value="${data && data.korpus ? data.korpus.hoehe : ''}" placeholder="z.B. 720">
+                        </div>
+                        <div class="form-group">
+                            <label>Breite (mm)</label>
+                            <input type="number" class="korpus-breite" min="1" step="1" value="${data && data.korpus ? data.korpus.breite : ''}" placeholder="z.B. 600">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiefe (mm)</label>
+                            <input type="number" class="korpus-tiefe" min="1" step="1" value="${data && data.korpus ? data.korpus.tiefe : ''}" placeholder="z.B. 560">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:4px">
+                        <label>Verschnitt %</label>
+                        <div class="pct-combo">
+                            <select class="pct-presets korpus-verschnitt-presets">
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15" selected>15%</option>
+                                <option value="20">20%</option>
+                                <option value="25">25%</option>
+                                <option value="30">30%</option>
+                                <option value="custom">Eigener Wert</option>
+                            </select>
+                            <input type="number" class="klr-input korpus-verschnitt" min="0" max="40" step="1" value="${data && data.korpus ? data.korpus.verschnitt : 15}">
+                            <span class="pct-unit">%</span>
+                        </div>
+                    </div>
+
+                    <div class="korpus-platten-preview" id="korpus-preview-${idx}">
+                        <span class="preview-label">Platten-Aufschlüsselung:</span>
+                        <div class="preview-items">Bitte Maße eingeben</div>
+                    </div>
+
+                    ${buildMaterialSelectGroup('korpus')}
+                    ${buildOberflaecheGroup('korpus')}
+                    ${buildKantenGroup('korpus')}
+
+                    <!-- Extras -->
+                    <div class="extras-section">
+                        <h5>Extras</h5>
+                        <div class="korpus-extras-container"></div>
+                        <div class="extras-add-buttons">
+                            <button type="button" class="btn-add btn-add-sm btn-add-extra" data-extra="zwischenboden">+ Zwischenboden</button>
+                            <button type="button" class="btn-add btn-add-sm btn-add-extra" data-extra="einlegeboden">+ Einlegeboden</button>
+                            <button type="button" class="btn-add btn-add-sm btn-add-extra" data-extra="mittelseite">+ Mittelseite</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRONT -->
+            <div class="schrank-section">
+                <div class="schrank-section-header${data ? '' : ' collapsed'}" data-toggle-section="front-${idx}">
+                    <h4>Front</h4>
+                    <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-front-${idx}">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Typ</label>
+                            <select class="front-typ-art">
+                                <option value="aufschlagend" ${data && data.front && data.front.typArt === 'einschlagend' ? '' : 'selected'}>Aufschlagend</option>
+                                <option value="einschlagend" ${data && data.front && data.front.typArt === 'einschlagend' ? 'selected' : ''}>Einschlagend</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Höhe (mm)</label>
+                            <input type="number" class="front-hoehe" min="1" step="1" value="${data && data.front ? data.front.hoehe : ''}" placeholder="Auto aus Korpus">
+                        </div>
+                        <div class="form-group">
+                            <label>Breite (mm)</label>
+                            <input type="number" class="front-breite" min="1" step="1" value="${data && data.front ? data.front.breite : ''}" placeholder="Auto aus Korpus">
+                        </div>
+                        <div class="form-group">
+                            <label>Anzahl</label>
+                            <input type="number" class="front-anzahl" min="0" value="${data && data.front ? data.front.anzahl : 1}">
+                        </div>
+                    </div>
+                    ${buildMaterialSelectGroup('front')}
+                    ${buildOberflaecheGroup('front')}
+                    ${buildKantenGroup('front')}
+                </div>
+            </div>
+
+            <!-- RÜCKWAND -->
+            <div class="schrank-section">
+                <div class="schrank-section-header${data ? '' : ' collapsed'}" data-toggle-section="rueckwand-${idx}">
+                    <h4>Rückwand</h4>
+                    <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-rueckwand-${idx}">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Befestigung</label>
+                            <select class="rueckwand-typ-art">
+                                <option value="aufschlagend" ${data && data.rueckwand && data.rueckwand.typArt === 'eingenutet' ? '' : (data && data.rueckwand && data.rueckwand.typArt === 'gefaelzt' ? '' : 'selected')}>Aufschlagend</option>
+                                <option value="eingenutet" ${data && data.rueckwand && data.rueckwand.typArt === 'eingenutet' ? 'selected' : ''}>Eingenutet</option>
+                                <option value="gefaelzt" ${data && data.rueckwand && data.rueckwand.typArt === 'gefaelzt' ? 'selected' : ''}>Gefälzt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Höhe (mm)</label>
+                            <input type="number" class="rueckwand-hoehe" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.hoehe : ''}" placeholder="Auto aus Korpus">
+                        </div>
+                        <div class="form-group">
+                            <label>Breite (mm)</label>
+                            <input type="number" class="rueckwand-breite" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.breite : ''}" placeholder="Auto aus Korpus">
+                        </div>
+                    </div>
+                    ${buildMaterialSelectGroup('rueckwand')}
+                    ${buildOberflaecheGroup('rueckwand')}
+                    ${buildKantenGroup('rueckwand')}
+                </div>
+            </div>
+
+            <!-- BESCHLÄGE -->
+            <div class="schrank-section">
+                <div class="schrank-section-header${data ? '' : ' collapsed'}" data-toggle-section="beschlaege-${idx}">
+                    <h4>Beschläge</h4>
+                    <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-beschlaege-${idx}">
+                    <div class="schrank-beschlaege-container">
+                        ${data && data.beschlaege && data.beschlaege.length > 0
+                            ? data.beschlaege.map(b => buildBeschlagRow(b)).join('')
+                            : buildBeschlagRow()
+                        }
+                    </div>
+                    <button type="button" class="btn-add btn-add-sm schrank-add-beschlag">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        Beschlag hinzufügen
+                    </button>
+                </div>
+            </div>
+
+            <!-- VERBINDUNGSMITTEL -->
+            <div class="schrank-section">
+                <div class="schrank-section-header${data ? '' : ' collapsed'}" data-toggle-section="verbindungsmittel-${idx}">
+                    <h4>Verbindungsmittel</h4>
+                    <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-verbindungsmittel-${idx}">
+                    <div class="schrank-verbindungsmittel-container">
+                        ${data && data.verbindungsmittel && data.verbindungsmittel.length > 0
+                            ? data.verbindungsmittel.map(v => buildVerbindungsmittelRow(v)).join('')
+                            : buildVerbindungsmittelRow()
+                        }
+                    </div>
+                    <button type="button" class="btn-add btn-add-sm schrank-add-verbindungsmittel">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        Verbindungsmittel hinzufügen
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(block);
+
+    // Set cascading select values if data provided
+    if (data) {
+        setSchrankComponentData(block, 'korpus', data.korpus);
+        setSchrankComponentData(block, 'front', data.front);
+        setSchrankComponentData(block, 'rueckwand', data.rueckwand);
+
+        // Extras
+        if (data.korpus && data.korpus.extras) {
+            data.korpus.extras.forEach(ex => {
+                const extrasContainer = block.querySelector('.korpus-extras-container');
+                extrasContainer.insertAdjacentHTML('beforeend', buildExtraRow(ex.type, ex));
+            });
+        }
+
+        // Verschnitt
+        if (data.korpus && data.korpus.verschnitt) {
+            const vInput = block.querySelector('.korpus-verschnitt');
+            const vPresets = block.querySelector('.korpus-verschnitt-presets');
+            vInput.value = data.korpus.verschnitt;
+            const matchOpt = Array.from(vPresets.options).find(o => o.value === String(data.korpus.verschnitt));
+            vPresets.value = matchOpt ? String(data.korpus.verschnitt) : 'custom';
+        }
+    }
+
+    bindSchrankEvents(block, idx);
+}
+
+function setSchrankComponentData(block, prefix, compData) {
+    if (!compData) return;
+    const katSel = block.querySelector('.' + prefix + '-kategorie');
+    const typSel = block.querySelector('.' + prefix + '-typ');
+    const staerkeSel = block.querySelector('.' + prefix + '-staerke');
+
+    if (compData.kategorie) {
+        katSel.value = compData.kategorie;
+        populateTypSelectGeneric(katSel, typSel, staerkeSel, compData.typ);
+        if (compData.typ) {
+            setTimeout(() => populateStaerkeSelectGeneric(typSel, katSel, staerkeSel, compData.staerke), 0);
+        }
+    }
+
+    // Oberfläche
+    if (compData.oberflaecheAktiv) {
+        const obAktiv = block.querySelector('.' + prefix + '-oberflaeche-aktiv');
+        obAktiv.checked = true;
+        block.querySelector('.' + prefix + '-oberflaeche-details').classList.remove('hidden');
+
+        if (compData.oberflaecheProdukte && compData.oberflaecheProdukte.length > 0) {
+            // Multi-Produkte laden
+            const rowsContainer = block.querySelector('.' + prefix + '-oberflaeche-rows');
+            rowsContainer.innerHTML = '';
+            compData.oberflaecheProdukte.forEach(p => {
+                rowsContainer.insertAdjacentHTML('beforeend', buildOberflaecheRow(prefix, p));
+            });
+        } else if (compData.oberflaecheTyp) {
+            // Legacy: Einzelprodukt
+            block.querySelector('.' + prefix + '-oberflaeche-typ').value = compData.oberflaecheTyp;
+            if (compData.oberflaecheAnstriche) {
+                block.querySelector('.' + prefix + '-oberflaeche-anstriche').value = compData.oberflaecheAnstriche;
+            }
+        }
+    }
+
+    // Kanten
+    if (compData.kantenAktiv) {
+        const kAktiv = block.querySelector('.' + prefix + '-kanten-aktiv');
+        kAktiv.checked = true;
+        block.querySelector('.' + prefix + '-kanten-details').classList.remove('hidden');
+        if (compData.kantenTyp) {
+            block.querySelector('.' + prefix + '-kanten-typ').value = compData.kantenTyp;
+        }
+        if (compData.kantenLfmExtra) {
+            block.querySelector('.' + prefix + '-kanten-lfm-extra').value = compData.kantenLfmExtra;
+        }
+        // Kanten-Checkboxen wiederherstellen
+        if (compData.kantenCheckboxen) {
+            Object.entries(compData.kantenCheckboxen).forEach(([kante, checked]) => {
+                const cb = block.querySelector(`.${prefix}-kante-cb[data-kante="${kante}"]`);
+                if (cb) cb.checked = checked;
+            });
+        }
+    }
+}
+
+// --- bindSchrankEvents ---
+function bindSchrankEvents(block, idx) {
+    // Toggle main accordion
+    block.querySelector('.schrank-header').addEventListener('click', (e) => {
+        if (e.target.closest('.btn-remove-schrank')) return;
+        block.querySelector('.schrank-body').classList.toggle('hidden');
+    });
+
+    // Remove schrank
+    block.querySelector('.btn-remove-schrank').addEventListener('click', () => {
+        const container = block.parentElement;
+        if (container.querySelectorAll('.schrank-block').length <= 1) {
+            showToast('Mindestens ein Schrank erforderlich', 'warning');
+            return;
+        }
+        block.remove();
+        renumberSchraenke();
+    });
+
+    // Bezeichnung sync
+    const bezInput = block.querySelector('.schrank-bezeichnung');
+    bezInput.addEventListener('input', () => {
+        block.querySelector('.schrank-title-display').textContent = bezInput.value || 'Schrank ' + idx;
+    });
+
+    // Sub-section toggles
+    block.querySelectorAll('.schrank-section-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const sectionId = header.dataset.toggleSection;
+            const body = document.getElementById('section-' + sectionId);
+            if (body) body.classList.toggle('hidden');
+            header.classList.toggle('collapsed');
+        });
+    });
+
+    // Bind material cascades for all components
+    ['korpus', 'front', 'rueckwand'].forEach(prefix => {
+        const katSel = block.querySelector('.' + prefix + '-kategorie');
+        const typSel = block.querySelector('.' + prefix + '-typ');
+        const staerkeSel = block.querySelector('.' + prefix + '-staerke');
+
+        katSel.addEventListener('change', () => {
+            populateTypSelectGeneric(katSel, typSel, staerkeSel);
+            triggerSchrankCalc(block);
+        });
+        typSel.addEventListener('change', () => {
+            populateStaerkeSelectGeneric(typSel, katSel, staerkeSel);
+            triggerSchrankCalc(block);
+        });
+        staerkeSel.addEventListener('change', () => triggerSchrankCalc(block));
+
+        // Oberfläche toggle
+        const obAktiv = block.querySelector('.' + prefix + '-oberflaeche-aktiv');
+        obAktiv.addEventListener('change', () => {
+            block.querySelector('.' + prefix + '-oberflaeche-details').classList.toggle('hidden', !obAktiv.checked);
+            triggerSchrankCalc(block);
+        });
+
+        // Oberfläche: Produkt hinzufügen
+        const addObBtn = block.querySelector('.' + prefix + '-add-oberflaeche');
+        if (addObBtn) {
+            addObBtn.addEventListener('click', () => {
+                block.querySelector('.' + prefix + '-oberflaeche-rows').insertAdjacentHTML('beforeend', buildOberflaecheRow(prefix));
+                triggerSchrankCalc(block);
+            });
+        }
+
+        // Oberfläche: delegierte Events für Rows (change + remove)
+        const obRowsContainer = block.querySelector('.' + prefix + '-oberflaeche-rows');
+        if (obRowsContainer) {
+            obRowsContainer.addEventListener('change', () => triggerSchrankCalc(block));
+            obRowsContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-remove-oberflaeche')) {
+                    const rows = obRowsContainer.querySelectorAll('.oberflaeche-row');
+                    if (rows.length > 1) {
+                        e.target.closest('.oberflaeche-row').remove();
+                        triggerSchrankCalc(block);
+                    }
+                }
+            });
+        }
+
+        // Kanten toggle
+        const kAktiv = block.querySelector('.' + prefix + '-kanten-aktiv');
+        kAktiv.addEventListener('change', () => {
+            block.querySelector('.' + prefix + '-kanten-details').classList.toggle('hidden', !kAktiv.checked);
+            triggerSchrankCalc(block);
+        });
+        block.querySelector('.' + prefix + '-kanten-typ').addEventListener('change', () => triggerSchrankCalc(block));
+        block.querySelector('.' + prefix + '-kanten-lfm-extra').addEventListener('input', () => triggerSchrankCalc(block));
+
+        // Kanten-Checkboxen (nur Korpus hat diese)
+        block.querySelectorAll('.' + prefix + '-kante-cb').forEach(cb => {
+            cb.addEventListener('change', () => triggerSchrankCalc(block));
+        });
+    });
+
+    // Korpus dimensions → auto-fill Front/Rückwand + preview
+    ['korpus-hoehe', 'korpus-breite', 'korpus-tiefe'].forEach(cls => {
+        block.querySelector('.' + cls).addEventListener('input', () => {
+            autoFillFromKorpus(block);
+            updatePlattenPreview(block, idx);
+            triggerSchrankCalc(block);
+        });
+    });
+
+    // Front-Typ (aufschlagend/einschlagend) → re-autofill
+    const frontTypArtSel = block.querySelector('.front-typ-art');
+    if (frontTypArtSel) {
+        frontTypArtSel.addEventListener('change', () => {
+            // Reset auto-filled flags to force recalc
+            const frontH = block.querySelector('.front-hoehe');
+            const frontB = block.querySelector('.front-breite');
+            frontH.dataset.autoFilled = '1';
+            frontB.dataset.autoFilled = '1';
+            autoFillFromKorpus(block);
+            triggerSchrankCalc(block);
+        });
+    }
+
+    // Rückwand-Typ (aufschlagend/eingenutet/gefälzt) → re-autofill
+    const rwTypArtSel = block.querySelector('.rueckwand-typ-art');
+    if (rwTypArtSel) {
+        rwTypArtSel.addEventListener('change', () => {
+            const rwH = block.querySelector('.rueckwand-hoehe');
+            const rwB = block.querySelector('.rueckwand-breite');
+            rwH.dataset.autoFilled = '1';
+            rwB.dataset.autoFilled = '1';
+            autoFillFromKorpus(block);
+            triggerSchrankCalc(block);
+        });
+    }
+
+    // Front/Rückwand dimension changes
+    ['front-hoehe', 'front-breite', 'front-anzahl', 'rueckwand-hoehe', 'rueckwand-breite'].forEach(cls => {
+        const el = block.querySelector('.' + cls);
+        if (el) el.addEventListener('input', () => {
+            // Mark as manually edited
+            el.dataset.autoFilled = '';
+            triggerSchrankCalc(block);
+        });
+    });
+
+    // Verschnitt combo
+    const verschnittPresets = block.querySelector('.korpus-verschnitt-presets');
+    const verschnittInput = block.querySelector('.korpus-verschnitt');
+    verschnittPresets.addEventListener('change', () => {
+        if (verschnittPresets.value !== 'custom') {
+            verschnittInput.value = verschnittPresets.value;
+            triggerSchrankCalc(block);
+        }
+    });
+    verschnittInput.addEventListener('input', () => {
+        const val = verschnittInput.value;
+        const m = Array.from(verschnittPresets.options).find(o => o.value === val);
+        verschnittPresets.value = m ? val : 'custom';
+        triggerSchrankCalc(block);
+    });
+
+    // Extras buttons
+    block.querySelectorAll('.btn-add-extra').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.extra;
+            const extrasContainer = block.querySelector('.korpus-extras-container');
+            extrasContainer.insertAdjacentHTML('beforeend', buildExtraRow(type));
+            triggerSchrankCalc(block);
+        });
+    });
+
+    // Extras remove delegation
+    block.querySelector('.korpus-extras-container').addEventListener('click', (e) => {
+        if (e.target.closest('.btn-remove-extra')) {
+            e.target.closest('.korpus-extra-row').remove();
+            triggerSchrankCalc(block);
+        }
+    });
+
+    // Extras input delegation
+    block.querySelector('.korpus-extras-container').addEventListener('input', () => triggerSchrankCalc(block));
+
+    // Beschlag add
+    block.querySelector('.schrank-add-beschlag').addEventListener('click', () => {
+        block.querySelector('.schrank-beschlaege-container').insertAdjacentHTML('beforeend', buildBeschlagRow());
+    });
+
+    // Beschlag changes delegation
+    block.addEventListener('change', (e) => {
+        if (e.target.matches('.beschlag-typ, .beschlag-anzahl')) triggerSchrankCalc(block);
+    });
+    block.addEventListener('input', (e) => {
+        if (e.target.matches('.beschlag-anzahl')) triggerSchrankCalc(block);
+    });
+
+    // Verbindungsmittel add
+    block.querySelector('.schrank-add-verbindungsmittel').addEventListener('click', () => {
+        block.querySelector('.schrank-verbindungsmittel-container').insertAdjacentHTML('beforeend', buildVerbindungsmittelRow());
+    });
+
+    // Verbindungsmittel changes delegation
+    block.addEventListener('change', (e) => {
+        if (e.target.matches('.verbindungsmittel-typ, .verbindungsmittel-anzahl')) triggerSchrankCalc(block);
+    });
+    block.addEventListener('input', (e) => {
+        if (e.target.matches('.verbindungsmittel-anzahl')) triggerSchrankCalc(block);
+    });
+
+    // Initial calc
+    triggerSchrankCalc(block);
+}
+
+function autoFillFromKorpus(block) {
+    const h = parseFloat(block.querySelector('.korpus-hoehe').value) || 0;
+    const b = parseFloat(block.querySelector('.korpus-breite').value) || 0;
+    const t = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
+
+    // Korpus Stärke für einschlagende Front/Rückwand
+    const staerkeSel = block.querySelector('.korpus-staerke');
+    const staerke = parseFloat(staerkeSel?.value) || 19;
+
+    // Front: abhängig von Typ (aufschlagend/einschlagend)
+    const frontTypArt = block.querySelector('.front-typ-art')?.value || 'aufschlagend';
+    const frontH = block.querySelector('.front-hoehe');
+    const frontB = block.querySelector('.front-breite');
+    if (!frontH.value || frontH.dataset.autoFilled) {
+        frontH.value = frontTypArt === 'einschlagend' ? Math.max(h - 2 * staerke, 0) : h;
+        frontH.dataset.autoFilled = '1';
+    }
+    if (!frontB.value || frontB.dataset.autoFilled) {
+        frontB.value = frontTypArt === 'einschlagend' ? Math.max(b - 2 * staerke, 0) : b;
+        frontB.dataset.autoFilled = '1';
+    }
+
+    // Rückwand: abhängig von Befestigungsart
+    const rwTypArt = block.querySelector('.rueckwand-typ-art')?.value || 'aufschlagend';
+    const rwH = block.querySelector('.rueckwand-hoehe');
+    const rwB = block.querySelector('.rueckwand-breite');
+    if (!rwH.value || rwH.dataset.autoFilled) {
+        if (rwTypArt === 'eingenutet') {
+            rwH.value = Math.max(h - 2 * 8, 0); // 8mm Nuttiefe
+        } else if (rwTypArt === 'gefaelzt') {
+            rwH.value = Math.max(h - 8, 0); // 8mm Falztiefe
+        } else {
+            rwH.value = h;
+        }
+        rwH.dataset.autoFilled = '1';
+    }
+    if (!rwB.value || rwB.dataset.autoFilled) {
+        if (rwTypArt === 'eingenutet') {
+            rwB.value = Math.max(b - 2 * 8, 0);
+        } else if (rwTypArt === 'gefaelzt') {
+            rwB.value = Math.max(b - 8, 0);
+        } else {
+            rwB.value = b;
+        }
+        rwB.dataset.autoFilled = '1';
+    }
+}
+
+function updatePlattenPreview(block, idx) {
+    const h = parseFloat(block.querySelector('.korpus-hoehe').value) || 0;
+    const b = parseFloat(block.querySelector('.korpus-breite').value) || 0;
+    const t = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
+    const previewEl = block.querySelector('.korpus-platten-preview .preview-items');
+
+    if (!h || !b || !t) {
+        previewEl.innerHTML = 'Bitte Maße eingeben';
+        return;
+    }
+
+    // Get Stärke for inner width calculation
+    const staerkeSel = block.querySelector('.korpus-staerke');
+    const staerke = parseFloat(staerkeSel.value) || 19;
+
+    const innerB = b - 2 * staerke;
+    const seiteH = h;
+    const seiteT = t;
+    const bodenB = innerB;
+    const bodenT = t;
+
+    previewEl.innerHTML = `
+        <div class="preview-platte">2× Seite: ${seiteH} × ${seiteT} mm</div>
+        <div class="preview-platte">1× Boden: ${bodenB.toFixed(0)} × ${bodenT} mm</div>
+        <div class="preview-platte">1× Deckel: ${bodenB.toFixed(0)} × ${bodenT} mm</div>
+        <div class="preview-total">Gesamt: ${((2 * seiteH * seiteT + 2 * bodenB * bodenT) / 1000000).toFixed(3)} m²</div>
+    `;
+}
+
+function renumberSchraenke() {
+    const container = document.getElementById('schraenke-container');
+    container.querySelectorAll('.schrank-block').forEach((block, i) => {
+        block.querySelector('.calc-step').textContent = i + 1;
+    });
+}
+
+// --- berechneSchrank ---
+function berechneSchrank(block) {
+    const bezeichnung = block.querySelector('.schrank-bezeichnung').value || 'Schrank';
+
+    // Korpus
+    const korpusResult = berechneKorpus(block);
+
+    // Front
+    const frontResult = berechneKomponente(block, 'front');
+
+    // Rückwand
+    const rueckwandResult = berechneKomponente(block, 'rueckwand');
+
+    // Beschläge
+    let beschlaegeKosten = 0;
+    const beschlaegeDetails = [];
+    block.querySelectorAll('.schrank-beschlaege-container .beschlag-row').forEach(row => {
+        const sel = row.querySelector('.beschlag-typ');
+        const val = sel.value;
+        const info = beschlagLookup[val];
+        const menge = parseInt(row.querySelector('.beschlag-anzahl').value) || 0;
+        if (info && menge > 0) {
+            beschlaegeKosten += info.price * menge;
+            beschlaegeDetails.push({ name: info.name, menge, preis: info.price, summe: info.price * menge });
+        }
+    });
+
+    // Verbindungsmittel
+    let verbindungsmittelKosten = 0;
+    const verbindungsmittelDetails = [];
+    block.querySelectorAll('.schrank-verbindungsmittel-container .verbindungsmittel-row').forEach(row => {
+        const sel = row.querySelector('.verbindungsmittel-typ');
+        const val = sel.value;
+        const info = verbindungsmittelLookup[val];
+        const menge = parseInt(row.querySelector('.verbindungsmittel-anzahl').value) || 0;
+        if (info && menge > 0) {
+            verbindungsmittelKosten += info.price * menge;
+            verbindungsmittelDetails.push({ name: info.name, menge, preis: info.price, summe: info.price * menge });
+        }
+    });
+
+    const materialGesamt = korpusResult.kosten + frontResult.kosten + rueckwandResult.kosten + beschlaegeKosten + verbindungsmittelKosten;
+
+    return {
+        bezeichnung,
+        korpus: korpusResult,
+        front: frontResult,
+        rueckwand: rueckwandResult,
+        beschlaegeDetails,
+        beschlaegeKosten,
+        verbindungsmittelDetails,
+        verbindungsmittelKosten,
+        materialGesamt,
+        schrankSumme: materialGesamt
+    };
+}
+
+function berechneKorpus(block) {
+    const h = parseFloat(block.querySelector('.korpus-hoehe').value) || 0;
+    const b = parseFloat(block.querySelector('.korpus-breite').value) || 0;
+    const t = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
+    const verschnitt = parseFloat(block.querySelector('.korpus-verschnitt').value) / 100 || 0.15;
+
+    const staerkeSel = block.querySelector('.korpus-staerke');
+    const staerkeOpt = staerkeSel.options[staerkeSel.selectedIndex];
+    const materialPreis = parseFloat(staerkeOpt?.dataset?.preis) || 0;
+    const staerke = parseFloat(staerkeSel.value) || 19;
+    const staerkeText = staerkeOpt?.textContent || (staerke + ' mm');
+    const typSel = block.querySelector('.korpus-typ');
+    const materialName = typSel ? (typSel.options[typSel.selectedIndex]?.textContent || '') : '';
+
+    // 4 Platten: 2× Seite (H×T), Boden+Deckel ((B-2×Stärke)×T)
+    const innerB = Math.max(b - 2 * staerke, 0);
+    const seitenFlaeche = 2 * (h / 1000) * (t / 1000);
+    const bodenDeckelFlaeche = 2 * (innerB / 1000) * (t / 1000);
+    const flaecheNetto = seitenFlaeche + bodenDeckelFlaeche;
+    const flaecheBrutto = flaecheNetto * (1 + verschnitt);
+    let materialkosten = flaecheBrutto * materialPreis;
+
+    // Oberfläche (Mehrfach-Produkte)
+    let oberflaecheKosten = 0;
+    let oberflaecheName = '';
+    const oberflaecheDetails = [];
+    if (block.querySelector('.korpus-oberflaeche-aktiv').checked) {
+        block.querySelectorAll('.korpus-oberflaeche-rows .oberflaeche-row').forEach(row => {
+            const obTyp = row.querySelector('.korpus-oberflaeche-typ').value;
+            const obInfo = oberflaecheLookup[obTyp];
+            if (obInfo) {
+                const anstriche = parseInt(row.querySelector('.korpus-oberflaeche-anstriche').value) || 2;
+                const literBedarf = (flaecheNetto * anstriche) / obInfo.coverage;
+                const kosten = literBedarf * obInfo.price;
+                oberflaecheKosten += kosten;
+                oberflaecheDetails.push({ name: obInfo.name, liter: literBedarf, kosten });
+                // Update liter display
+                const literDisplay = row.querySelector('.oberflaeche-liter-value');
+                if (literDisplay) literDisplay.textContent = literBedarf.toFixed(2).replace('.', ',') + ' L';
+            }
+        });
+        oberflaecheName = oberflaecheDetails.map(d => d.name).join(', ');
+    }
+
+    // Kanten (mit Plattenseiten-Checkboxen)
+    let kantenKosten = 0;
+    let kantenName = '';
+    let kantenAutoLfm = 0;
+    if (block.querySelector('.korpus-kanten-aktiv').checked) {
+        const kTyp = block.querySelector('.korpus-kanten-typ').value;
+        const kInfo = kantenLookup[kTyp];
+        if (kInfo) {
+            // Extras zählen für Kanten
+            let anzZwischenboden = 0, anzEinlegeboden = 0, anzMittelseite = 0;
+            block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
+                const type = row.dataset.extraType;
+                const anz = parseInt(row.querySelector('.extra-anzahl').value) || 1;
+                if (type === 'zwischenboden') anzZwischenboden += anz;
+                if (type === 'einlegeboden') anzEinlegeboden += anz;
+                if (type === 'mittelseite') anzMittelseite += anz;
+            });
+
+            // Kanten aus Checkboxen berechnen
+            const isChecked = (kante) => {
+                const cb = block.querySelector(`.korpus-kante-cb[data-kante="${kante}"]`);
+                return cb ? cb.checked : false;
+            };
+
+            // Seiten (2 Stück): H×T
+            if (isChecked('seite-vorne'))  kantenAutoLfm += 2 * h / 1000;
+            if (isChecked('seite-links'))  kantenAutoLfm += 2 * t / 1000;
+            if (isChecked('seite-rechts')) kantenAutoLfm += 2 * t / 1000;
+
+            // Boden (1 Stück): innerB×T
+            if (isChecked('boden-vorne'))  kantenAutoLfm += innerB / 1000;
+            if (isChecked('boden-hinten')) kantenAutoLfm += innerB / 1000;
+
+            // Deckel (1 Stück): innerB×T
+            if (isChecked('deckel-vorne'))  kantenAutoLfm += innerB / 1000;
+            if (isChecked('deckel-hinten')) kantenAutoLfm += innerB / 1000;
+
+            // Extras
+            if (isChecked('zwischenboden-vorne')) kantenAutoLfm += anzZwischenboden * innerB / 1000;
+            if (isChecked('einlegeboden-vorne'))  kantenAutoLfm += anzEinlegeboden * innerB / 1000;
+            if (isChecked('mittelseite-vorne'))   kantenAutoLfm += anzMittelseite * h / 1000;
+
+            const extraLfm = parseFloat(block.querySelector('.korpus-kanten-lfm-extra').value) || 0;
+            kantenKosten = (kantenAutoLfm + extraLfm) * kInfo.price;
+            kantenName = kInfo.name;
+
+            // Update display
+            const lfmDisplay = block.querySelector('.korpus-kanten-lfm-auto');
+            if (lfmDisplay) lfmDisplay.textContent = kantenAutoLfm.toFixed(2).replace('.', ',');
+        }
+    }
+
+    // Extras (Breitenabzug bei einschlagender Front)
+    const frontTypArt = block.querySelector('.front-typ-art')?.value || 'aufschlagend';
+    const frontStaerke = parseFloat(block.querySelector('.front-staerke')?.value) || 19;
+    let extrasKosten = 0;
+    const extrasDetails = [];
+    block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
+        const type = row.dataset.extraType;
+        const anzahl = parseInt(row.querySelector('.extra-anzahl').value) || 1;
+        let extraFlaeche = 0;
+        let extraBreite = innerB;
+        // Bei einschlagender Front: Böden schmaler (Frontstärke abziehen)
+        if (frontTypArt === 'einschlagend' && (type === 'zwischenboden' || type === 'einlegeboden')) {
+            extraBreite = Math.max(innerB - frontStaerke, 0);
+        }
+        if (type === 'zwischenboden' || type === 'einlegeboden') {
+            extraFlaeche = anzahl * (extraBreite / 1000) * (t / 1000);
+        } else if (type === 'mittelseite') {
+            extraFlaeche = anzahl * (h / 1000) * (t / 1000);
+        }
+        const extraMat = extraFlaeche * (1 + verschnitt) * materialPreis;
+        extrasKosten += extraMat;
+        extrasDetails.push({ type, anzahl, flaeche: extraFlaeche, kosten: extraMat });
+    });
+
+    const kosten = materialkosten + oberflaecheKosten + kantenKosten + extrasKosten;
+
+    return {
+        hoehe: h, breite: b, tiefe: t,
+        materialName, staerkeText,
+        flaecheNetto, flaecheBrutto,
+        materialkosten, oberflaecheKosten, oberflaecheName,
+        kantenKosten, kantenName,
+        extrasKosten, extrasDetails,
+        kosten
+    };
+}
+
+function berechneKomponente(block, prefix) {
+    const hEl = block.querySelector('.' + prefix + '-hoehe');
+    const bEl = block.querySelector('.' + prefix + '-breite');
+    const h = parseFloat(hEl ? hEl.value : 0) || 0;
+    const b = parseFloat(bEl ? bEl.value : 0) || 0;
+    const anzahlEl = block.querySelector('.' + prefix + '-anzahl');
+    const anzahl = anzahlEl ? (parseInt(anzahlEl.value) || 1) : 1;
+
+    const staerkeSel = block.querySelector('.' + prefix + '-staerke');
+    const staerkeOpt = staerkeSel.options[staerkeSel.selectedIndex];
+    const materialPreis = parseFloat(staerkeOpt?.dataset?.preis) || 0;
+    const staerkeText = staerkeOpt?.textContent || '';
+    const typSel = block.querySelector('.' + prefix + '-typ');
+    const materialName = typSel ? (typSel.options[typSel.selectedIndex]?.textContent || '') : '';
+
+    const flaecheNetto = (h / 1000) * (b / 1000) * anzahl;
+    const flaecheBrutto = flaecheNetto * 1.15; // 15% standard für Front/Rückwand
+    let materialkosten = flaecheBrutto * materialPreis;
+
+    // Oberfläche (Mehrfach-Produkte)
+    let oberflaecheKosten = 0;
+    let oberflaecheName = '';
+    if (block.querySelector('.' + prefix + '-oberflaeche-aktiv').checked) {
+        block.querySelectorAll('.' + prefix + '-oberflaeche-rows .oberflaeche-row').forEach(row => {
+            const obTyp = row.querySelector('.' + prefix + '-oberflaeche-typ').value;
+            const obInfo = oberflaecheLookup[obTyp];
+            if (obInfo) {
+                const anstriche = parseInt(row.querySelector('.' + prefix + '-oberflaeche-anstriche').value) || 2;
+                const literBedarf = (flaecheNetto * anstriche) / obInfo.coverage;
+                oberflaecheKosten += literBedarf * obInfo.price;
+                oberflaecheName += (oberflaecheName ? ', ' : '') + obInfo.name;
+                const literDisplay = row.querySelector('.oberflaeche-liter-value');
+                if (literDisplay) literDisplay.textContent = literBedarf.toFixed(2).replace('.', ',') + ' L';
+            }
+        });
+    }
+
+    // Kanten
+    let kantenKosten = 0;
+    let kantenName = '';
+    if (block.querySelector('.' + prefix + '-kanten-aktiv').checked) {
+        const kTyp = block.querySelector('.' + prefix + '-kanten-typ').value;
+        const kInfo = kantenLookup[kTyp];
+        if (kInfo) {
+            // Auto-Kanten für Front/Rückwand: Umfang = 2×H + 2×B
+            const autoLfm = (2 * h + 2 * b) / 1000 * anzahl;
+            const extraLfm = parseFloat(block.querySelector('.' + prefix + '-kanten-lfm-extra').value) || 0;
+            kantenKosten = (autoLfm + extraLfm) * kInfo.price;
+            kantenName = kInfo.name;
+        }
+    }
+
+    const kosten = materialkosten + oberflaecheKosten + kantenKosten;
+
+    return {
+        hoehe: h, breite: b, anzahl,
+        materialName, staerkeText,
+        flaecheNetto, flaecheBrutto,
+        materialkosten, oberflaecheKosten, oberflaecheName,
+        kantenKosten, kantenName,
+        kosten
+    };
+}
+
+function triggerSchrankCalc(block) {
+    try {
+        const result = berechneSchrank(block);
+        const sumEl = block.querySelector('.schrank-sum');
+        if (sumEl) {
+            sumEl.textContent = formatCurrency(result.schrankSumme);
+            sumEl.classList.toggle('pos-sum-zero', result.schrankSumme === 0);
+        }
+    } catch (e) { /* ignore partial data errors */ }
+}
+
+// --- collectSchrankData ---
+function collectSchrankData(block) {
+    const collectComponent = (prefix) => {
+        const hEl = block.querySelector('.' + prefix + '-hoehe');
+        const bEl = block.querySelector('.' + prefix + '-breite');
+        const anzahlEl = block.querySelector('.' + prefix + '-anzahl');
+        const typArtEl = block.querySelector('.' + prefix + '-typ-art');
+        return {
+            kategorie: block.querySelector('.' + prefix + '-kategorie').value,
+            typ: block.querySelector('.' + prefix + '-typ').value,
+            staerke: parseFloat(block.querySelector('.' + prefix + '-staerke').value) || 0,
+            hoehe: hEl ? parseFloat(hEl.value) || 0 : 0,
+            breite: bEl ? parseFloat(bEl.value) || 0 : 0,
+            anzahl: anzahlEl ? parseInt(anzahlEl.value) || 1 : 1,
+            typArt: typArtEl ? typArtEl.value : undefined,
+            oberflaecheAktiv: block.querySelector('.' + prefix + '-oberflaeche-aktiv').checked,
+            oberflaecheProdukte: Array.from(block.querySelectorAll('.' + prefix + '-oberflaeche-rows .oberflaeche-row')).map(row => ({
+                typ: row.querySelector('.' + prefix + '-oberflaeche-typ').value,
+                anstriche: parseInt(row.querySelector('.' + prefix + '-oberflaeche-anstriche').value) || 2
+            })),
+            // Legacy compat
+            oberflaecheTyp: block.querySelector('.' + prefix + '-oberflaeche-typ')?.value || '',
+            oberflaecheAnstriche: parseInt(block.querySelector('.' + prefix + '-oberflaeche-anstriche')?.value) || 2,
+            kantenAktiv: block.querySelector('.' + prefix + '-kanten-aktiv').checked,
+            kantenTyp: block.querySelector('.' + prefix + '-kanten-typ').value,
+            kantenLfmExtra: parseFloat(block.querySelector('.' + prefix + '-kanten-lfm-extra').value) || 0,
+        };
+    };
+
+    const korpusData = collectComponent('korpus');
+    korpusData.tiefe = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
+    korpusData.verschnitt = parseInt(block.querySelector('.korpus-verschnitt').value) || 15;
+
+    // Kanten-Checkboxen sammeln
+    const kantenCbs = {};
+    block.querySelectorAll('.korpus-kante-cb').forEach(cb => {
+        kantenCbs[cb.dataset.kante] = cb.checked;
+    });
+    korpusData.kantenCheckboxen = kantenCbs;
+
+    // Extras
+    const extras = [];
+    block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
+        extras.push({
+            type: row.dataset.extraType,
+            anzahl: parseInt(row.querySelector('.extra-anzahl').value) || 1,
+            eigenesMaterial: row.querySelector('.extra-eigenes-material') ? row.querySelector('.extra-eigenes-material').checked : false
+        });
+    });
+    korpusData.extras = extras;
+
+    // Beschläge
+    const beschlaege = [];
+    block.querySelectorAll('.schrank-beschlaege-container .beschlag-row').forEach(row => {
+        const sel = row.querySelector('.beschlag-typ');
+        const val = sel.value;
+        const anzahl = parseInt(row.querySelector('.beschlag-anzahl').value) || 0;
+        if (val && anzahl > 0) {
+            beschlaege.push({ typ: val, anzahl });
+        }
+    });
+
+    // Verbindungsmittel
+    const verbindungsmittel = [];
+    block.querySelectorAll('.schrank-verbindungsmittel-container .verbindungsmittel-row').forEach(row => {
+        const sel = row.querySelector('.verbindungsmittel-typ');
+        const val = sel.value;
+        const anzahl = parseInt(row.querySelector('.verbindungsmittel-anzahl').value) || 0;
+        if (val && anzahl > 0) {
+            verbindungsmittel.push({ typ: val, anzahl });
+        }
+    });
+
+    return {
+        bezeichnung: block.querySelector('.schrank-bezeichnung').value.trim(),
+        korpus: korpusData,
+        front: collectComponent('front'),
+        rueckwand: collectComponent('rueckwand'),
+        beschlaege,
+        verbindungsmittel
+    };
+}
+
+// --- Legacy conversion ---
+function convertLegacyPosition(pos) {
+    return {
+        bezeichnung: pos.bezeichnung || 'Position',
+        korpus: {
+            kategorie: pos.kategorie,
+            typ: pos.typ,
+            staerke: pos.staerke,
+            hoehe: pos.laenge || 0,
+            breite: pos.breite || 0,
+            tiefe: 0,
+            verschnitt: pos.verschnitt || 15,
+            oberflaecheAktiv: pos.oberflaecheAktiv || false,
+            oberflaecheTyp: pos.oberflaecheTyp || '',
+            oberflaecheAnstriche: pos.oberflaecheAnstriche || 2,
+            kantenAktiv: false,
+            kantenTyp: '',
+            kantenLfmExtra: 0,
+            extras: []
+        },
+        front: { kategorie: '', typ: '', staerke: 0, hoehe: 0, breite: 0, anzahl: 1, oberflaecheAktiv: false, oberflaecheTyp: '', oberflaecheAnstriche: 2, kantenAktiv: false, kantenTyp: '', kantenLfmExtra: 0 },
+        rueckwand: { kategorie: '', typ: '', staerke: 0, hoehe: 0, breite: 0, anzahl: 1, oberflaecheAktiv: false, oberflaecheTyp: '', oberflaecheAnstriche: 2, kantenAktiv: false, kantenTyp: '', kantenLfmExtra: 0 },
+        beschlaege: pos.beschlaege || []
+    };
+}
+
 // ==================== POSITION BLOCK ====================
-function buildOberflaecheOptions() {
+function buildOberflaecheOptions(preselect) {
     let html = '<option value="">-- Auswählen --</option>';
     // Eigene Oberflächen zuerst
     if (eigeneArtikelOberflaechen.length > 0) {
@@ -2093,6 +3436,34 @@ function buildBeschlagRow(data) {
     </div>`;
 }
 
+function buildVerbindungsmittelOptions() {
+    let html = '<option value="">Kein Verbindungsmittel</option>';
+    verbindungsmittelOptionen.forEach(g => {
+        html += '<optgroup label="' + escapeHtml(g.group) + '">';
+        g.items.forEach(i => {
+            html += '<option value="' + i.value + '">' + escapeHtml(i.name) + ' (' + i.price.toFixed(2).replace('.', ',') + '\u20ac)</option>';
+        });
+        html += '</optgroup>';
+    });
+    return html;
+}
+
+function buildVerbindungsmittelRow(data) {
+    const options = buildVerbindungsmittelOptions();
+    const selectedTyp = data ? data.typ : '';
+    let processedOptions = options;
+    if (selectedTyp) {
+        processedOptions = options.replace(
+            'value="' + selectedTyp + '"',
+            'value="' + selectedTyp + '" selected'
+        );
+    }
+    return `<div class="inline-row verbindungsmittel-row">
+        <select class="verbindungsmittel-typ" style="flex:1">${processedOptions}</select>
+        <input type="number" class="verbindungsmittel-anzahl" min="0" value="${data ? data.anzahl : 0}" placeholder="Anz.">
+    </div>`;
+}
+
 function buildMontageWorkerRow(data) {
     const typ = data ? data.mitarbeiterTyp : 'Geselle';
     const satz = data ? data.stundensatz : 52;
@@ -2181,7 +3552,7 @@ function buildArbeitszeitRow(data) {
     const satz = data ? data.stundensatz : 58;
     const std = data ? data.stunden : 0;
     return `<div class="arbeitszeit-row-new">
-        <select class="mitarbeiter-typ">
+        <select class="mitarbeiter-typ" title="Mitarbeitertyp">
             <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi</option>
             <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle</option>
             <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle</option>
@@ -2190,8 +3561,8 @@ function buildArbeitszeitRow(data) {
             <option value="72" ${typ === 'Arbeitsvorbereitung' || satz == 72 ? 'selected' : ''}>Arbeitsvorbereitung</option>
             <option value="85" ${typ === 'Planung / Techniker' || satz == 85 ? 'selected' : ''}>Planung / Techniker</option>
         </select>
-        <input type="number" class="mitarbeiter-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std">
-        <input type="number" class="stunden" min="0" step="0.5" value="${std}" placeholder="Std">
+        <input type="number" class="mitarbeiter-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std" title="Stundensatz">
+        <input type="number" class="stunden" min="0" step="0.5" value="${std}" placeholder="Stunden" title="Stunden">
     </div>`;
 }
 
@@ -2408,12 +3779,35 @@ function renumberPositions(container) {
 let letzteBerechnung = null;
 
 function berechneAlles() {
-    const blocks = document.querySelectorAll('#positionen-container .position-block');
-    const positionenErgebnisse = [];
-    let materialEinzelkosten = 0;  // Platte + Oberfläche + Beschläge
-    let fertigungsEinzelkosten = 0;  // Lohnkosten
+    // Schrank-basierte Berechnung
+    const schrankBlocks = document.querySelectorAll('#schraenke-container .schrank-block');
+    const schraenkeErgebnisse = [];
+    let materialEinzelkosten = 0;
+    let fertigungsEinzelkosten = 0;
 
-    blocks.forEach((block, i) => {
+    schrankBlocks.forEach((block) => {
+        const result = berechneSchrank(block);
+        schraenkeErgebnisse.push(result);
+        materialEinzelkosten += result.materialGesamt;
+    });
+
+    // Globale Arbeitszeit
+    const globalArbeitContainer = document.getElementById('global-arbeitszeit-container');
+    if (globalArbeitContainer) {
+        globalArbeitContainer.querySelectorAll('.arbeitszeit-row-new').forEach(row => {
+            const select = row.querySelector('.mitarbeiter-typ');
+            const stundensatz = parseFloat(row.querySelector('.mitarbeiter-satz').value) || 0;
+            const stunden = parseFloat(row.querySelector('.stunden').value) || 0;
+            if (stunden > 0) {
+                fertigungsEinzelkosten += stundensatz * stunden;
+            }
+        });
+    }
+
+    // Legacy: also check old position blocks if any remain (Rechnung-Tab uses these)
+    const legacyBlocks = document.querySelectorAll('#positionen-container .position-block');
+    const positionenErgebnisse = [];
+    legacyBlocks.forEach((block) => {
         const result = berechnePosition(block);
         positionenErgebnisse.push(result);
         materialEinzelkosten += result.materialGesamt;
@@ -2464,8 +3858,24 @@ function berechneAlles() {
 
     const datumStr = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+    // Collect global Arbeitszeit details
+    const arbeitDetails = [];
+    if (globalArbeitContainer) {
+        globalArbeitContainer.querySelectorAll('.arbeitszeit-row-new').forEach(row => {
+            const select = row.querySelector('.mitarbeiter-typ');
+            const name = select.options[select.selectedIndex].text;
+            const stundensatz = parseFloat(row.querySelector('.mitarbeiter-satz').value) || 0;
+            const stunden = parseFloat(row.querySelector('.stunden').value) || 0;
+            if (stunden > 0) {
+                arbeitDetails.push({ name, stunden, stundensatz, kosten: stundensatz * stunden });
+            }
+        });
+    }
+
     letzteBerechnung = {
+        schraenke: schraenkeErgebnisse,
         positionen: positionenErgebnisse,
+        arbeitDetails,
         materialEinzelkosten,
         fertigungsEinzelkosten,
         mgkBetrag,
@@ -2501,8 +3911,13 @@ function berechneAlles() {
         gesamtArbeit: fertigungsEinzelkosten
     };
 
-    // Update position sums
-    blocks.forEach((block, i) => {
+    // Update schrank sums
+    schrankBlocks.forEach((block, i) => {
+        const sumEl = block.querySelector('.schrank-sum');
+        if (sumEl) sumEl.textContent = formatCurrency(schraenkeErgebnisse[i].schrankSumme);
+    });
+    // Update legacy position sums
+    legacyBlocks.forEach((block, i) => {
         const sumEl = block.querySelector('.pos-sum');
         if (sumEl) sumEl.textContent = formatCurrency(positionenErgebnisse[i].positionSumme);
     });
@@ -2603,17 +4018,52 @@ function renderErgebnis(calc) {
     const footerEl = document.getElementById('ergebnis-footer');
     document.getElementById('res-date').textContent = calc.datumStr;
 
-    // Positions
     let bodyHtml = '';
+
+    // Schränke
+    if (calc.schraenke && calc.schraenke.length > 0) {
+        calc.schraenke.forEach((s, i) => {
+            bodyHtml += `<div class="result-section">
+                <h4>Schrank ${i + 1}: ${escapeHtml(s.bezeichnung)}</h4>
+                ${s.korpus.materialkosten > 0 ? `<div class="result-row"><span>Korpus Material (${s.korpus.flaecheBrutto.toFixed(2)} m²)</span><span>${formatCurrency(s.korpus.materialkosten)}</span></div>` : ''}
+                ${s.korpus.oberflaecheKosten > 0 ? `<div class="result-row sub"><span>Korpus Oberfläche: ${escapeHtml(s.korpus.oberflaecheName)}</span><span>${formatCurrency(s.korpus.oberflaecheKosten)}</span></div>` : ''}
+                ${s.korpus.kantenKosten > 0 ? `<div class="result-row sub"><span>Korpus Kanten: ${escapeHtml(s.korpus.kantenName)}</span><span>${formatCurrency(s.korpus.kantenKosten)}</span></div>` : ''}
+                ${s.korpus.extrasKosten > 0 ? `<div class="result-row sub"><span>Korpus Extras</span><span>${formatCurrency(s.korpus.extrasKosten)}</span></div>` : ''}
+                ${s.korpus.extrasDetails.map(ex => `<div class="result-row sub"><span>${ex.anzahl}× ${ex.type}</span><span>${formatCurrency(ex.kosten)}</span></div>`).join('')}
+                ${s.front.materialkosten > 0 ? `<div class="result-row"><span>Front Material (${s.front.flaecheBrutto.toFixed(2)} m²)</span><span>${formatCurrency(s.front.materialkosten)}</span></div>` : ''}
+                ${s.front.oberflaecheKosten > 0 ? `<div class="result-row sub"><span>Front Oberfläche: ${escapeHtml(s.front.oberflaecheName)}</span><span>${formatCurrency(s.front.oberflaecheKosten)}</span></div>` : ''}
+                ${s.front.kantenKosten > 0 ? `<div class="result-row sub"><span>Front Kanten: ${escapeHtml(s.front.kantenName)}</span><span>${formatCurrency(s.front.kantenKosten)}</span></div>` : ''}
+                ${s.rueckwand.materialkosten > 0 ? `<div class="result-row"><span>Rückwand Material (${s.rueckwand.flaecheBrutto.toFixed(2)} m²)</span><span>${formatCurrency(s.rueckwand.materialkosten)}</span></div>` : ''}
+                ${s.rueckwand.oberflaecheKosten > 0 ? `<div class="result-row sub"><span>Rückwand Oberfläche: ${escapeHtml(s.rueckwand.oberflaecheName)}</span><span>${formatCurrency(s.rueckwand.oberflaecheKosten)}</span></div>` : ''}
+                ${s.rueckwand.kantenKosten > 0 ? `<div class="result-row sub"><span>Rückwand Kanten: ${escapeHtml(s.rueckwand.kantenName)}</span><span>${formatCurrency(s.rueckwand.kantenKosten)}</span></div>` : ''}
+                ${s.beschlaegeKosten > 0 ? `<div class="result-row"><span>Beschläge</span><span>${formatCurrency(s.beschlaegeKosten)}</span></div>` : ''}
+                ${s.beschlaegeDetails.map(d => `<div class="result-row sub"><span>${escapeHtml(d.name)} × ${d.menge}</span><span>${formatCurrency(d.summe)}</span></div>`).join('')}
+                ${s.verbindungsmittelKosten > 0 ? `<div class="result-row"><span>Verbindungsmittel</span><span>${formatCurrency(s.verbindungsmittelKosten)}</span></div>` : ''}
+                ${(s.verbindungsmittelDetails || []).map(d => `<div class="result-row sub"><span>${escapeHtml(d.name)} × ${d.menge}</span><span>${formatCurrency(d.summe)}</span></div>`).join('')}
+                <div class="result-row bold"><span>Schrank-Summe</span><span>${formatCurrency(s.schrankSumme)}</span></div>
+            </div>`;
+        });
+    }
+
+    // Globale Arbeitszeit
+    if (calc.arbeitDetails && calc.arbeitDetails.length > 0) {
+        bodyHtml += `<div class="result-section">
+            <h4>Arbeitszeit</h4>
+            ${calc.arbeitDetails.map(a => `<div class="result-row"><span>${escapeHtml(a.name)} (${a.stunden}h × ${a.stundensatz}€)</span><span>${formatCurrency(a.kosten)}</span></div>`).join('')}
+            <div class="result-row bold"><span>Arbeitszeit gesamt</span><span>${formatCurrency(calc.fertigungsEinzelkosten)}</span></div>
+        </div>`;
+    }
+
+    // Legacy Positionen (falls noch vorhanden)
     calc.positionen.forEach((pos, i) => {
         bodyHtml += `<div class="result-section">
             <h4>Position ${i + 1}: ${escapeHtml(pos.bezeichnung)}</h4>
-            <div class="result-row"><span>Material ${pos.materialName} ${pos.staerkeText} (${pos.flaecheBrutto.toFixed(2)} m\u00b2)</span><span>${formatCurrency(pos.materialkosten)}</span></div>
+            <div class="result-row"><span>Material ${pos.materialName} ${pos.staerkeText} (${pos.flaecheBrutto.toFixed(2)} m²)</span><span>${formatCurrency(pos.materialkosten)}</span></div>
             ${pos.oberflaecheKosten > 0 ? `<div class="result-row"><span>Oberfläche: ${escapeHtml(pos.oberflaecheName)}</span><span>${formatCurrency(pos.oberflaecheKosten)}</span></div>` : ''}
             ${pos.beschlaegeKosten > 0 ? `<div class="result-row"><span>Beschläge</span><span>${formatCurrency(pos.beschlaegeKosten)}</span></div>` : ''}
-            ${pos.beschlaegeDetails.map(d => `<div class="result-row sub"><span>${escapeHtml(d.name)} \u00d7 ${d.menge}</span><span>${formatCurrency(d.summe)}</span></div>`).join('')}
+            ${pos.beschlaegeDetails.map(d => `<div class="result-row sub"><span>${escapeHtml(d.name)} × ${d.menge}</span><span>${formatCurrency(d.summe)}</span></div>`).join('')}
             ${pos.arbeitGesamt > 0 ? `<div class="result-row"><span>Arbeitszeit</span><span>${formatCurrency(pos.arbeitGesamt)}</span></div>` : ''}
-            ${pos.arbeitDetails.map(a => `<div class="result-row sub"><span>${escapeHtml(a.name)} (${a.stunden}h \u00d7 ${a.stundensatz}\u20ac)</span><span>${formatCurrency(a.kosten)}</span></div>`).join('')}
+            ${pos.arbeitDetails.map(a => `<div class="result-row sub"><span>${escapeHtml(a.name)} (${a.stunden}h × ${a.stundensatz}€)</span><span>${formatCurrency(a.kosten)}</span></div>`).join('')}
             <div class="result-row bold"><span>Positions-Summe</span><span>${formatCurrency(pos.positionSumme)}</span></div>
         </div>`;
     });
@@ -2677,7 +4127,28 @@ async function saveProjekt() {
         return;
     }
 
-    // Collect positions (only from Angebot container)
+    // Collect schraenke
+    const schraenke = [];
+    document.querySelectorAll('#schraenke-container .schrank-block').forEach(block => {
+        schraenke.push(collectSchrankData(block));
+    });
+
+    // Collect global Arbeitszeiten
+    const arbeitszeiten = [];
+    const globalArbeitContainer = document.getElementById('global-arbeitszeit-container');
+    if (globalArbeitContainer) {
+        globalArbeitContainer.querySelectorAll('.arbeitszeit-row-new').forEach(row => {
+            const sel = row.querySelector('.mitarbeiter-typ');
+            const mitarbeiterTyp = sel.options[sel.selectedIndex].text;
+            const stundensatz = parseFloat(row.querySelector('.mitarbeiter-satz').value) || 0;
+            const stunden = parseFloat(row.querySelector('.stunden').value) || 0;
+            if (stunden > 0) {
+                arbeitszeiten.push({ mitarbeiterTyp, stundensatz, stunden });
+            }
+        });
+    }
+
+    // Collect legacy positions (only from Angebot container, if any remain)
     const positionen = [];
     document.querySelectorAll('#positionen-container .position-block').forEach(block => {
         const pos = collectPositionData(block);
@@ -2693,6 +4164,8 @@ async function saveProjekt() {
         notizen: document.getElementById('proj-notizen').value.trim(),
         angebotNr: document.getElementById('proj-angebot-nr').value.trim(),
         leistungszeitraum: document.getElementById('proj-leistungszeitraum').value.trim(),
+        schraenke,
+        arbeitszeiten,
         positionen,
         zuschlaege: {
             mgk: parseFloat(document.getElementById('z-mgk').value) || 0,
@@ -3012,6 +4485,64 @@ async function generatePDF() {
     _generateProfessionalPDF(pdfData);
 }
 
+// --- PDF detail helpers ---
+function _buildSchrankPdfDetails(s) {
+    const lines = [];
+    if (s.korpus && s.korpus.materialkosten > 0) {
+        let line = 'Korpus: ' + (s.korpus.materialName || 'Material');
+        if (s.korpus.staerkeText) line += ', ' + s.korpus.staerkeText;
+        if (s.korpus.flaecheBrutto) line += ' (' + s.korpus.flaecheBrutto.toFixed(2) + ' m\u00b2)';
+        lines.push(line);
+    }
+    if (s.korpus && s.korpus.oberflaecheKosten > 0) {
+        lines.push('Korpus Oberfläche: ' + (s.korpus.oberflaecheName || ''));
+    }
+    if (s.front && s.front.materialkosten > 0) {
+        let line = 'Front: ' + (s.front.materialName || 'Material');
+        if (s.front.staerkeText) line += ', ' + s.front.staerkeText;
+        if (s.front.flaecheBrutto) line += ' (' + s.front.flaecheBrutto.toFixed(2) + ' m\u00b2)';
+        lines.push(line);
+    }
+    if (s.front && s.front.oberflaecheKosten > 0) {
+        lines.push('Front Oberfläche: ' + (s.front.oberflaecheName || ''));
+    }
+    if (s.rueckwand && s.rueckwand.materialkosten > 0) {
+        let line = 'Rückwand: ' + (s.rueckwand.materialName || 'Material');
+        if (s.rueckwand.flaecheBrutto) line += ' (' + s.rueckwand.flaecheBrutto.toFixed(2) + ' m\u00b2)';
+        lines.push(line);
+    }
+    if (s.beschlaegeDetails && s.beschlaegeDetails.length > 0) {
+        s.beschlaegeDetails.forEach(d => {
+            lines.push('inkl. ' + d.menge + '\u00d7 ' + d.name);
+        });
+    }
+    if (s.verbindungsmittelDetails && s.verbindungsmittelDetails.length > 0) {
+        s.verbindungsmittelDetails.forEach(d => {
+            lines.push('inkl. ' + d.menge + '\u00d7 ' + d.name);
+        });
+    }
+    return lines;
+}
+
+function _buildLegacyPosPdfDetails(pos) {
+    const lines = [];
+    if (pos.materialName && pos.materialkosten > 0) {
+        let matLine = pos.materialName;
+        if (pos.staerkeText) matLine += ', ' + pos.staerkeText;
+        if (pos.laengeMm && pos.breiteMm) matLine += ', ' + pos.laengeMm + ' \u00d7 ' + pos.breiteMm + ' mm';
+        lines.push(matLine);
+    }
+    if (pos.oberflaecheName && pos.oberflaecheKosten > 0) {
+        lines.push('Oberfläche: ' + pos.oberflaecheAnstriche + 'x ' + pos.oberflaecheName);
+    }
+    if (pos.beschlaegeDetails && pos.beschlaegeDetails.length > 0) {
+        pos.beschlaegeDetails.forEach(d => {
+            lines.push('inkl. ' + d.menge + '\u00d7 ' + d.name);
+        });
+    }
+    return lines;
+}
+
 // ==================== SHARED PROFESSIONAL PDF GENERATOR ====================
 function _generateProfessionalPDF(data) {
     const { jsPDF } = window.jspdf;
@@ -3230,12 +4761,33 @@ function _generateProfessionalPDF(data) {
     doc.text(data.einleitungsText, margin, y); y += 8;
 
     // --- Calculate customer-facing position prices ---
-    // Factor to distribute netto across positions proportionally
-    const summePositionen = b.positionen.reduce((s, p) => s + p.positionSumme, 0);
+    // Combine schraenke + legacy positionen for PDF output
+    const pdfPositionen = [];
+    if (b.schraenke && b.schraenke.length > 0) {
+        b.schraenke.forEach(s => {
+            pdfPositionen.push({
+                bezeichnung: s.bezeichnung,
+                summe: s.schrankSumme,
+                anzahl: 1,
+                details: _buildSchrankPdfDetails(s)
+            });
+        });
+    }
+    if (b.positionen && b.positionen.length > 0) {
+        b.positionen.forEach(pos => {
+            pdfPositionen.push({
+                bezeichnung: pos.bezeichnung,
+                summe: pos.positionSumme,
+                anzahl: pos.anzahl || 1,
+                details: _buildLegacyPosPdfDetails(pos)
+            });
+        });
+    }
+
+    const summePositionen = pdfPositionen.reduce((s, p) => s + p.summe, 0);
     const faktor = summePositionen > 0 ? b.netto / summePositionen : 1;
 
     // --- Positions-Tabelle ---
-    // Column layout: Pos | Beschreibung | Menge | EH | Einzelpreis | Gesamtpreis
     const colPos = margin;
     const colBeschr = margin + 12;
     const colMenge = rightEdge - 72;
@@ -3259,15 +4811,12 @@ function _generateProfessionalPDF(data) {
     y += 13;
 
     // Position rows
-    b.positionen.forEach((pos, idx) => {
-        const kundenEP = pos.positionSumme * faktor / (pos.anzahl || 1);
-        const kundenGP = pos.positionSumme * faktor;
+    pdfPositionen.forEach((pos, idx) => {
+        const kundenEP = pos.summe * faktor / (pos.anzahl || 1);
+        const kundenGP = pos.summe * faktor;
 
-        // Estimate height needed for this position
-        let linesNeeded = 1;
-        if (pos.materialName && pos.materialkosten > 0) linesNeeded++;
-        if (pos.oberflaecheName && pos.oberflaecheKosten > 0) linesNeeded++;
-        if (pos.beschlaegeDetails && pos.beschlaegeDetails.length > 0) linesNeeded += pos.beschlaegeDetails.length;
+        // Estimate height needed
+        let linesNeeded = 1 + pos.details.length;
         checkPage(linesNeeded * 5.5 + 8);
 
         // Zebra stripe
@@ -3289,31 +4838,15 @@ function _generateProfessionalPDF(data) {
         doc.text(formatCurrency(kundenGP), colGP, y, { align: 'right' });
         y += 6;
 
-        // Sub-details (description lines)
+        // Sub-details
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(100, 100, 100);
-
-        if (pos.materialName && pos.materialkosten > 0) {
-            let matLine = pos.materialName;
-            if (pos.staerkeText) matLine += ', ' + pos.staerkeText;
-            if (pos.laengeMm && pos.breiteMm) matLine += ', ' + pos.laengeMm + ' \u00d7 ' + pos.breiteMm + ' mm';
+        pos.details.forEach(line => {
             checkPage(5);
-            doc.text(matLine, colBeschr + 4, y);
+            doc.text(line, colBeschr + 4, y);
             y += 4.5;
-        }
-        if (pos.oberflaecheName && pos.oberflaecheKosten > 0) {
-            checkPage(5);
-            doc.text('Oberfl\u00e4che: ' + pos.oberflaecheAnstriche + 'x ' + pos.oberflaecheName, colBeschr + 4, y);
-            y += 4.5;
-        }
-        if (pos.beschlaegeDetails && pos.beschlaegeDetails.length > 0) {
-            pos.beschlaegeDetails.forEach(d => {
-                checkPage(5);
-                doc.text('inkl. ' + d.menge + 'x ' + d.name, colBeschr + 4, y);
-                y += 4.5;
-            });
-        }
+        });
         doc.setTextColor(...BLACK);
         y += 5;
     });
@@ -4094,11 +5627,11 @@ async function saveEigeneVorlagen() {
     await setSetting('eigeneVorlagen', eigeneVorlagen);
 }
 
-async function addEigeneVorlage(titel, positionen, zuschlaege) {
+async function addEigeneVorlage(titel, schraenke, zuschlaege) {
     const vorlage = {
         id: generateId(),
         titel: titel,
-        positionen: JSON.parse(JSON.stringify(positionen)),
+        schraenke: JSON.parse(JSON.stringify(schraenke)),
         zuschlaege: zuschlaege ? JSON.parse(JSON.stringify(zuschlaege)) : null,
         erstelltAm: new Date().toISOString()
     };
@@ -4143,9 +5676,15 @@ function loadVorlage(vorlage) {
     if (!vorlage) return;
 
     document.getElementById('proj-titel').value = vorlage.titel;
-    document.getElementById('positionen-container').innerHTML = '';
-    positionCounter = 0;
-    vorlage.positionen.forEach(pos => addPositionBlock(pos));
+    document.getElementById('schraenke-container').innerHTML = '';
+    schrankCounter = 0;
+    if (vorlage.schraenke && vorlage.schraenke.length > 0) {
+        vorlage.schraenke.forEach(s => addSchrankBlock(s));
+    } else if (vorlage.positionen && vorlage.positionen.length > 0) {
+        vorlage.positionen.forEach(pos => addSchrankBlock(convertLegacyPosition(pos)));
+    } else {
+        addSchrankBlock();
+    }
 
     // Auch Zuschläge laden, falls in Vorlage gespeichert
     if (vorlage.zuschlaege) {
@@ -4170,13 +5709,13 @@ async function saveProjektAlsVorlage() {
         return;
     }
 
-    const positionen = [];
-    document.querySelectorAll('#positionen-container .position-block').forEach(block => {
-        positionen.push(collectPositionData(block));
+    const schraenke = [];
+    document.querySelectorAll('#schraenke-container .schrank-block').forEach(block => {
+        schraenke.push(collectSchrankData(block));
     });
 
-    if (positionen.length === 0) {
-        showToast('Keine Positionen zum Speichern', 'warning');
+    if (schraenke.length === 0) {
+        showToast('Keine Schränke zum Speichern', 'warning');
         return;
     }
 
@@ -4191,7 +5730,7 @@ async function saveProjektAlsVorlage() {
         skontoTage: parseInt(document.getElementById('z-skonto-tage').value) || 10
     };
 
-    await addEigeneVorlage(titel, positionen, zuschlaege);
+    await addEigeneVorlage(titel, schraenke, zuschlaege);
     showToast('Vorlage "' + titel + '" gespeichert');
 }
 
@@ -4624,7 +6163,21 @@ function initEvents() {
     });
 
     // Project editor buttons
-    document.getElementById('btn-position-add').addEventListener('click', () => addPositionBlock());
+    document.getElementById('btn-schrank-add').addEventListener('click', () => addSchrankBlock());
+
+    // Projekttitel → Überschrift über Schränke sync
+    document.getElementById('proj-titel').addEventListener('input', () => {
+        const titel = document.getElementById('proj-titel').value.trim();
+        const titelEl = document.getElementById('schraenke-titel');
+        titelEl.textContent = titel || '';
+        titelEl.classList.toggle('hidden', !titel);
+    });
+
+    document.getElementById('btn-arbeitszeit-add').addEventListener('click', () => {
+        const container = document.getElementById('global-arbeitszeit-container');
+        container.insertAdjacentHTML('beforeend', buildArbeitszeitRow());
+        bindMitarbeiterSelects(container);
+    });
     document.getElementById('btn-berechnen').addEventListener('click', () => berechneAlles());
     document.getElementById('btn-projekt-speichern').addEventListener('click', () => saveProjekt());
     document.getElementById('btn-pdf').addEventListener('click', () => generatePDF());

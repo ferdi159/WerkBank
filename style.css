@@ -1067,6 +1067,107 @@ body {
     background-size: 16px;
 }
 
+/* ==================== SCHRÄNKE TITEL ==================== */
+.schraenke-titel {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 20px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+}
+
+/* ==================== OBERFLÄCHE ROWS ==================== */
+.oberflaeche-row {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.oberflaeche-row:last-child {
+    border-bottom: none;
+}
+
+.oberflaeche-liter-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oberflaeche-liter-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.btn-remove-oberflaeche {
+    background: none;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-remove-oberflaeche:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ==================== KANTEN CHECKBOX GRID ==================== */
+.kanten-platten-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+}
+
+.kanten-platte-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.kanten-platte-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+}
+
+.kanten-cb {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.kanten-cb input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.kanten-lfm-display {
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    color: var(--text-light);
+}
+
 /* ==================== CALC CARDS ==================== */
 .calc-card {
     background: white;
@@ -1617,30 +1718,57 @@ input::placeholder {
 }
 
 /* ==================== ARBEITSZEIT ==================== */
+.arbeitszeit-card .calc-header {
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+.arbeitszeit-card .calc-header h3 {
+    font-size: 0.95rem;
+}
+
+.arbeitszeit-card .section-body {
+    padding: 10px 16px;
+}
+
 .arbeitszeit-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
-    padding: 6px 10px;
-    font-size: 0.78rem;
+    display: flex;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+.arbeitszeit-header span:first-child { flex: 2; }
+.arbeitszeit-header span:nth-child(2),
+.arbeitszeit-header span:nth-child(3) { flex: 1; }
+
 .arbeitszeit-row-new {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 10px;
-    padding: 10px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 6px 8px;
     background: var(--cream);
     border-radius: var(--radius-sm);
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.arbeitszeit-row-new select {
+    flex: 2;
+    min-width: 0;
+    font-size: 0.85rem;
+    padding: 4px 6px;
 }
 
 .arbeitszeit-row-new input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.85rem;
+    padding: 4px 6px;
 }
 
 /* ==================== ADD BUTTONS ==================== */
@@ -3692,7 +3820,11 @@ select.pos-kategorie optgroup option {
     }
 
     .arbeitszeit-row-new {
-        grid-template-columns: 1fr;
+        flex-wrap: wrap;
+    }
+
+    .arbeitszeit-row-new select {
+        flex-basis: 100%;
     }
 
     .montage-worker-header {
