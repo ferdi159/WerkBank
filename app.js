@@ -2110,30 +2110,29 @@ function buildKantenGroup(prefix) {
     const kantenCheckboxes = isKorpus ? `
             <div class="kanten-platten-grid">
                 <div class="kanten-platte-group">
-                    <span class="kanten-platte-label">Seiten</span>
+                    <span class="kanten-platte-label">Seiten (2×)</span>
                     <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-vorne" checked> vorne</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-links"> links</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-rechts"> rechts</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-hinten"> hinten</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-oben"> oben</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="seite-unten"> unten</label>
                 </div>
                 <div class="kanten-platte-group">
                     <span class="kanten-platte-label">Boden</span>
                     <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-vorne" checked> vorne</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-hinten" checked> hinten</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-hinten"> hinten</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-links"> links</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="boden-rechts"> rechts</label>
                 </div>
                 <div class="kanten-platte-group">
                     <span class="kanten-platte-label">Deckel</span>
                     <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-vorne" checked> vorne</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-hinten" checked> hinten</label>
-                </div>
-                <div class="kanten-platte-group">
-                    <span class="kanten-platte-label">Extras</span>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="zwischenboden-vorne" checked> Zw.boden vorne</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="einlegeboden-vorne" checked> Einl.boden vorne</label>
-                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="mittelseite-vorne" checked> Mittelseite vorne</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-hinten"> hinten</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-links"> links</label>
+                    <label class="kanten-cb"><input type="checkbox" class="${prefix}-kante-cb" data-kante="deckel-rechts"> rechts</label>
                 </div>
             </div>
             <div class="kanten-lfm-display">
-                <small>Auto-Laufmeter: <span class="${prefix}-kanten-lfm-auto">0,00</span> m</small>
+                <small>Berechnete Laufmeter: <strong><span class="${prefix}-kanten-lfm-auto">0,00</span> m</strong></small>
             </div>` : '';
 
     return `<div class="sub-section">
@@ -2148,8 +2147,8 @@ function buildKantenGroup(prefix) {
                     <select class="${prefix}-kanten-typ">${buildKantenOptions()}</select>
                 </div>
                 <div class="form-group">
-                    <label>Zusätzl. Laufmeter (manuell)</label>
-                    <input type="number" class="${prefix}-kanten-lfm-extra" min="0" step="0.1" value="0" placeholder="0">
+                    <label>Zusätzl. Laufmeter</label>
+                    <div class="input-unit-wrap"><input type="number" class="${prefix}-kanten-lfm-extra" min="0" step="0.1" value="0" placeholder="0"><span class="input-unit">m</span></div>
                 </div>
             </div>${kantenCheckboxes}
         </div>
@@ -2225,6 +2224,16 @@ function buildExtraRow(type, data) {
         mittelseite: 'Mittelseite'
     };
     const label = labels[type] || type;
+    const isBoden = (type === 'zwischenboden' || type === 'einlegeboden');
+    // Böden: vorne/hinten/links/rechts, Mittelseite: vorne/hinten/oben/unten
+    const kantenLabels = isBoden
+        ? [['vorne', true], ['hinten', false], ['links', false], ['rechts', false]]
+        : [['vorne', true], ['hinten', false], ['oben', false], ['unten', false]];
+    const kantenHtml = kantenLabels.map(([seite, checked]) => {
+        const isChecked = data && data.kanten ? data.kanten[seite] : checked;
+        return `<label class="kanten-cb"><input type="checkbox" class="extra-kante-cb" data-kante="${seite}" ${isChecked ? 'checked' : ''}> ${seite}</label>`;
+    }).join('');
+
     return `<div class="korpus-extra-row" data-extra-type="${type}">
         <div class="extra-row-header">
             <span class="extra-label">${escapeHtml(label)}</span>
@@ -2233,13 +2242,18 @@ function buildExtraRow(type, data) {
         <div class="form-grid-3">
             <div class="form-group">
                 <label>Anzahl</label>
-                <input type="number" class="extra-anzahl" min="1" value="${data ? data.anzahl : 1}">
+                <div class="input-unit-wrap"><input type="number" class="extra-anzahl" min="1" value="${data ? data.anzahl : 1}"><span class="input-unit">Stk.</span></div>
             </div>
             <div class="form-group">
                 <label>Materialpreisaufschlag</label>
                 <input type="checkbox" class="extra-eigenes-material" ${data && data.eigenesMaterial ? 'checked' : ''}>
                 <small>Eigenes Material</small>
             </div>
+        </div>
+        <div class="extra-kanten-section">
+            <span class="extra-kanten-label">Kanten:</span>
+            ${kantenHtml}
+            <small class="extra-kanten-lfm">(<span class="extra-kanten-lfm-value">0,00</span> m)</small>
         </div>
     </div>`;
 }
@@ -2280,20 +2294,20 @@ function addSchrankBlock(data) {
                 <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-korpus-${idx}">
                     <div class="form-grid-3">
                         <div class="form-group">
-                            <label>Höhe (mm)</label>
-                            <input type="number" class="korpus-hoehe" min="1" step="1" value="${data && data.korpus ? data.korpus.hoehe : ''}" placeholder="z.B. 720">
+                            <label>Höhe</label>
+                            <div class="input-unit-wrap"><input type="number" class="korpus-hoehe" min="1" step="1" value="${data && data.korpus ? data.korpus.hoehe : ''}" placeholder="z.B. 720"><span class="input-unit">mm</span></div>
                         </div>
                         <div class="form-group">
-                            <label>Breite (mm)</label>
-                            <input type="number" class="korpus-breite" min="1" step="1" value="${data && data.korpus ? data.korpus.breite : ''}" placeholder="z.B. 600">
+                            <label>Breite</label>
+                            <div class="input-unit-wrap"><input type="number" class="korpus-breite" min="1" step="1" value="${data && data.korpus ? data.korpus.breite : ''}" placeholder="z.B. 600"><span class="input-unit">mm</span></div>
                         </div>
                         <div class="form-group">
-                            <label>Tiefe (mm)</label>
-                            <input type="number" class="korpus-tiefe" min="1" step="1" value="${data && data.korpus ? data.korpus.tiefe : ''}" placeholder="z.B. 560">
+                            <label>Tiefe</label>
+                            <div class="input-unit-wrap"><input type="number" class="korpus-tiefe" min="1" step="1" value="${data && data.korpus ? data.korpus.tiefe : ''}" placeholder="z.B. 560"><span class="input-unit">mm</span></div>
                         </div>
                     </div>
                     <div class="form-group" style="margin-top:4px">
-                        <label>Verschnitt %</label>
+                        <label>Verschnitt</label>
                         <div class="pct-combo">
                             <select class="pct-presets korpus-verschnitt-presets">
                                 <option value="5">5%</option>
@@ -2349,16 +2363,16 @@ function addSchrankBlock(data) {
                     </div>
                     <div class="form-grid-3">
                         <div class="form-group">
-                            <label>Höhe (mm)</label>
-                            <input type="number" class="front-hoehe" min="1" step="1" value="${data && data.front ? data.front.hoehe : ''}" placeholder="Auto aus Korpus">
+                            <label>Höhe</label>
+                            <div class="input-unit-wrap"><input type="number" class="front-hoehe" min="1" step="1" value="${data && data.front ? data.front.hoehe : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
                         </div>
                         <div class="form-group">
-                            <label>Breite (mm)</label>
-                            <input type="number" class="front-breite" min="1" step="1" value="${data && data.front ? data.front.breite : ''}" placeholder="Auto aus Korpus">
+                            <label>Breite</label>
+                            <div class="input-unit-wrap"><input type="number" class="front-breite" min="1" step="1" value="${data && data.front ? data.front.breite : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
                         </div>
                         <div class="form-group">
                             <label>Anzahl</label>
-                            <input type="number" class="front-anzahl" min="0" value="${data && data.front ? data.front.anzahl : 1}">
+                            <div class="input-unit-wrap"><input type="number" class="front-anzahl" min="0" value="${data && data.front ? data.front.anzahl : 1}"><span class="input-unit">Stk.</span></div>
                         </div>
                     </div>
                     ${buildMaterialSelectGroup('front')}
@@ -2386,12 +2400,12 @@ function addSchrankBlock(data) {
                     </div>
                     <div class="form-grid-3">
                         <div class="form-group">
-                            <label>Höhe (mm)</label>
-                            <input type="number" class="rueckwand-hoehe" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.hoehe : ''}" placeholder="Auto aus Korpus">
+                            <label>Höhe</label>
+                            <div class="input-unit-wrap"><input type="number" class="rueckwand-hoehe" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.hoehe : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
                         </div>
                         <div class="form-group">
-                            <label>Breite (mm)</label>
-                            <input type="number" class="rueckwand-breite" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.breite : ''}" placeholder="Auto aus Korpus">
+                            <label>Breite</label>
+                            <div class="input-unit-wrap"><input type="number" class="rueckwand-breite" min="1" step="1" value="${data && data.rueckwand ? data.rueckwand.breite : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
                         </div>
                     </div>
                     ${buildMaterialSelectGroup('rueckwand')}
@@ -2707,6 +2721,8 @@ function bindSchrankEvents(block, idx) {
 
     // Extras input delegation
     block.querySelector('.korpus-extras-container').addEventListener('input', () => triggerSchrankCalc(block));
+    // Extras kanten checkbox delegation
+    block.querySelector('.korpus-extras-container').addEventListener('change', () => triggerSchrankCalc(block));
 
     // Beschlag add
     block.querySelector('.schrank-add-beschlag').addEventListener('click', () => {
@@ -2931,39 +2947,56 @@ function berechneKorpus(block) {
         const kTyp = block.querySelector('.korpus-kanten-typ').value;
         const kInfo = kantenLookup[kTyp];
         if (kInfo) {
-            // Extras zählen für Kanten
-            let anzZwischenboden = 0, anzEinlegeboden = 0, anzMittelseite = 0;
-            block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
-                const type = row.dataset.extraType;
-                const anz = parseInt(row.querySelector('.extra-anzahl').value) || 1;
-                if (type === 'zwischenboden') anzZwischenboden += anz;
-                if (type === 'einlegeboden') anzEinlegeboden += anz;
-                if (type === 'mittelseite') anzMittelseite += anz;
-            });
-
             // Kanten aus Checkboxen berechnen
             const isChecked = (kante) => {
                 const cb = block.querySelector(`.korpus-kante-cb[data-kante="${kante}"]`);
                 return cb ? cb.checked : false;
             };
 
-            // Seiten (2 Stück): H×T
+            // Seiten (2 Stück): Höhe H, Tiefe T
             if (isChecked('seite-vorne'))  kantenAutoLfm += 2 * h / 1000;
-            if (isChecked('seite-links'))  kantenAutoLfm += 2 * t / 1000;
-            if (isChecked('seite-rechts')) kantenAutoLfm += 2 * t / 1000;
+            if (isChecked('seite-hinten')) kantenAutoLfm += 2 * h / 1000;
+            if (isChecked('seite-oben'))   kantenAutoLfm += 2 * t / 1000;
+            if (isChecked('seite-unten'))  kantenAutoLfm += 2 * t / 1000;
 
-            // Boden (1 Stück): innerB×T
+            // Boden (1 Stück): Breite innerB, Tiefe T
             if (isChecked('boden-vorne'))  kantenAutoLfm += innerB / 1000;
             if (isChecked('boden-hinten')) kantenAutoLfm += innerB / 1000;
+            if (isChecked('boden-links'))  kantenAutoLfm += t / 1000;
+            if (isChecked('boden-rechts')) kantenAutoLfm += t / 1000;
 
-            // Deckel (1 Stück): innerB×T
+            // Deckel (1 Stück): Breite innerB, Tiefe T
             if (isChecked('deckel-vorne'))  kantenAutoLfm += innerB / 1000;
             if (isChecked('deckel-hinten')) kantenAutoLfm += innerB / 1000;
+            if (isChecked('deckel-links'))  kantenAutoLfm += t / 1000;
+            if (isChecked('deckel-rechts')) kantenAutoLfm += t / 1000;
 
-            // Extras
-            if (isChecked('zwischenboden-vorne')) kantenAutoLfm += anzZwischenboden * innerB / 1000;
-            if (isChecked('einlegeboden-vorne'))  kantenAutoLfm += anzEinlegeboden * innerB / 1000;
-            if (isChecked('mittelseite-vorne'))   kantenAutoLfm += anzMittelseite * h / 1000;
+            // Extras - Kanten pro Extra-Row berechnen
+            block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
+                const type = row.dataset.extraType;
+                const anz = parseInt(row.querySelector('.extra-anzahl').value) || 1;
+                const isBoden = (type === 'zwischenboden' || type === 'einlegeboden');
+                let extraLfm = 0;
+
+                row.querySelectorAll('.extra-kante-cb:checked').forEach(cb => {
+                    const seite = cb.dataset.kante;
+                    if (isBoden) {
+                        // Zwischenboden/Einlegeboden: vorne/hinten = innerB, links/rechts = T
+                        if (seite === 'vorne' || seite === 'hinten') extraLfm += anz * innerB / 1000;
+                        if (seite === 'links' || seite === 'rechts') extraLfm += anz * t / 1000;
+                    } else {
+                        // Mittelseite: vorne/hinten = H, oben/unten = T
+                        if (seite === 'vorne' || seite === 'hinten') extraLfm += anz * h / 1000;
+                        if (seite === 'oben' || seite === 'unten')   extraLfm += anz * t / 1000;
+                    }
+                });
+
+                kantenAutoLfm += extraLfm;
+
+                // Update Extra-Kanten-Anzeige
+                const lfmVal = row.querySelector('.extra-kanten-lfm-value');
+                if (lfmVal) lfmVal.textContent = extraLfm.toFixed(2).replace('.', ',');
+            });
 
             const extraLfm = parseFloat(block.querySelector('.korpus-kanten-lfm-extra').value) || 0;
             kantenKosten = (kantenAutoLfm + extraLfm) * kInfo.price;
@@ -3130,10 +3163,15 @@ function collectSchrankData(block) {
     // Extras
     const extras = [];
     block.querySelectorAll('.korpus-extras-container .korpus-extra-row').forEach(row => {
+        const kanten = {};
+        row.querySelectorAll('.extra-kante-cb').forEach(cb => {
+            kanten[cb.dataset.kante] = cb.checked;
+        });
         extras.push({
             type: row.dataset.extraType,
             anzahl: parseInt(row.querySelector('.extra-anzahl').value) || 1,
-            eigenesMaterial: row.querySelector('.extra-eigenes-material') ? row.querySelector('.extra-eigenes-material').checked : false
+            eigenesMaterial: row.querySelector('.extra-eigenes-material') ? row.querySelector('.extra-eigenes-material').checked : false,
+            kanten
         });
     });
     korpusData.extras = extras;
@@ -3313,7 +3351,7 @@ function addPositionBlock(data, targetContainerId) {
                     <input type="number" class="pos-anzahl" min="1" value="${data ? data.anzahl : 1}">
                 </div>
                 <div class="form-group">
-                    <label>Verschnitt %</label>
+                    <label>Verschnitt</label>
                     <div class="pct-combo">
                         <select class="pct-presets pos-verschnitt-presets">
                             <option value="5" ${data && data.verschnitt == 5 ? 'selected' : ''}>5%</option>
@@ -3432,7 +3470,7 @@ function buildBeschlagRow(data) {
             <select class="beschlag-typ">${processedOptions}</select>
             <button type="button" class="btn-quick-add" onclick="openQuickAdd('beschlag', this)" title="Eigenen Beschlag hinzufügen">+</button>
         </div>
-        <input type="number" class="beschlag-anzahl" min="0" value="${data ? data.anzahl : 0}" placeholder="Anz.">
+        <div class="input-unit-wrap"><input type="number" class="beschlag-anzahl" min="0" value="${data ? data.anzahl : 0}" placeholder="Anzahl"><span class="input-unit">Stk.</span></div>
     </div>`;
 }
 
@@ -3460,7 +3498,7 @@ function buildVerbindungsmittelRow(data) {
     }
     return `<div class="inline-row verbindungsmittel-row">
         <select class="verbindungsmittel-typ" style="flex:1">${processedOptions}</select>
-        <input type="number" class="verbindungsmittel-anzahl" min="0" value="${data ? data.anzahl : 0}" placeholder="Anz.">
+        <div class="input-unit-wrap"><input type="number" class="verbindungsmittel-anzahl" min="0" value="${data ? data.anzahl : 0}" placeholder="Anzahl"><span class="input-unit">Stk.</span></div>
     </div>`;
 }
 
@@ -3470,16 +3508,16 @@ function buildMontageWorkerRow(data) {
     const std = data ? data.stunden : 0;
     const anz = data ? (data.anzahl || 1) : 1;
     return `<div class="montage-worker-row">
-        <input type="number" class="montage-anzahl" min="1" value="${anz}" placeholder="Anz.">
+        <div class="input-unit-wrap"><input type="number" class="montage-anzahl" min="1" value="${anz}" placeholder="Anzahl"><span class="input-unit">Pers.</span></div>
         <select class="montage-typ">
-            <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi</option>
-            <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle</option>
-            <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle</option>
-            <option value="68" ${typ === 'Meister Werkstatt' || satz == 68 ? 'selected' : ''}>Meister Werkstatt</option>
-            <option value="75" ${typ === 'Meister Baustelle' || satz == 75 ? 'selected' : ''}>Meister Baustelle</option>
+            <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi (42 €/Std)</option>
+            <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle (52 €/Std)</option>
+            <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle (58 €/Std)</option>
+            <option value="68" ${typ === 'Meister Werkstatt' || satz == 68 ? 'selected' : ''}>Meister Werkstatt (68 €/Std)</option>
+            <option value="75" ${typ === 'Meister Baustelle' || satz == 75 ? 'selected' : ''}>Meister Baustelle (75 €/Std)</option>
         </select>
-        <input type="number" class="montage-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std">
-        <input type="number" class="montage-stunden" min="0" step="0.5" value="${std}" placeholder="Std">
+        <div class="input-unit-wrap"><input type="number" class="montage-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std"><span class="input-unit">\u20ac/Std</span></div>
+        <div class="input-unit-wrap"><input type="number" class="montage-stunden" min="0" step="0.5" value="${std}" placeholder="Std"><span class="input-unit">h</span></div>
         <button type="button" class="btn-remove-worker" onclick="removeMontageWorker(this)" title="Entfernen">&times;</button>
     </div>`;
 }
@@ -3553,16 +3591,16 @@ function buildArbeitszeitRow(data) {
     const std = data ? data.stunden : 0;
     return `<div class="arbeitszeit-row-new">
         <select class="mitarbeiter-typ" title="Mitarbeitertyp">
-            <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi</option>
-            <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle</option>
-            <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle</option>
-            <option value="68" ${typ === 'Meister Werkstatt' || satz == 68 ? 'selected' : ''}>Meister Werkstatt</option>
-            <option value="75" ${typ === 'Meister Baustelle' || satz == 75 ? 'selected' : ''}>Meister Baustelle</option>
-            <option value="72" ${typ === 'Arbeitsvorbereitung' || satz == 72 ? 'selected' : ''}>Arbeitsvorbereitung</option>
-            <option value="85" ${typ === 'Planung / Techniker' || satz == 85 ? 'selected' : ''}>Planung / Techniker</option>
+            <option value="42" ${typ === 'Helfer / Azubi' || satz == 42 ? 'selected' : ''}>Helfer / Azubi (42 €/Std)</option>
+            <option value="52" ${typ === 'Geselle' || satz == 52 ? 'selected' : ''}>Geselle (52 €/Std)</option>
+            <option value="58" ${typ === 'Fachgeselle' || satz == 58 ? 'selected' : ''}>Fachgeselle (58 €/Std)</option>
+            <option value="68" ${typ === 'Meister Werkstatt' || satz == 68 ? 'selected' : ''}>Meister Werkstatt (68 €/Std)</option>
+            <option value="75" ${typ === 'Meister Baustelle' || satz == 75 ? 'selected' : ''}>Meister Baustelle (75 €/Std)</option>
+            <option value="72" ${typ === 'Arbeitsvorbereitung' || satz == 72 ? 'selected' : ''}>Arbeitsvorbereitung (72 €/Std)</option>
+            <option value="85" ${typ === 'Planung / Techniker' || satz == 85 ? 'selected' : ''}>Planung / Techniker (85 €/Std)</option>
         </select>
-        <input type="number" class="mitarbeiter-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std" title="Stundensatz">
-        <input type="number" class="stunden" min="0" step="0.5" value="${std}" placeholder="Stunden" title="Stunden">
+        <div class="input-unit-wrap"><input type="number" class="mitarbeiter-satz" min="0" step="1" value="${satz}" placeholder="\u20ac/Std" title="Stundensatz"><span class="input-unit">\u20ac/Std</span></div>
+        <div class="input-unit-wrap"><input type="number" class="stunden" min="0" step="0.5" value="${std}" placeholder="Stunden" title="Stunden"><span class="input-unit">h</span></div>
     </div>`;
 }
 

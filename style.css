@@ -1168,6 +1168,32 @@ body {
     color: var(--text-light);
 }
 
+/* Extra-Kanten (pro Zwischenboden/Einlegeboden/Mittelseite) */
+.extra-kanten-section {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--cream, #f8f5f0);
+    border-radius: var(--radius-sm, 6px);
+    font-size: 0.82rem;
+}
+
+.extra-kanten-label {
+    font-weight: 600;
+    color: var(--text-light, #888);
+    font-size: 0.78rem;
+    margin-right: 2px;
+}
+
+.extra-kanten-lfm {
+    margin-left: auto;
+    color: var(--text-light, #888);
+    font-size: 0.78rem;
+}
+
 /* ==================== CALC CARDS ==================== */
 .calc-card {
     background: white;
@@ -1565,6 +1591,16 @@ input::placeholder {
     background: var(--card);
 }
 
+.montage-worker-row .input-unit-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.montage-worker-row .input-unit-wrap input {
+    padding-right: 42px;
+}
+
 .montage-worker-row .btn-remove-worker {
     width: 32px;
     height: 32px;
@@ -1769,6 +1805,29 @@ input::placeholder {
     min-width: 0;
     font-size: 0.85rem;
     padding: 4px 6px;
+}
+
+/* Input mit Einheiten-Suffix (€/Std, h) */
+.input-unit-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.input-unit-wrap input {
+    width: 100%;
+    padding-right: 42px;
+}
+
+.input-unit {
+    position: absolute;
+    right: 8px;
+    font-size: 0.8rem;
+    color: var(--text-light, #888);
+    pointer-events: none;
+    white-space: nowrap;
 }
 
 /* ==================== ADD BUTTONS ==================== */
