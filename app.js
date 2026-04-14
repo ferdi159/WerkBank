@@ -744,6 +744,69 @@ function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 }
 
+// Kundennummer als Zahl extrahieren (z.B. "KD-0003" → 3)
+function extractKundenNummer(kundenNr) {
+    if (!kundenNr) return 0;
+    const match = kundenNr.match(/(\d+)$/);
+    return match ? parseInt(match[1]) : 0;
+}
+
+// Zählt wie viele Projekte ein Kunde hat, gibt die nächste Nummer zurück
+async function getNextProjektNrForKunde(kundeId, year, excludeProjektId) {
+    const projekte = await dbGetAll('projekte');
+    let maxNr = 0;
+    let countForKunde = 0;
+
+    projekte.forEach(p => {
+        if (p.kundeId === kundeId && p.id !== excludeProjektId) {
+            countForKunde++;
+
+            if (p.angebotNr) {
+                // Neues Format: AG-2026-003-02 → letzte Zahl extrahieren
+                const match = p.angebotNr.match(/^(?:AG|RE)-(\d{4})-\d{3}-(\d+)$/);
+                if (match && parseInt(match[1]) === year) {
+                    const nr = parseInt(match[2]);
+                    if (nr > maxNr) maxNr = nr;
+                }
+            }
+        }
+    });
+
+    // Wenn alte Projekte existieren aber keine neue Nummer haben,
+    // starte nach der Anzahl bestehender Projekte
+    if (maxNr === 0 && countForKunde > 0) {
+        maxNr = countForKunde;
+    }
+
+    return maxNr + 1;
+}
+
+// Generiert AG-JJJJ-KKK-PP oder RE-JJJJ-KKK-PP
+async function generateDokumentNr(prefix, kundeId, excludeProjektId) {
+    const year = new Date().getFullYear();
+    let kundenNummer = 0;
+
+    if (kundeId) {
+        const kunde = await dbGet('kunden', kundeId);
+        if (kunde) {
+            kundenNummer = extractKundenNummer(kunde.kundenNr);
+            // Fallback: Wenn Kunde keine Nummer hat, Position in Kundenliste nutzen
+            if (kundenNummer === 0) {
+                const alleKunden = await dbGetAll('kunden');
+                const sorted = alleKunden.sort((a, b) => (a.erstelltAm || '').localeCompare(b.erstelltAm || ''));
+                const idx = sorted.findIndex(k => k.id === kundeId);
+                kundenNummer = idx >= 0 ? idx + 1 : 1;
+            }
+        }
+    }
+
+    const projektNr = await getNextProjektNrForKunde(kundeId, year, excludeProjektId);
+
+    return prefix + year + '-'
+        + String(kundenNummer).padStart(3, '0') + '-'
+        + String(projektNr).padStart(2, '0');
+}
+
 function formatCurrency(value, symbol) {
     symbol = symbol || '\u20ac';
     return value.toFixed(2).replace('.', ',') + ' ' + symbol;
@@ -1459,17 +1522,23 @@ function switchProjekteView(mode) {
 
 // Helper: Create invoice for a project (reusable)
 async function createRechnungForProjekt(projekt) {
-    const prefix = await getSetting('rechnungNrPrefix', 'RE-');
-    const counter = await getSetting('rechnungNrCounter', 1);
     const now = new Date();
     const zahlungsziel = await getSetting('standardZahlungsziel', 30);
-    const rechnungNr = prefix + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(counter).padStart(4, '0');
+
+    // Rechnungsnummer: RE-JJJJ-KKK-PP (gleiche Kunden/Projekt-Zuordnung wie Angebot)
+    let rechnungNr;
+    if (projekt.angebotNr && projekt.angebotNr.startsWith('AG-')) {
+        // Aus Angebotsnummer ableiten: AG-2026-003-02 → RE-2026-003-02
+        rechnungNr = 'RE-' + projekt.angebotNr.substring(3);
+    } else {
+        rechnungNr = await generateDokumentNr('RE-', projekt.kundeId, projekt.id);
+    }
+
     const faelligDatum = new Date(now.getTime() + zahlungsziel * 86400000).toISOString().split('T')[0];
     projekt.rechnung = { rechnungNr, rechnungDatum: now.toISOString().split('T')[0], faelligDatum, bezahltAm: null, bezahltBetrag: null };
     projekt.status = 'rechnung_gestellt';
     projekt.geaendertAm = now.toISOString();
     await dbPut('projekte', projekt);
-    await setSetting('rechnungNrCounter', counter + 1);
     showToast('Rechnung ' + rechnungNr + ' erstellt');
     await generateRechnungPDF(projekt);
     return projekt;
@@ -1974,12 +2043,8 @@ async function initProjektEditor(projekt) {
         document.getElementById('proj-notizen').value = '';
         document.getElementById('proj-leistungszeitraum').value = '';
 
-        // Generate Angebotsnummer
-        const prefix = await getSetting('angebotNrPrefix', 'ANG-');
-        const counter = await getSetting('angebotNrCounter', 1);
-        const now = new Date();
-        const nr = prefix + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(counter).padStart(4, '0');
-        document.getElementById('proj-angebot-nr').value = nr;
+        // Generate Angebotsnummer: AG-JJJJ-KKK-PP
+        document.getElementById('proj-angebot-nr').value = '(wird beim Speichern vergeben)';
 
         document.getElementById('z-mgk').value = stdMgk;
         document.getElementById('z-fgk').value = stdFgk;
@@ -2292,40 +2357,70 @@ function addSchrankBlock(data) {
                     <svg class="section-chevron" viewBox="0 0 24 24" width="18" height="18"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </div>
                 <div class="schrank-section-body${data ? '' : ' hidden'}" id="section-korpus-${idx}">
-                    <div class="form-grid-3">
-                        <div class="form-group">
-                            <label>Höhe</label>
-                            <div class="input-unit-wrap"><input type="number" class="korpus-hoehe" min="1" step="1" value="${data && data.korpus ? data.korpus.hoehe : ''}" placeholder="z.B. 720"><span class="input-unit">mm</span></div>
+                    <div class="korpus-layout-split">
+                      <div class="korpus-form-side">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>Höhe</label>
+                                <div class="input-unit-wrap"><input type="number" class="korpus-hoehe" min="1" step="1" value="${data && data.korpus ? data.korpus.hoehe : ''}" placeholder="z.B. 720"><span class="input-unit">mm</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Breite</label>
+                                <div class="input-unit-wrap"><input type="number" class="korpus-breite" min="1" step="1" value="${data && data.korpus ? data.korpus.breite : ''}" placeholder="z.B. 600"><span class="input-unit">mm</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tiefe</label>
+                                <div class="input-unit-wrap"><input type="number" class="korpus-tiefe" min="1" step="1" value="${data && data.korpus ? data.korpus.tiefe : ''}" placeholder="z.B. 560"><span class="input-unit">mm</span></div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Breite</label>
-                            <div class="input-unit-wrap"><input type="number" class="korpus-breite" min="1" step="1" value="${data && data.korpus ? data.korpus.breite : ''}" placeholder="z.B. 600"><span class="input-unit">mm</span></div>
+                        <div class="form-group" style="margin-top:8px">
+                            <label>Konstruktion</label>
+                            <div class="konstruktion-toggle">
+                                <button type="button" class="konstruktion-btn${!data || !data.korpus || !data.korpus.konstruktion || data.korpus.konstruktion === 'seiten' ? ' active' : ''}" data-konstruktion="seiten" title="Seiten durchgehend – Böden liegen zwischen den Seiten">
+                                    <svg viewBox="0 0 48 48" width="32" height="32">
+                                        <rect x="4" y="2" width="4" height="44" fill="currentColor" rx="1"/>
+                                        <rect x="40" y="2" width="4" height="44" fill="currentColor" rx="1"/>
+                                        <rect x="8" y="6" width="32" height="3" fill="currentColor" opacity="0.5" rx="0.5"/>
+                                        <rect x="8" y="39" width="32" height="3" fill="currentColor" opacity="0.5" rx="0.5"/>
+                                    </svg>
+                                    <span>Seiten durch</span>
+                                </button>
+                                <button type="button" class="konstruktion-btn${data && data.korpus && data.korpus.konstruktion === 'boeden' ? ' active' : ''}" data-konstruktion="boeden" title="Böden durchgehend – Seiten stehen auf den Böden">
+                                    <svg viewBox="0 0 48 48" width="32" height="32">
+                                        <rect x="2" y="4" width="44" height="4" fill="currentColor" rx="1"/>
+                                        <rect x="2" y="40" width="44" height="4" fill="currentColor" rx="1"/>
+                                        <rect x="6" y="8" width="3" height="32" fill="currentColor" opacity="0.5" rx="0.5"/>
+                                        <rect x="39" y="8" width="3" height="32" fill="currentColor" opacity="0.5" rx="0.5"/>
+                                    </svg>
+                                    <span>Böden durch</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Tiefe</label>
-                            <div class="input-unit-wrap"><input type="number" class="korpus-tiefe" min="1" step="1" value="${data && data.korpus ? data.korpus.tiefe : ''}" placeholder="z.B. 560"><span class="input-unit">mm</span></div>
+                        <div class="form-group" style="margin-top:4px">
+                            <label>Verschnitt</label>
+                            <div class="pct-combo">
+                                <select class="pct-presets korpus-verschnitt-presets">
+                                    <option value="5">5%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15" selected>15%</option>
+                                    <option value="20">20%</option>
+                                    <option value="25">25%</option>
+                                    <option value="30">30%</option>
+                                    <option value="custom">Eigener Wert</option>
+                                </select>
+                                <input type="number" class="klr-input korpus-verschnitt" min="0" max="40" step="1" value="${data && data.korpus ? data.korpus.verschnitt : 15}">
+                                <span class="pct-unit">%</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group" style="margin-top:4px">
-                        <label>Verschnitt</label>
-                        <div class="pct-combo">
-                            <select class="pct-presets korpus-verschnitt-presets">
-                                <option value="5">5%</option>
-                                <option value="10">10%</option>
-                                <option value="15" selected>15%</option>
-                                <option value="20">20%</option>
-                                <option value="25">25%</option>
-                                <option value="30">30%</option>
-                                <option value="custom">Eigener Wert</option>
-                            </select>
-                            <input type="number" class="klr-input korpus-verschnitt" min="0" max="40" step="1" value="${data && data.korpus ? data.korpus.verschnitt : 15}">
-                            <span class="pct-unit">%</span>
+                      </div>
+                      <div class="korpus-preview-side">
+                        <div class="korpus-svg-preview" id="korpus-svg-${idx}">
+                            <svg viewBox="0 0 200 240" width="100%" class="korpus-svg"></svg>
                         </div>
-                    </div>
-
-                    <div class="korpus-platten-preview" id="korpus-preview-${idx}">
-                        <span class="preview-label">Platten-Aufschlüsselung:</span>
-                        <div class="preview-items">Bitte Maße eingeben</div>
+                        <div class="korpus-platten-preview" id="korpus-preview-${idx}">
+                            <div class="preview-items">Bitte Maße eingeben</div>
+                        </div>
+                      </div>
                     </div>
 
                     ${buildMaterialSelectGroup('korpus')}
@@ -2361,18 +2456,39 @@ function addSchrankBlock(data) {
                             </select>
                         </div>
                     </div>
-                    <div class="form-grid-3">
-                        <div class="form-group">
-                            <label>Höhe</label>
-                            <div class="input-unit-wrap"><input type="number" class="front-hoehe" min="1" step="1" value="${data && data.front ? data.front.hoehe : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
+                    <div class="front-dim-grid">
+                        <div class="front-dim-row">
+                            <span class="front-dim-label">Höhe</span>
+                            <span class="front-dim-basis"><span class="front-basis-hoehe">—</span> mm</span>
+                            <span class="front-dim-op">+</span>
+                            <div class="input-unit-wrap"><input type="number" class="front-luft-hoehe" step="1" value="${data && data.front && data.front.luftHoehe != null ? data.front.luftHoehe : 0}" placeholder="0"><span class="input-unit">mm Luft</span></div>
+                            <span class="front-dim-eq">=</span>
+                            <span class="front-dim-result"><strong><span class="front-result-hoehe">—</span> mm</strong></span>
+                            <input type="hidden" class="front-hoehe" value="${data && data.front ? data.front.hoehe : ''}">
                         </div>
-                        <div class="form-group">
-                            <label>Breite</label>
-                            <div class="input-unit-wrap"><input type="number" class="front-breite" min="1" step="1" value="${data && data.front ? data.front.breite : ''}" placeholder="Auto aus Korpus"><span class="input-unit">mm</span></div>
+                        <div class="front-dim-row">
+                            <span class="front-dim-label">Breite</span>
+                            <span class="front-dim-basis"><span class="front-basis-breite">—</span> mm</span>
+                            <span class="front-dim-op">+</span>
+                            <div class="input-unit-wrap"><input type="number" class="front-luft-breite" step="1" value="${data && data.front && data.front.luftBreite != null ? data.front.luftBreite : 0}" placeholder="0"><span class="input-unit">mm Luft</span></div>
+                            <span class="front-dim-eq">=</span>
+                            <span class="front-dim-result"><strong><span class="front-result-breite">—</span> mm</strong></span>
+                            <input type="hidden" class="front-breite" value="${data && data.front ? data.front.breite : ''}">
                         </div>
-                        <div class="form-group">
-                            <label>Anzahl</label>
-                            <div class="input-unit-wrap"><input type="number" class="front-anzahl" min="0" value="${data && data.front ? data.front.anzahl : 1}"><span class="input-unit">Stk.</span></div>
+                    </div>
+                    <div class="front-split-section" style="margin-top:8px">
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>Anzahl Fronten</label>
+                                <div class="input-unit-wrap"><input type="number" class="front-anzahl" min="1" value="${data && data.front ? data.front.anzahl : 1}"><span class="input-unit">Stk.</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Fuge zwischen Fronten</label>
+                                <div class="input-unit-wrap"><input type="number" class="front-fuge" min="0" step="1" value="${data && data.front && data.front.fuge != null ? data.front.fuge : 3}" placeholder="3"><span class="input-unit">mm</span></div>
+                            </div>
+                        </div>
+                        <div class="front-split-info hidden">
+                            <small>Breite pro Front: <strong><span class="front-split-breite">—</span> mm</strong> (Gesamtbreite abzgl. Fugen, geteilt durch Anzahl)</small>
                         </div>
                     </div>
                     ${buildMaterialSelectGroup('front')}
@@ -2483,6 +2599,12 @@ function addSchrankBlock(data) {
     }
 
     bindSchrankEvents(block, idx);
+
+    // Front-Anzeige initialisieren (Basis + Luft + Split) + Vorschau
+    setTimeout(() => {
+        autoFillFromKorpus(block);
+        updatePlattenPreview(block, idx);
+    }, 50);
 }
 
 function setSchrankComponentData(block, prefix, compData) {
@@ -2540,6 +2662,20 @@ function setSchrankComponentData(block, prefix, compData) {
             });
         }
     }
+
+    // Front Luft + Fuge wiederherstellen
+    if (compData.luftHoehe != null) {
+        const el = block.querySelector('.' + prefix + '-luft-hoehe');
+        if (el) el.value = compData.luftHoehe;
+    }
+    if (compData.luftBreite != null) {
+        const el = block.querySelector('.' + prefix + '-luft-breite');
+        if (el) el.value = compData.luftBreite;
+    }
+    if (compData.fuge != null) {
+        const el = block.querySelector('.' + prefix + '-fuge');
+        if (el) el.value = compData.fuge;
+    }
 }
 
 // --- bindSchrankEvents ---
@@ -2574,6 +2710,16 @@ function bindSchrankEvents(block, idx) {
             const body = document.getElementById('section-' + sectionId);
             if (body) body.classList.toggle('hidden');
             header.classList.toggle('collapsed');
+        });
+    });
+
+    // Konstruktions-Toggle (Seiten durch / Böden durch)
+    block.querySelectorAll('.konstruktion-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            block.querySelectorAll('.konstruktion-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updatePlattenPreview(block, idx);
+            triggerSchrankCalc(block);
         });
     });
 
@@ -2652,11 +2798,6 @@ function bindSchrankEvents(block, idx) {
     const frontTypArtSel = block.querySelector('.front-typ-art');
     if (frontTypArtSel) {
         frontTypArtSel.addEventListener('change', () => {
-            // Reset auto-filled flags to force recalc
-            const frontH = block.querySelector('.front-hoehe');
-            const frontB = block.querySelector('.front-breite');
-            frontH.dataset.autoFilled = '1';
-            frontB.dataset.autoFilled = '1';
             autoFillFromKorpus(block);
             triggerSchrankCalc(block);
         });
@@ -2675,12 +2816,11 @@ function bindSchrankEvents(block, idx) {
         });
     }
 
-    // Front/Rückwand dimension changes
-    ['front-hoehe', 'front-breite', 'front-anzahl', 'rueckwand-hoehe', 'rueckwand-breite'].forEach(cls => {
+    // Front Luft + Anzahl + Fuge + Rückwand dimension changes
+    ['front-luft-hoehe', 'front-luft-breite', 'front-anzahl', 'front-fuge', 'rueckwand-hoehe', 'rueckwand-breite'].forEach(cls => {
         const el = block.querySelector('.' + cls);
         if (el) el.addEventListener('input', () => {
-            // Mark as manually edited
-            el.dataset.autoFilled = '';
+            if (cls.startsWith('front-')) autoFillFromKorpus(block);
             triggerSchrankCalc(block);
         });
     });
@@ -2763,18 +2903,50 @@ function autoFillFromKorpus(block) {
     const staerkeSel = block.querySelector('.korpus-staerke');
     const staerke = parseFloat(staerkeSel?.value) || 19;
 
-    // Front: abhängig von Typ (aufschlagend/einschlagend)
+    // Front: abhängig von Typ (aufschlagend/einschlagend) + Luft
     const frontTypArt = block.querySelector('.front-typ-art')?.value || 'aufschlagend';
     const frontH = block.querySelector('.front-hoehe');
     const frontB = block.querySelector('.front-breite');
-    if (!frontH.value || frontH.dataset.autoFilled) {
-        frontH.value = frontTypArt === 'einschlagend' ? Math.max(h - 2 * staerke, 0) : h;
-        frontH.dataset.autoFilled = '1';
+    const luftH = parseFloat(block.querySelector('.front-luft-hoehe')?.value) || 0;
+    const luftB = parseFloat(block.querySelector('.front-luft-breite')?.value) || 0;
+    const basisH = frontTypArt === 'einschlagend' ? Math.max(h - 2 * staerke, 0) : h;
+    const basisB = frontTypArt === 'einschlagend' ? Math.max(b - 2 * staerke, 0) : b;
+
+    // Basismaße anzeigen
+    const basisHEl = block.querySelector('.front-basis-hoehe');
+    const basisBEl = block.querySelector('.front-basis-breite');
+    if (basisHEl) basisHEl.textContent = basisH || '—';
+    if (basisBEl) basisBEl.textContent = basisB || '—';
+
+    // Endmaße berechnen (Basis + Luft)
+    const endH = basisH ? basisH + luftH : 0;
+    const endB = basisB ? basisB + luftB : 0;
+
+    // Front-Aufteilung berechnen
+    const frontAnzahl = parseInt(block.querySelector('.front-anzahl')?.value) || 1;
+    const frontFuge = parseFloat(block.querySelector('.front-fuge')?.value) || 3;
+    const splitInfoEl = block.querySelector('.front-split-info');
+    const splitBreiteEl = block.querySelector('.front-split-breite');
+    let frontEinzelBreite = endB;
+
+    if (frontAnzahl > 1 && endB > 0) {
+        // Gesamtbreite minus Fugen, geteilt durch Anzahl
+        frontEinzelBreite = Math.round((endB - (frontAnzahl - 1) * frontFuge) / frontAnzahl);
+        if (splitInfoEl) splitInfoEl.classList.remove('hidden');
+        if (splitBreiteEl) splitBreiteEl.textContent = frontEinzelBreite;
+    } else {
+        if (splitInfoEl) splitInfoEl.classList.add('hidden');
     }
-    if (!frontB.value || frontB.dataset.autoFilled) {
-        frontB.value = frontTypArt === 'einschlagend' ? Math.max(b - 2 * staerke, 0) : b;
-        frontB.dataset.autoFilled = '1';
-    }
+
+    // Für Berechnung: Einzelfront-Breite setzen
+    frontH.value = endH || '';
+    frontB.value = frontEinzelBreite || '';
+
+    // Ergebnis anzeigen
+    const resHEl = block.querySelector('.front-result-hoehe');
+    const resBEl = block.querySelector('.front-result-breite');
+    if (resHEl) resHEl.textContent = endH || '—';
+    if (resBEl) resBEl.textContent = endB || '—';
 
     // Rückwand: abhängig von Befestigungsart
     const rwTypArt = block.querySelector('.rueckwand-typ-art')?.value || 'aufschlagend';
@@ -2802,33 +2974,105 @@ function autoFillFromKorpus(block) {
     }
 }
 
+function getKonstruktionsart(block) {
+    const activeBtn = block.querySelector('.konstruktion-btn.active');
+    return activeBtn ? activeBtn.dataset.konstruktion : 'seiten';
+}
+
 function updatePlattenPreview(block, idx) {
     const h = parseFloat(block.querySelector('.korpus-hoehe').value) || 0;
     const b = parseFloat(block.querySelector('.korpus-breite').value) || 0;
     const t = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
     const previewEl = block.querySelector('.korpus-platten-preview .preview-items');
+    const svgEl = block.querySelector('.korpus-svg');
 
     if (!h || !b || !t) {
         previewEl.innerHTML = 'Bitte Maße eingeben';
+        if (svgEl) svgEl.innerHTML = '<text x="100" y="120" text-anchor="middle" fill="#94a3b8" font-size="13">Maße eingeben</text>';
         return;
     }
 
-    // Get Stärke for inner width calculation
     const staerkeSel = block.querySelector('.korpus-staerke');
     const staerke = parseFloat(staerkeSel.value) || 19;
+    const konstruktion = getKonstruktionsart(block);
+    const istSeitenDurch = konstruktion === 'seiten';
 
-    const innerB = b - 2 * staerke;
-    const seiteH = h;
-    const seiteT = t;
-    const bodenB = innerB;
-    const bodenT = t;
+    let seiteH, seiteT, bodenB, bodenT;
+    if (istSeitenDurch) {
+        seiteH = h;
+        seiteT = t;
+        bodenB = Math.max(b - 2 * staerke, 0);
+        bodenT = t;
+    } else {
+        bodenB = b;
+        bodenT = t;
+        seiteH = Math.max(h - 2 * staerke, 0);
+        seiteT = t;
+    }
 
     previewEl.innerHTML = `
-        <div class="preview-platte">2× Seite: ${seiteH} × ${seiteT} mm</div>
+        <div class="preview-platte">2× Seite: ${seiteH.toFixed(0)} × ${seiteT} mm</div>
         <div class="preview-platte">1× Boden: ${bodenB.toFixed(0)} × ${bodenT} mm</div>
         <div class="preview-platte">1× Deckel: ${bodenB.toFixed(0)} × ${bodenT} mm</div>
         <div class="preview-total">Gesamt: ${((2 * seiteH * seiteT + 2 * bodenB * bodenT) / 1000000).toFixed(3)} m²</div>
     `;
+
+    // SVG-Vorschau rendern
+    if (svgEl) renderKorpusSVG(svgEl, h, b, staerke, konstruktion);
+}
+
+function renderKorpusSVG(svgEl, h, b, staerke, konstruktion) {
+    const pad = 30;
+    const maxW = 140, maxH = 170;
+    const ratio = Math.min(maxW / b, maxH / h);
+    const drawW = b * ratio;
+    const drawH = h * ratio;
+    const sW = staerke * ratio;
+    const ox = (200 - drawW) / 2;
+    const oy = pad;
+    const istSeitenDurch = konstruktion === 'seiten';
+
+    const seitenColor = '#b45309';
+    const boedenColor = '#d97706';
+    const dimColor = '#64748b';
+
+    let svg = '';
+
+    if (istSeitenDurch) {
+        // Seiten durchgehend (volle Höhe), Böden zwischen den Seiten
+        svg += `<rect x="${ox}" y="${oy}" width="${sW}" height="${drawH}" fill="${seitenColor}" rx="1" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox + drawW - sW}" y="${oy}" width="${sW}" height="${drawH}" fill="${seitenColor}" rx="1" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox + sW}" y="${oy}" width="${drawW - 2 * sW}" height="${sW}" fill="${boedenColor}" rx="0.5" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox + sW}" y="${oy + drawH - sW}" width="${drawW - 2 * sW}" height="${sW}" fill="${boedenColor}" rx="0.5" stroke="#92400e" stroke-width="0.5"/>`;
+    } else {
+        // Böden durchgehend (volle Breite), Seiten stehen auf den Böden
+        svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${sW}" fill="${boedenColor}" rx="1" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox}" y="${oy + drawH - sW}" width="${drawW}" height="${sW}" fill="${boedenColor}" rx="1" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox}" y="${oy + sW}" width="${sW}" height="${drawH - 2 * sW}" fill="${seitenColor}" rx="0.5" stroke="#92400e" stroke-width="0.5"/>`;
+        svg += `<rect x="${ox + drawW - sW}" y="${oy + sW}" width="${sW}" height="${drawH - 2 * sW}" fill="${seitenColor}" rx="0.5" stroke="#92400e" stroke-width="0.5"/>`;
+    }
+
+    // Bemaßung Breite (oben)
+    const arrY = oy - 8;
+    svg += `<line x1="${ox}" y1="${arrY}" x2="${ox + drawW}" y2="${arrY}" stroke="${dimColor}" stroke-width="0.8" marker-start="url(#arr)" marker-end="url(#arr)"/>`;
+    svg += `<text x="${ox + drawW / 2}" y="${arrY - 3}" text-anchor="middle" fill="${dimColor}" font-size="10" font-weight="600">${b} mm</text>`;
+
+    // Bemaßung Höhe (rechts)
+    const arrX = ox + drawW + 10;
+    svg += `<line x1="${arrX}" y1="${oy}" x2="${arrX}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.8" marker-start="url(#arr)" marker-end="url(#arr)"/>`;
+    svg += `<text x="${arrX + 4}" y="${oy + drawH / 2}" text-anchor="start" fill="${dimColor}" font-size="10" font-weight="600" dominant-baseline="middle">${h} mm</text>`;
+
+    // Legende
+    const legY = oy + drawH + 16;
+    svg += `<rect x="${ox}" y="${legY}" width="10" height="10" fill="${seitenColor}" rx="1"/>`;
+    svg += `<text x="${ox + 14}" y="${legY + 8}" fill="${dimColor}" font-size="9">Seiten${istSeitenDurch ? ' (durch)' : ''}</text>`;
+    svg += `<rect x="${ox + 80}" y="${legY}" width="10" height="10" fill="${boedenColor}" rx="1"/>`;
+    svg += `<text x="${ox + 94}" y="${legY + 8}" fill="${dimColor}" font-size="9">Böden${istSeitenDurch ? '' : ' (durch)'}</text>`;
+
+    // Arrow marker definition
+    const defs = `<defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,1 L3,3 L0,5" fill="none" stroke="${dimColor}" stroke-width="0.8"/></marker></defs>`;
+
+    svgEl.innerHTML = defs + svg;
 }
 
 function renumberSchraenke() {
@@ -2909,9 +3153,12 @@ function berechneKorpus(block) {
     const typSel = block.querySelector('.korpus-typ');
     const materialName = typSel ? (typSel.options[typSel.selectedIndex]?.textContent || '') : '';
 
-    // 4 Platten: 2× Seite (H×T), Boden+Deckel ((B-2×Stärke)×T)
-    const innerB = Math.max(b - 2 * staerke, 0);
-    const seitenFlaeche = 2 * (h / 1000) * (t / 1000);
+    // Konstruktionsart: Seiten oder Böden durchgehend
+    const konstruktion = getKonstruktionsart(block);
+    const istSeitenDurch = konstruktion === 'seiten';
+    const innerB = istSeitenDurch ? Math.max(b - 2 * staerke, 0) : b;
+    const seitenH = istSeitenDurch ? h : Math.max(h - 2 * staerke, 0);
+    const seitenFlaeche = 2 * (seitenH / 1000) * (t / 1000);
     const bodenDeckelFlaeche = 2 * (innerB / 1000) * (t / 1000);
     const flaecheNetto = seitenFlaeche + bodenDeckelFlaeche;
     const flaecheBrutto = flaecheNetto * (1 + verschnitt);
@@ -2953,19 +3200,19 @@ function berechneKorpus(block) {
                 return cb ? cb.checked : false;
             };
 
-            // Seiten (2 Stück): Höhe H, Tiefe T
-            if (isChecked('seite-vorne'))  kantenAutoLfm += 2 * h / 1000;
-            if (isChecked('seite-hinten')) kantenAutoLfm += 2 * h / 1000;
+            // Seiten (2 Stück): Höhe je nach Konstruktion, Tiefe T
+            if (isChecked('seite-vorne'))  kantenAutoLfm += 2 * seitenH / 1000;
+            if (isChecked('seite-hinten')) kantenAutoLfm += 2 * seitenH / 1000;
             if (isChecked('seite-oben'))   kantenAutoLfm += 2 * t / 1000;
             if (isChecked('seite-unten'))  kantenAutoLfm += 2 * t / 1000;
 
-            // Boden (1 Stück): Breite innerB, Tiefe T
+            // Boden (1 Stück): Breite je nach Konstruktion, Tiefe T
             if (isChecked('boden-vorne'))  kantenAutoLfm += innerB / 1000;
             if (isChecked('boden-hinten')) kantenAutoLfm += innerB / 1000;
             if (isChecked('boden-links'))  kantenAutoLfm += t / 1000;
             if (isChecked('boden-rechts')) kantenAutoLfm += t / 1000;
 
-            // Deckel (1 Stück): Breite innerB, Tiefe T
+            // Deckel (1 Stück): Breite je nach Konstruktion, Tiefe T
             if (isChecked('deckel-vorne'))  kantenAutoLfm += innerB / 1000;
             if (isChecked('deckel-hinten')) kantenAutoLfm += innerB / 1000;
             if (isChecked('deckel-links'))  kantenAutoLfm += t / 1000;
@@ -3127,6 +3374,9 @@ function collectSchrankData(block) {
         const bEl = block.querySelector('.' + prefix + '-breite');
         const anzahlEl = block.querySelector('.' + prefix + '-anzahl');
         const typArtEl = block.querySelector('.' + prefix + '-typ-art');
+        const luftHEl = block.querySelector('.' + prefix + '-luft-hoehe');
+        const luftBEl = block.querySelector('.' + prefix + '-luft-breite');
+        const fugeEl = block.querySelector('.' + prefix + '-fuge');
         return {
             kategorie: block.querySelector('.' + prefix + '-kategorie').value,
             typ: block.querySelector('.' + prefix + '-typ').value,
@@ -3135,6 +3385,9 @@ function collectSchrankData(block) {
             breite: bEl ? parseFloat(bEl.value) || 0 : 0,
             anzahl: anzahlEl ? parseInt(anzahlEl.value) || 1 : 1,
             typArt: typArtEl ? typArtEl.value : undefined,
+            luftHoehe: luftHEl ? parseFloat(luftHEl.value) || 0 : undefined,
+            luftBreite: luftBEl ? parseFloat(luftBEl.value) || 0 : undefined,
+            fuge: fugeEl ? parseFloat(fugeEl.value) || 0 : undefined,
             oberflaecheAktiv: block.querySelector('.' + prefix + '-oberflaeche-aktiv').checked,
             oberflaecheProdukte: Array.from(block.querySelectorAll('.' + prefix + '-oberflaeche-rows .oberflaeche-row')).map(row => ({
                 typ: row.querySelector('.' + prefix + '-oberflaeche-typ').value,
@@ -3152,6 +3405,7 @@ function collectSchrankData(block) {
     const korpusData = collectComponent('korpus');
     korpusData.tiefe = parseFloat(block.querySelector('.korpus-tiefe').value) || 0;
     korpusData.verschnitt = parseInt(block.querySelector('.korpus-verschnitt').value) || 15;
+    korpusData.konstruktion = getKonstruktionsart(block);
 
     // Kanten-Checkboxen sammeln
     const kantenCbs = {};
@@ -4200,7 +4454,7 @@ async function saveProjekt() {
         status: document.getElementById('proj-status').value,
         objektAdresse: document.getElementById('proj-objekt-adresse').value.trim(),
         notizen: document.getElementById('proj-notizen').value.trim(),
-        angebotNr: document.getElementById('proj-angebot-nr').value.trim(),
+        angebotNr: document.getElementById('proj-angebot-nr').value.trim() || '',
         leistungszeitraum: document.getElementById('proj-leistungszeitraum').value.trim(),
         schraenke,
         arbeitszeiten,
@@ -4237,9 +4491,12 @@ async function saveProjekt() {
         }
     } else {
         projekt.erstelltAm = new Date().toISOString();
-        // Increment counter
-        const counter = await getSetting('angebotNrCounter', 1);
-        await setSetting('angebotNrCounter', counter + 1);
+    }
+
+    // Angebotsnummer automatisch vergeben wenn noch keine vorhanden oder Platzhalter
+    if (!projekt.angebotNr || projekt.angebotNr === '(wird beim Speichern vergeben)') {
+        projekt.angebotNr = await generateDokumentNr('AG-', projekt.kundeId, projekt.id);
+        document.getElementById('proj-angebot-nr').value = projekt.angebotNr;
     }
 
     await dbPut('projekte', projekt);
@@ -5078,12 +5335,17 @@ async function erstelleRechnung() {
     const projekt = await dbGet('projekte', currentProjektId);
     if (!projekt) return;
 
-    const prefix = await getSetting('rechnungNrPrefix', 'RE-');
-    const counter = await getSetting('rechnungNrCounter', 1);
     const now = new Date();
     const zahlungsziel = await getSetting('standardZahlungsziel', 30);
 
-    const rechnungNr = prefix + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(counter).padStart(4, '0');
+    // Rechnungsnummer: RE-JJJJ-KKK-PP (aus Angebotsnummer ableiten)
+    let rechnungNr;
+    if (projekt.angebotNr && projekt.angebotNr.startsWith('AG-')) {
+        rechnungNr = 'RE-' + projekt.angebotNr.substring(3);
+    } else {
+        rechnungNr = await generateDokumentNr('RE-', projekt.kundeId, projekt.id);
+    }
+
     const faelligDatum = new Date(now.getTime() + zahlungsziel * 86400000).toISOString().split('T')[0];
 
     projekt.rechnung = {
@@ -5109,7 +5371,6 @@ async function erstelleRechnung() {
     projekt.status = 'rechnung_gestellt';
     projekt.geaendertAm = now.toISOString();
     await dbPut('projekte', projekt);
-    await setSetting('rechnungNrCounter', counter + 1);
 
     document.getElementById('proj-status').value = 'rechnung_gestellt';
     showToast('Rechnung ' + rechnungNr + ' erstellt');
@@ -5991,9 +6252,18 @@ function initEvents() {
         }
     });
 
-    // Kunde dropdown -> auto-fill address
-    document.getElementById('proj-kunde').addEventListener('change', function () {
+    // Kunde dropdown -> auto-fill address + Angebotsnummer aktualisieren
+    document.getElementById('proj-kunde').addEventListener('change', async function () {
         fillKundeDetails(this.value);
+        // Bei neuem Projekt: Angebotsnummer mit neuem Kunden generieren
+        const angebotInput = document.getElementById('proj-angebot-nr');
+        if (!currentProjektId || angebotInput.value === '(wird beim Speichern vergeben)') {
+            if (this.value) {
+                angebotInput.value = await generateDokumentNr('AG-', this.value, null);
+            } else {
+                angebotInput.value = '(wird beim Speichern vergeben)';
+            }
+        }
     });
 
     // Montage personal add button
@@ -6846,6 +7116,51 @@ async function globalSearch(query) {
     const q = query.toLowerCase();
     const results = [];
 
+    // --- Statische Seiten & Bereiche ---
+    const staticPages = [
+        { label: 'Dashboard', sub: 'Übersicht, KPIs, Umsatz, Statistiken', href: '#/dashboard', keywords: 'dashboard übersicht startseite home kpi statistik umsatz' },
+        { label: 'Projekte', sub: 'Alle Projekte verwalten', href: '#/projekte', keywords: 'projekte liste aufträge angebote' },
+        { label: 'Neues Projekt', sub: 'Neues Projekt anlegen', href: '#/projekt/neu', keywords: 'neues projekt erstellen anlegen neu' },
+        { label: 'Kunden', sub: 'Kundenverwaltung', href: '#/kunden', keywords: 'kunden kontakte adressen verwaltung' },
+        { label: 'Zeiterfassung', sub: 'Stoppuhr, Zeiteinträge, Arbeitszeiten', href: '#/zeiterfassung', keywords: 'zeiterfassung stoppuhr zeit arbeitszeit stunden timer zeiten' },
+        { label: 'Kalender', sub: 'Termine & Fristen', href: '#/kalender', keywords: 'kalender termine fristen datum planung' },
+        { label: 'Finanzen', sub: 'Umsatz, Rechnungen, Einnahmen, Ausgaben', href: '#/finanzen', keywords: 'finanzen umsatz rechnung rechnungen einnahmen ausgaben geld bilanz gewinn buchhaltung' },
+        { label: 'Einstellungen', sub: 'Firmendaten, MwSt, Stundensätze, Vorlagen', href: '#/einstellungen', keywords: 'einstellungen settings konfiguration firma adresse mwst steuer stundensatz stundenlohn bank iban zahlungsziel skonto währung' },
+        { label: 'Hilfe', sub: 'Anleitungen & FAQ', href: '#/hilfe', keywords: 'hilfe anleitung faq support fragen' },
+        { label: 'Impressum', sub: 'Rechtliche Angaben', href: '#/impressum', keywords: 'impressum rechtlich' },
+        { label: 'Datenschutz', sub: 'Datenschutzerklärung', href: '#/datenschutz', keywords: 'datenschutz dsgvo privacy' },
+    ];
+
+    // Einstellungs-Unterbereiche
+    const settingsPages = [
+        { label: 'Firmendaten', sub: 'Einstellungen → Name, Adresse, Logo', href: '#/einstellungen', keywords: 'firma firmenname betrieb adresse telefon email logo' },
+        { label: 'MwSt & Steuern', sub: 'Einstellungen → Mehrwertsteuer, Kleinunternehmer', href: '#/einstellungen', keywords: 'mwst mehrwertsteuer steuer kleinunternehmer ust umsatzsteuer prozent 19' },
+        { label: 'Zahlungsbedingungen', sub: 'Einstellungen → Skonto, Zahlungsziel, Fristen', href: '#/einstellungen', keywords: 'zahlung zahlungsbedingung zahlungsziel skonto frist tage rabatt nachlass' },
+        { label: 'Bankverbindung', sub: 'Einstellungen → IBAN, BIC, Kontoinhaber', href: '#/einstellungen', keywords: 'bank bankverbindung iban bic konto kontoinhaber überweisung' },
+        { label: 'Angebots-Einstellungen', sub: 'Einstellungen → Prefix, Gültigkeit, Ausführungszeitraum', href: '#/einstellungen', keywords: 'angebot prefix nummer gültigkeit ausführung zeitraum' },
+        { label: 'Rechnungs-Einstellungen', sub: 'Einstellungen → Rechnungs-Prefix, Nummernkreis', href: '#/einstellungen', keywords: 'rechnung rechnungsnummer prefix nummernkreis' },
+    ];
+
+    // Kalkulations-Begriffe
+    const calcPages = [
+        { label: 'Kalkulation (KLR)', sub: 'Gemeinkosten, Wagnis & Gewinn, Rabatt', href: '#/projekt/neu', keywords: 'kalkulation klr gemeinkostenzuschlag material fertigungs verwaltungs vertriebsgemeinkosten wagnis gewinn zuschlag zuschlagssatz' },
+        { label: 'Materialkosten', sub: 'Kalkulation → Holz, Platten, Preise', href: '#/projekt/neu', keywords: 'material materialkosten holz platte spanplatte mdf massivholz preis kosten' },
+        { label: 'Arbeitszeit & Stundensätze', sub: 'Kalkulation → Geselle, Meister, Azubi', href: '#/projekt/neu', keywords: 'arbeitszeit stundensatz stundenlohn lohn geselle meister azubi helfer fachgeselle' },
+        { label: 'Montage', sub: 'Kalkulation → Anfahrt, Personal, Gebrauchsmittel', href: '#/projekt/neu', keywords: 'montage anfahrt personal gebrauchsmittel einbau aufbau baustelle' },
+        { label: 'Oberfläche', sub: 'Kalkulation → Lack, Öl, Lasur, Furnier', href: '#/projekt/neu', keywords: 'oberfläche oberflaeche lack öl lasur furnier anstrich lackierung ölung beschichtung' },
+        { label: 'Kantenbearbeitung', sub: 'Kalkulation → Kantenmaterial, Laufmeter', href: '#/projekt/neu', keywords: 'kante kanten kantenbearbeitung kantenmaterial laufmeter umleimer abs' },
+        { label: 'Beschläge', sub: 'Kalkulation → Scharniere, Griffe, Auszüge', href: '#/projekt/neu', keywords: 'beschlag beschläge scharnier topfband griff auszug schublade verbinder' },
+    ];
+
+    // Statische + Settings + Calc durchsuchen
+    [...staticPages, ...settingsPages, ...calcPages].forEach(page => {
+        const searchText = (page.label + ' ' + page.sub + ' ' + page.keywords).toLowerCase();
+        if (searchText.includes(q)) {
+            results.push({ type: 'seite', label: page.label, sub: page.sub, href: page.href });
+        }
+    });
+
+    // --- Kunden ---
     const kunden = await dbGetAll('kunden');
     kunden.forEach(k => {
         const text = [k.kundenNr, k.vorname, k.nachname, k.firma, k.ort, k.email, k.telefon].filter(Boolean).join(' ').toLowerCase();
@@ -6855,6 +7170,7 @@ async function globalSearch(query) {
         }
     });
 
+    // --- Projekte ---
     const projekte = await dbGetAll('projekte');
     projekte.forEach(p => {
         const text = [p.titel, p.angebotNr, p.notizen, p.objektAdresse].filter(Boolean).join(' ').toLowerCase();
@@ -6865,7 +7181,20 @@ async function globalSearch(query) {
         }
     });
 
-    return results.slice(0, 10);
+    // --- Zeiteinträge ---
+    try {
+        const zeiteintraege = await dbGetAll('zeiteintraege');
+        if (zeiteintraege) {
+            zeiteintraege.forEach(z => {
+                const text = [z.beschreibung, z.projektName, z.kategorie].filter(Boolean).join(' ').toLowerCase();
+                if (text.includes(q)) {
+                    results.push({ type: 'zeit', label: z.beschreibung || 'Zeiteintrag', sub: (z.projektName || '') + (z.datum ? ' – ' + z.datum : ''), href: '#/zeiterfassung' });
+                }
+            });
+        }
+    } catch (e) { /* Store evtl. nicht vorhanden */ }
+
+    return results.slice(0, 15);
 }
 
 function renderGlobalSearchResults(results, container) {
@@ -6873,20 +7202,43 @@ function renderGlobalSearchResults(results, container) {
         container.innerHTML = '<div class="gs-no-results">Keine Ergebnisse</div>';
         return;
     }
-    container.innerHTML = results.map(r => {
-        const icon = r.type === 'kunde'
-            ? '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
-            : '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
-        const typeLabel = r.type === 'kunde' ? 'Kunde' : 'Projekt';
-        return `<a href="${r.href}" class="gs-result-item">
-            <span class="gs-result-icon">${icon}</span>
+
+    const icons = {
+        kunde: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+        projekt: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+        seite: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+        zeit: '<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    };
+
+    const typeLabels = {
+        kunde: 'Kunde',
+        projekt: 'Projekt',
+        seite: 'Seite',
+        zeit: 'Zeiteintrag',
+    };
+
+    // Gruppieren nach Typ
+    const grouped = {};
+    results.forEach(r => {
+        if (!grouped[r.type]) grouped[r.type] = [];
+        grouped[r.type].push(r);
+    });
+
+    const order = ['seite', 'projekt', 'kunde', 'zeit'];
+    let html = '';
+    order.forEach(type => {
+        if (!grouped[type]) return;
+        html += `<div class="gs-group-label">${typeLabels[type] || type}</div>`;
+        html += grouped[type].map(r => `<a href="${r.href}" class="gs-result-item">
+            <span class="gs-result-icon">${icons[r.type] || icons.seite}</span>
             <span class="gs-result-text">
                 <span class="gs-result-label">${escapeHtml(r.label)}</span>
                 <span class="gs-result-sub">${escapeHtml(r.sub)}</span>
             </span>
-            <span class="gs-result-type">${typeLabel}</span>
-        </a>`;
-    }).join('');
+        </a>`).join('');
+    });
+
+    container.innerHTML = html;
 }
 
 function initGlobalSearch() {

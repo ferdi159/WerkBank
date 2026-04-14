@@ -264,6 +264,20 @@ body {
     letter-spacing: 0.5px;
 }
 
+.gs-group-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-light, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 8px 14px 4px;
+    border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.gs-group-label:first-child {
+    border-top: none;
+}
+
 .gs-no-results {
     padding: 16px;
     text-align: center;
@@ -1188,6 +1202,64 @@ body {
     margin-right: 2px;
 }
 
+/* Front-Dimensions-Berechnung (Basis + Luft = Ergebnis) */
+.front-dim-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.front-dim-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--cream, #f8f5f0);
+    border-radius: var(--radius-sm, 6px);
+    font-size: 0.88rem;
+    flex-wrap: wrap;
+}
+
+.front-dim-label {
+    font-weight: 600;
+    min-width: 50px;
+    color: var(--text, #333);
+}
+
+.front-dim-basis {
+    color: var(--text-light, #888);
+    min-width: 70px;
+}
+
+.front-dim-op {
+    color: var(--text-light, #888);
+    font-weight: 600;
+}
+
+.front-dim-row .input-unit-wrap {
+    max-width: 140px;
+}
+
+.front-dim-eq {
+    color: var(--text-light, #888);
+    font-weight: 600;
+}
+
+.front-dim-result {
+    color: var(--primary, #2563eb);
+    min-width: 80px;
+}
+
+.front-split-info {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--cream, #f8f5f0);
+    border-radius: var(--radius-sm, 6px);
+    font-size: 0.82rem;
+    color: var(--text, #333);
+}
+
 .extra-kanten-lfm {
     margin-left: auto;
     color: var(--text-light, #888);
@@ -1257,6 +1329,109 @@ body {
 
 .calc-body {
     padding: 24px;
+}
+
+/* Korpus Split-Layout: Formular links, Vorschau rechts */
+.korpus-layout-split {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .korpus-layout-split {
+        grid-template-columns: 1fr;
+    }
+    .korpus-preview-side {
+        order: -1;
+    }
+}
+
+.korpus-preview-side {
+    position: sticky;
+    top: 16px;
+    background: var(--bg-main, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: var(--radius-sm, 8px);
+    padding: 16px 12px;
+    text-align: center;
+}
+
+.korpus-svg-preview {
+    margin-bottom: 12px;
+}
+
+.korpus-svg {
+    display: block;
+    margin: 0 auto;
+}
+
+.korpus-platten-preview {
+    text-align: left;
+    font-size: 0.82rem;
+    color: var(--text-light, #64748b);
+}
+
+.korpus-platten-preview .preview-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.preview-platte {
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border, #e2e8f0);
+    font-variant-numeric: tabular-nums;
+}
+
+.preview-total {
+    padding-top: 6px;
+    font-weight: 600;
+    color: var(--text, #1e293b);
+}
+
+/* Konstruktions-Toggle */
+.konstruktion-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.konstruktion-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border: 2px solid var(--border, #e2e8f0);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--bg-card, #fff);
+    color: var(--text-light, #64748b);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.konstruktion-btn:hover {
+    border-color: var(--wood-3, #d97706);
+    color: var(--wood-3, #d97706);
+}
+
+.konstruktion-btn.active {
+    border-color: var(--wood-2, #b45309);
+    background: var(--wood-5, #fef3c7);
+    color: var(--wood-1, #92400e);
+    font-weight: 600;
+}
+
+.konstruktion-btn svg {
+    color: inherit;
+}
+
+.konstruktion-btn span {
+    white-space: nowrap;
 }
 
 /* Klappbare Sektionen im Projekt-Editor */
@@ -4939,3 +5114,8 @@ select.pos-kategorie optgroup option {
 [data-theme="midnight"] .cal-termin-item.cal-termin-projekt { background: rgba(59, 130, 246, 0.08); }
 [data-theme="midnight"] .cal-termin-item,
 [data-theme="midnight"] .cal-kommend-item { background: #21262d; border-color: #30363d; }
+[data-theme="midnight"] .korpus-preview-side { background: #161b22; border-color: #30363d; }
+[data-theme="midnight"] .konstruktion-btn { background: #161b22; border-color: #30363d; color: #8b949e; }
+[data-theme="midnight"] .konstruktion-btn.active { background: #2a2210; border-color: #c17f24; color: #f0c674; }
+[data-theme="midnight"] .preview-platte { border-color: #30363d; }
+[data-theme="midnight"] .preview-total { color: #e6edf3; }
