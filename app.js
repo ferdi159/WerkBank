@@ -7996,8 +7996,9 @@ async function showTerminModal(datum, existing) {
         '<option value="' + key + '"' + ((t.typ || 'sonstiges') === key ? ' selected' : '') + '>' + val.label + '</option>'
     ).join('');
 
-    const html = '<div class="modal-overlay active" id="modal-termin">' +
-        '<div class="modal" style="max-width:520px">' +
+    const html = '<div class="modal" id="modal-termin">' +
+        '<div class="modal-backdrop" onclick="document.getElementById(\'modal-termin\').remove()"></div>' +
+        '<div class="modal-content" style="max-width:520px">' +
         '<div class="modal-header"><h3>' + (isEdit ? 'Termin bearbeiten' : 'Neuer Termin') + '</h3><button class="modal-close" onclick="document.getElementById(\'modal-termin\').remove()">&times;</button></div>' +
         '<div class="modal-body">' +
         '<div class="form-group"><label>Titel *</label><input type="text" id="termin-titel" value="' + escapeHtml(t.titel || '') + '" placeholder="z.B. Aufmaß bei Müller, Küchenmontage..."></div>' +
@@ -8158,6 +8159,13 @@ async function init() {
         // Einstellungen-Cards standardmäßig einklappen
         document.querySelectorAll('#view-einstellungen .calc-card').forEach(card => {
             card.classList.add('collapsed');
+            card.querySelector('.calc-header').addEventListener('click', () => {
+                card.classList.toggle('collapsed');
+            });
+        });
+
+        // Finanzen: Quartals- und Monatsübersicht einklappbar machen
+        document.querySelectorAll('#view-finanzen .calc-card.collapsible').forEach(card => {
             card.querySelector('.calc-header').addEventListener('click', () => {
                 card.classList.toggle('collapsed');
             });

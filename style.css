@@ -1458,7 +1458,8 @@ body {
 
 /* Einklappbare Cards (Einstellungen & Hilfe) */
 #view-einstellungen .calc-header,
-#view-hilfe .hilfe-card .calc-header {
+#view-hilfe .hilfe-card .calc-header,
+#view-finanzen .calc-card.collapsible .calc-header {
     cursor: pointer;
     user-select: none;
     position: relative;
@@ -1466,12 +1467,14 @@ body {
 }
 
 #view-einstellungen .calc-header:hover,
-#view-hilfe .hilfe-card .calc-header:hover {
+#view-hilfe .hilfe-card .calc-header:hover,
+#view-finanzen .calc-card.collapsible .calc-header:hover {
     background: linear-gradient(135deg, var(--wood-4) 0%, var(--wood-5) 50%, var(--wood-light) 100%);
 }
 
 #view-einstellungen .calc-header::after,
-#view-hilfe .hilfe-card .calc-header::after {
+#view-hilfe .hilfe-card .calc-header::after,
+#view-finanzen .calc-card.collapsible .calc-header::after {
     content: '';
     width: 10px;
     height: 10px;
@@ -1484,17 +1487,20 @@ body {
 }
 
 #view-einstellungen .calc-card.collapsed .calc-header,
-#view-hilfe .hilfe-card.collapsed .calc-header {
+#view-hilfe .hilfe-card.collapsed .calc-header,
+#view-finanzen .calc-card.collapsible.collapsed .calc-header {
     border-bottom-color: transparent;
 }
 
 #view-einstellungen .calc-card.collapsed .calc-header::after,
-#view-hilfe .hilfe-card.collapsed .calc-header::after {
+#view-hilfe .hilfe-card.collapsed .calc-header::after,
+#view-finanzen .calc-card.collapsible.collapsed .calc-header::after {
     transform: rotate(-45deg);
 }
 
 #view-einstellungen .calc-card .calc-body,
-#view-hilfe .hilfe-card .calc-body {
+#view-hilfe .hilfe-card .calc-body,
+#view-finanzen .calc-card.collapsible .calc-body {
     overflow: hidden;
     transition: max-height 0.35s ease, padding 0.35s ease, opacity 0.25s ease;
     max-height: 2000px;
@@ -1502,7 +1508,8 @@ body {
 }
 
 #view-einstellungen .calc-card.collapsed .calc-body,
-#view-hilfe .hilfe-card.collapsed .calc-body {
+#view-hilfe .hilfe-card.collapsed .calc-body,
+#view-finanzen .calc-card.collapsible.collapsed .calc-body {
     max-height: 0;
     padding-top: 0;
     padding-bottom: 0;
