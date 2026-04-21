@@ -361,7 +361,7 @@ let eigeneVorlagen = [];
 
 // ==================== IndexedDB ====================
 const DB_NAME = 'TischlerKalkPro';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 let db = null;
 
 // Eigene Artikel Arrays
@@ -399,6 +399,10 @@ function openDB() {
             }
             if (!database.objectStoreNames.contains('termine')) {
                 database.createObjectStore('termine', { keyPath: 'id' });
+            }
+            // V5: Mitarbeiter Store
+            if (!database.objectStoreNames.contains('mitarbeiter')) {
+                database.createObjectStore('mitarbeiter', { keyPath: 'id' });
             }
         };
         request.onsuccess = (e) => { db = e.target.result; resolve(db); };
@@ -1311,7 +1315,7 @@ async function handleInlineStatusChange(e) {
 }
 
 // ==================== PROJEKTE LISTE ====================
-let projekteViewMode = 'cards'; // 'cards' or 'table'
+let projekteViewMode = 'table'; // 'cards' or 'table'
 
 function filterProjekte(projekte, kunden, filterMonat) {
     const filterStatus = document.getElementById('filter-status').value;
@@ -1630,7 +1634,7 @@ function getKundeDringlichkeit(kundenProjekte) {
 }
 
 // ==================== KUNDEN LISTE ====================
-let kundenViewMode = 'cards';
+let kundenViewMode = 'table';
 
 function switchKundenView(mode) {
     kundenViewMode = mode;
@@ -6884,7 +6888,7 @@ async function seedDemoData() {
 // ==================== DATEN EXPORT / IMPORT ====================
 async function exportAllData() {
     try {
-        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine'];
+        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter'];
         const exportData = { _meta: { app: 'WerkBank', version: DB_VERSION, exportDate: new Date().toISOString() } };
         for (const name of storeNames) {
             exportData[name] = await dbGetAll(name);
@@ -6915,7 +6919,7 @@ async function importAllData(file) {
             showToast('Ung\u00fcltige Sicherungsdatei', 'error');
             return;
         }
-        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine'];
+        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter'];
         for (const name of storeNames) {
             if (!data[name]) continue;
             // Clear existing store
@@ -7299,111 +7303,96 @@ function initGlobalSearch() {
     console.log('Globale Suche initialisiert.');
 }
 
-// ==================== ZEITERFASSUNG ====================
-let timerInterval = null;
-let timerStart = null;
-let timerPausedMs = 0;
-let timerPaused = false;
-
-function formatDuration(ms) {
-    const totalSec = Math.floor(ms / 1000);
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-}
-
+// ==================== PERSONAL & ZEITEN ====================
 function formatHours(minutes) {
     const h = Math.floor(minutes / 60);
     const m = Math.round(minutes % 60);
     return h + ':' + String(m).padStart(2, '0') + ' h';
 }
 
-function startTimer() {
-    const display = document.getElementById('timer-display');
-    timerStart = Date.now() - timerPausedMs;
-    timerPaused = false;
-    display.classList.add('timer-running');
-    display.classList.remove('timer-paused');
-    document.getElementById('btn-timer-start').style.display = 'none';
-    document.getElementById('btn-timer-pause').style.display = '';
-    document.getElementById('btn-timer-stop').style.display = '';
-    timerInterval = setInterval(() => {
-        display.textContent = formatDuration(Date.now() - timerStart);
-    }, 1000);
+// Projekt-Status Priorität: aktive zuerst, abgeschlossen/bezahlt nach hinten
+const PROJEKT_STATUS_ORDER = {
+    entwurf: 1, angeboten: 2, beauftragt: 3, in_produktion: 4,
+    rechnung_gestellt: 5, bezahlt: 6, abgeschlossen: 7
+};
+
+function sortProjekteForDropdown(projekte) {
+    return [...projekte].sort((a, b) => {
+        const orderA = PROJEKT_STATUS_ORDER[a.status] || 99;
+        const orderB = PROJEKT_STATUS_ORDER[b.status] || 99;
+        if (orderA !== orderB) return orderA - orderB;
+        const nameA = (a.titel || a.angebotNr || 'Unbenannt').toLowerCase();
+        const nameB = (b.titel || b.angebotNr || 'Unbenannt').toLowerCase();
+        return nameA.localeCompare(nameB, 'de');
+    });
 }
 
-function pauseTimer() {
-    clearInterval(timerInterval);
-    timerPausedMs = Date.now() - timerStart;
-    timerPaused = true;
-    const display = document.getElementById('timer-display');
-    display.classList.remove('timer-running');
-    display.classList.add('timer-paused');
-    document.getElementById('btn-timer-start').style.display = '';
-    document.getElementById('btn-timer-start').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg> Weiter';
-    document.getElementById('btn-timer-pause').style.display = 'none';
+function buildProjektOption(p) {
+    const name = p.titel || p.angebotNr || 'Unbenannt';
+    const statusTxt = p.status ? ' — ' + statusLabel(p.status) : '';
+    return '<option value="' + p.id + '">' + name + statusTxt + '</option>';
 }
 
-async function stopTimer() {
-    clearInterval(timerInterval);
-    const elapsed = timerStart ? Date.now() - timerStart : 0;
-    const minutes = Math.round(elapsed / 60000);
-    const display = document.getElementById('timer-display');
-    display.classList.remove('timer-running', 'timer-paused');
-    display.textContent = '00:00:00';
-    document.getElementById('btn-timer-start').style.display = '';
-    document.getElementById('btn-timer-start').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg> Start';
-    document.getElementById('btn-timer-pause').style.display = 'none';
-    document.getElementById('btn-timer-stop').style.display = 'none';
-
-    if (minutes < 1) { timerStart = null; timerPausedMs = 0; return; }
-
-    const projektId = document.getElementById('timer-projekt').value;
-    const now = new Date();
-    const startTime = new Date(now.getTime() - elapsed);
-    const eintrag = {
-        id: crypto.randomUUID(),
-        datum: now.toISOString().slice(0, 10),
-        projektId: projektId || '',
-        taetigkeit: 'Stoppuhr-Eintrag',
-        typ: 'arbeit',
-        startZeit: startTime.toTimeString().slice(0, 5),
-        endZeit: now.toTimeString().slice(0, 5),
-        dauerMin: minutes,
-        erstellt: now.toISOString()
-    };
-    await dbPut('zeiten', eintrag);
-    timerStart = null;
-    timerPausedMs = 0;
-    showToast('Zeiteintrag gespeichert (' + minutes + ' Min.)');
-    await renderZeiterfassung();
-}
+const ROLLE_LABELS = {
+    meister: 'Meister',
+    techniker: 'Techniker',
+    geselle: 'Geselle',
+    konstrukteur: 'Konstrukteur / CAD',
+    projektleiter: 'Projektleiter',
+    projektassistent: 'Projektassistent',
+    monteur: 'Monteur',
+    lackierer: 'Lackierer / Oberfläche',
+    polsterer: 'Polsterer',
+    azubi: 'Azubi',
+    hilfskraft: 'Hilfskraft',
+    sonstige: 'Sonstige'
+};
 
 async function renderZeiterfassung() {
     const zeiten = await dbGetAll('zeiten');
     const projekte = await dbGetAll('projekte');
+    const mitarbeiter = await dbGetAll('mitarbeiter');
     const projektMap = {};
-    projekte.forEach(p => { projektMap[p.id] = p.titel || p.angebotNr || 'Unbenannt'; });
+    projekte.forEach(p => { projektMap[p.id] = { name: p.titel || p.angebotNr || 'Unbenannt', status: p.status }; });
+    const mitarbeiterMap = {};
+    mitarbeiter.forEach(m => { mitarbeiterMap[m.id] = m; });
 
-    // Fill project dropdowns
-    const timerSelect = document.getElementById('timer-projekt');
+    // Mitarbeiter-Liste rendern
+    renderMitarbeiterTable(mitarbeiter, zeiten);
+
+    // Fill project dropdowns (sortiert, mit Status)
+    const sortedProjekte = sortProjekteForDropdown(projekte);
+    const projOptionsHtml = sortedProjekte.map(buildProjektOption).join('');
+
     const filterSelect = document.getElementById('zeit-filter-projekt');
-    const currentTimerVal = timerSelect.value;
     const currentFilterVal = filterSelect.value;
-    const optHtml = '<option value="">Alle Projekte</option>' + projekte.map(p => '<option value="' + p.id + '">' + (p.titel || p.angebotNr || 'Unbenannt') + '</option>').join('');
-    timerSelect.innerHTML = '<option value="">Projekt zuordnen...</option>' + projekte.map(p => '<option value="' + p.id + '">' + (p.titel || p.angebotNr || 'Unbenannt') + '</option>').join('');
-    filterSelect.innerHTML = optHtml;
-    timerSelect.value = currentTimerVal;
+    filterSelect.innerHTML = '<option value="">Alle Projekte</option>' + projOptionsHtml;
     filterSelect.value = currentFilterVal;
+
+    // Fill mitarbeiter dropdowns
+    const sortedMitarbeiter = [...mitarbeiter].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+    const maOptionsHtml = sortedMitarbeiter.map(m => {
+        const rolle = m.rolle ? ' — ' + (ROLLE_LABELS[m.rolle] || m.rolle) : '';
+        return '<option value="' + m.id + '">' + (m.name || 'Unbenannt') + rolle + '</option>';
+    }).join('');
+    const filterMaSelect = document.getElementById('zeit-filter-mitarbeiter');
+    const currentFilterMa = filterMaSelect.value;
+    filterMaSelect.innerHTML = '<option value="">Alle Mitarbeiter</option>' + maOptionsHtml;
+    filterMaSelect.value = currentFilterMa;
+
+    // Mitarbeiter-Zähler im Header
+    const countEl = document.getElementById('mitarbeiter-count');
+    if (countEl) countEl.textContent = mitarbeiter.length;
 
     // Filter
     const filterProjekt = filterSelect.value;
+    const filterMitarbeiter = filterMaSelect.value;
     const filterVon = document.getElementById('zeit-filter-von').value;
     const filterBis = document.getElementById('zeit-filter-bis').value;
 
     let filtered = zeiten.filter(z => {
         if (filterProjekt && z.projektId !== filterProjekt) return false;
+        if (filterMitarbeiter && z.mitarbeiterId !== filterMitarbeiter) return false;
         if (filterVon && z.datum < filterVon) return false;
         if (filterBis && z.datum > filterBis) return false;
         return true;
@@ -7434,15 +7423,21 @@ async function renderZeiterfassung() {
     // Table
     const tbody = document.getElementById('zeit-liste-body');
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Keine Zeiteinträge gefunden.</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Keine Zeiteinträge gefunden.</td></tr>';
         return;
     }
     const typLabels = { arbeit: 'Arbeit', fahrt: 'Fahrt', pause: 'Pause', planung: 'Planung' };
     tbody.innerHTML = filtered.map(z => {
-        const pName = z.projektId ? (projektMap[z.projektId] || 'Gelöscht') : '—';
+        const pInfo = z.projektId ? projektMap[z.projektId] : null;
+        const pDisplay = pInfo
+            ? pInfo.name + (pInfo.status ? ' <span class="status-badge status-' + pInfo.status + '" style="font-size:0.72rem;margin-left:4px">' + statusLabel(pInfo.status) + '</span>' : '')
+            : (z.projektId ? 'Gelöscht' : '—');
+        const mInfo = z.mitarbeiterId ? mitarbeiterMap[z.mitarbeiterId] : null;
+        const mDisplay = mInfo ? (mInfo.name || 'Unbenannt') : (z.mitarbeiterId ? 'Gelöscht' : '—');
         return '<tr>' +
             '<td>' + (z.datum ? new Date(z.datum + 'T00:00').toLocaleDateString('de-DE') : '—') + '</td>' +
-            '<td>' + pName + '</td>' +
+            '<td>' + mDisplay + '</td>' +
+            '<td>' + pDisplay + '</td>' +
             '<td>' + (z.taetigkeit || '—') + '</td>' +
             '<td><span class="status-badge status-' + (z.typ || 'arbeit') + '">' + (typLabels[z.typ] || z.typ || 'Arbeit') + '</span></td>' +
             '<td>' + (z.startZeit || '—') + '</td>' +
@@ -7463,14 +7458,107 @@ async function renderZeiterfassung() {
     });
 }
 
-function showZeitModal() {
-    const projSelect = document.getElementById('timer-projekt');
-    const projOptions = projSelect.innerHTML.replace('Projekt zuordnen...', 'Kein Projekt');
-    const html = '<div class="modal-overlay active" id="modal-zeit">' +
-        '<div class="modal" style="max-width:480px">' +
+function renderMitarbeiterTable(mitarbeiter, zeiten) {
+    const tbody = document.getElementById('mitarbeiter-liste-body');
+    if (!tbody) return;
+    if (!mitarbeiter || mitarbeiter.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Noch keine Mitarbeiter angelegt.</td></tr>';
+        return;
+    }
+    // Stunden pro Mitarbeiter aggregieren
+    const minMap = {};
+    (zeiten || []).forEach(z => {
+        if (z.mitarbeiterId) minMap[z.mitarbeiterId] = (minMap[z.mitarbeiterId] || 0) + (z.dauerMin || 0);
+    });
+    const sorted = [...mitarbeiter].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+    tbody.innerHTML = sorted.map(m => {
+        const rolle = ROLLE_LABELS[m.rolle] || m.rolle || '—';
+        const satz = m.stundensatz ? m.stundensatz + ' €/h' : '—';
+        const stunden = formatHours(minMap[m.id] || 0);
+        return '<tr>' +
+            '<td><strong>' + (m.name || 'Unbenannt') + '</strong></td>' +
+            '<td>' + rolle + '</td>' +
+            '<td>' + satz + '</td>' +
+            '<td>' + (m.notiz || '—') + '</td>' +
+            '<td>' + stunden + '</td>' +
+            '<td>' +
+                '<button class="btn-icon btn-edit-mitarbeiter" data-id="' + m.id + '" title="Bearbeiten"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
+                '<button class="btn-icon btn-delete-mitarbeiter" data-id="' + m.id + '" title="Löschen"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+            '</td>' +
+            '</tr>';
+    }).join('');
+
+    tbody.querySelectorAll('.btn-edit-mitarbeiter').forEach(btn => {
+        btn.addEventListener('click', () => showMitarbeiterModal(btn.dataset.id));
+    });
+    tbody.querySelectorAll('.btn-delete-mitarbeiter').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('Mitarbeiter wirklich löschen? Bereits erfasste Zeiteinträge bleiben erhalten (zeigen dann "Gelöscht").')) return;
+            await dbDelete('mitarbeiter', btn.dataset.id);
+            showToast('Mitarbeiter gelöscht');
+            await renderZeiterfassung();
+        });
+    });
+}
+
+function showMitarbeiterModal(mitarbeiterId) {
+    const isEdit = !!mitarbeiterId;
+    dbGet('mitarbeiter', mitarbeiterId || '__none__').then(existing => {
+        const m = existing || { name: '', rolle: 'geselle', stundensatz: 42, notiz: '' };
+        const rolleOptions = Object.entries(ROLLE_LABELS).map(([key, label]) =>
+            '<option value="' + key + '"' + (m.rolle === key ? ' selected' : '') + '>' + label + '</option>'
+        ).join('');
+        const html = '<div class="modal" id="modal-mitarbeiter">' +
+            '<div class="modal-backdrop" onclick="document.getElementById(\'modal-mitarbeiter\').remove()"></div>' +
+            '<div class="modal-content modal-sm">' +
+            '<div class="modal-header"><h3>' + (isEdit ? 'Mitarbeiter bearbeiten' : 'Neuer Mitarbeiter') + '</h3><button class="modal-close" onclick="document.getElementById(\'modal-mitarbeiter\').remove()">&times;</button></div>' +
+            '<div class="modal-body">' +
+            '<div class="form-group"><label>Name</label><input type="text" id="ma-name" value="' + (m.name || '').replace(/"/g, '&quot;') + '" placeholder="z.B. Max Mustermann"></div>' +
+            '<div class="form-group"><label>Rolle</label><select id="ma-rolle">' + rolleOptions + '</select></div>' +
+            '<div class="form-group"><label>Stundensatz (€/h)</label><input type="number" step="1" min="0" id="ma-satz" value="' + (m.stundensatz || '') + '"></div>' +
+            '<div class="form-group"><label>Notiz (optional)</label><input type="text" id="ma-notiz" value="' + (m.notiz || '').replace(/"/g, '&quot;') + '"></div>' +
+            '<button class="btn btn-glow" id="btn-ma-speichern" style="width:100%;margin-top:12px">Speichern</button>' +
+            '</div></div></div>';
+        const oldModal = document.getElementById('modal-mitarbeiter');
+        if (oldModal) oldModal.remove();
+        document.body.insertAdjacentHTML('beforeend', html);
+
+        document.getElementById('btn-ma-speichern').addEventListener('click', async () => {
+            const name = document.getElementById('ma-name').value.trim();
+            if (!name) { showToast('Bitte Name angeben', 'error'); return; }
+            const eintrag = {
+                id: isEdit ? mitarbeiterId : crypto.randomUUID(),
+                name: name,
+                rolle: document.getElementById('ma-rolle').value,
+                stundensatz: Math.round(parseFloat(document.getElementById('ma-satz').value) || 0),
+                notiz: document.getElementById('ma-notiz').value.trim(),
+                erstellt: (existing && existing.erstellt) || new Date().toISOString()
+            };
+            await dbPut('mitarbeiter', eintrag);
+            document.getElementById('modal-mitarbeiter').remove();
+            showToast(isEdit ? 'Mitarbeiter aktualisiert' : 'Mitarbeiter angelegt');
+            await renderZeiterfassung();
+        });
+    });
+}
+
+async function showZeitModal() {
+    const projekte = await dbGetAll('projekte');
+    const mitarbeiter = await dbGetAll('mitarbeiter');
+    const projOptions = '<option value="">Kein Projekt</option>' + sortProjekteForDropdown(projekte).map(buildProjektOption).join('');
+    const sortedMa = [...mitarbeiter].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+    const maOptions = '<option value="">Kein Mitarbeiter</option>' + sortedMa.map(m => {
+        const rolle = m.rolle ? ' — ' + (ROLLE_LABELS[m.rolle] || m.rolle) : '';
+        return '<option value="' + m.id + '">' + (m.name || 'Unbenannt') + rolle + '</option>';
+    }).join('');
+
+    const html = '<div class="modal" id="modal-zeit">' +
+        '<div class="modal-backdrop" onclick="document.getElementById(\'modal-zeit\').remove()"></div>' +
+        '<div class="modal-content modal-sm">' +
         '<div class="modal-header"><h3>Neuer Zeiteintrag</h3><button class="modal-close" onclick="document.getElementById(\'modal-zeit\').remove()">&times;</button></div>' +
         '<div class="modal-body">' +
         '<div class="form-group"><label>Datum</label><input type="date" id="zeit-datum" value="' + new Date().toISOString().slice(0, 10) + '"></div>' +
+        '<div class="form-group"><label>Mitarbeiter</label><select id="zeit-mitarbeiter">' + maOptions + '</select></div>' +
         '<div class="form-group"><label>Projekt</label><select id="zeit-projekt">' + projOptions + '</select></div>' +
         '<div class="form-group"><label>Tätigkeit</label><input type="text" id="zeit-taetigkeit" placeholder="z.B. Zuschnitt, Montage, Oberflächenbehandlung..."></div>' +
         '<div class="form-group"><label>Typ</label><select id="zeit-typ"><option value="arbeit">Arbeit</option><option value="fahrt">Fahrt</option><option value="planung">Planung</option><option value="pause">Pause</option></select></div>' +
@@ -7480,6 +7568,8 @@ function showZeitModal() {
         '</div>' +
         '<button class="btn btn-glow" id="btn-zeit-speichern" style="width:100%;margin-top:12px">Speichern</button>' +
         '</div></div></div>';
+    const oldModal = document.getElementById('modal-zeit');
+    if (oldModal) oldModal.remove();
     document.body.insertAdjacentHTML('beforeend', html);
 
     document.getElementById('btn-zeit-speichern').addEventListener('click', async () => {
@@ -7496,6 +7586,7 @@ function showZeitModal() {
             id: crypto.randomUUID(),
             datum: datum,
             projektId: document.getElementById('zeit-projekt').value || '',
+            mitarbeiterId: document.getElementById('zeit-mitarbeiter').value || '',
             taetigkeit: document.getElementById('zeit-taetigkeit').value || '',
             typ: document.getElementById('zeit-typ').value || 'arbeit',
             startZeit: start,
@@ -7511,13 +7602,19 @@ function showZeitModal() {
 }
 
 function initZeiterfassung() {
-    document.getElementById('btn-timer-start').addEventListener('click', startTimer);
-    document.getElementById('btn-timer-pause').addEventListener('click', pauseTimer);
-    document.getElementById('btn-timer-stop').addEventListener('click', stopTimer);
     document.getElementById('btn-zeit-neu').addEventListener('click', showZeitModal);
+    document.getElementById('btn-mitarbeiter-neu').addEventListener('click', () => showMitarbeiterModal());
     document.getElementById('zeit-filter-projekt').addEventListener('change', () => renderZeiterfassung());
+    document.getElementById('zeit-filter-mitarbeiter').addEventListener('change', () => renderZeiterfassung());
     document.getElementById('zeit-filter-von').addEventListener('change', () => renderZeiterfassung());
     document.getElementById('zeit-filter-bis').addEventListener('change', () => renderZeiterfassung());
+    document.getElementById('btn-zeit-filter-reset').addEventListener('click', () => {
+        document.getElementById('zeit-filter-projekt').value = '';
+        document.getElementById('zeit-filter-mitarbeiter').value = '';
+        document.getElementById('zeit-filter-von').value = '';
+        document.getElementById('zeit-filter-bis').value = '';
+        renderZeiterfassung();
+    });
 }
 
 // ==================== KALENDER ====================

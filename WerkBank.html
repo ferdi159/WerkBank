@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WerkBank | Professionelle Tischlerei-Software</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Crect x='8' y='22' width='48' height='6' rx='2' fill='%23fff'/%3E%3Crect x='12' y='28' width='5' height='24' rx='1' fill='%23fff'/%3E%3Crect x='47' y='28' width='5' height='24' rx='1' fill='%23fff'/%3E%3Crect x='17' y='38' width='30' height='4' rx='1' fill='%23fff' opacity='0.7'/%3E%3Crect x='34' y='14' width='6' height='8' rx='1' fill='%23fff'/%3E%3Crect x='42' y='14' width='6' height='8' rx='1' fill='%23fff'/%3E%3Crect x='39' y='17' width='4' height='3' rx='1' fill='%232563eb'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M8 14 L18 50 L26 50 L32 30 L38 50 L46 50 L56 14 L48 14 L42 40 L36 20 L28 20 L22 40 L16 14 Z' fill='%23fff'/%3E%3Cg stroke='%231e3a8a' stroke-width='0.9' stroke-linecap='round'%3E%3Cline x1='9.5' y1='19.4' x2='12.0' y2='18.7'/%3E%3Cline x1='10.7' y1='23.72' x2='12.06' y2='23.34'/%3E%3Cline x1='12.0' y1='28.4' x2='14.5' y2='27.7'/%3E%3Cline x1='13.2' y1='32.72' x2='14.56' y2='32.34'/%3E%3Cline x1='14.5' y1='37.4' x2='17.0' y2='36.7'/%3E%3Cline x1='47.5' y1='44.6' x2='45.0' y2='43.9'/%3E%3Cline x1='48.7' y1='40.28' x2='47.34' y2='39.9'/%3E%3Cline x1='50.0' y1='35.6' x2='47.5' y2='34.9'/%3E%3Cline x1='51.2' y1='31.28' x2='49.84' y2='30.9'/%3E%3Cline x1='52.5' y1='26.6' x2='50.0' y2='25.9'/%3E%3C/g%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css?v=20260301c">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,18 +15,27 @@
         <div class="app-nav-inner">
             <a href="#/dashboard" class="nav-logo">
                 <svg viewBox="0 0 32 32" class="logo-svg">
-                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
-                    <!-- Tischplatte -->
-                    <rect x="4" y="11" width="24" height="3" rx="1" fill="#fff"/>
-                    <!-- Beine -->
-                    <rect x="6" y="14" width="2.5" height="12" rx="0.5" fill="#fff"/>
-                    <rect x="23.5" y="14" width="2.5" height="12" rx="0.5" fill="#fff"/>
-                    <!-- Querstrebe -->
-                    <rect x="8.5" y="19" width="15" height="2" rx="0.5" fill="#fff" opacity="0.7"/>
-                    <!-- Schraubstock -->
-                    <rect x="17" y="7" width="3" height="4" rx="0.5" fill="#fff"/>
-                    <rect x="21" y="7" width="3" height="4" rx="0.5" fill="#fff"/>
-                    <rect x="19.5" y="8.5" width="2" height="1.5" rx="0.3" fill="#2563eb"/>
+                    <defs>
+                        <linearGradient id="wb-bg" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#1e3a8a"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="32" height="32" rx="7" fill="url(#wb-bg)"/>
+                    <path d="M4 7 L9 25 L13 25 L16 15 L19 25 L23 25 L28 7 L24 7 L21 20 L18 10 L14 10 L11 20 L8 7 Z"
+                          fill="#ffffff"/>
+                    <g stroke="#1e3a8a" stroke-width="0.45" stroke-linecap="round">
+                        <line x1="4.75" y1="9.7"   x2="6.00" y2="9.35"/>
+                        <line x1="5.35" y1="11.86" x2="6.03" y2="11.67"/>
+                        <line x1="6.00" y1="14.2"  x2="7.25" y2="13.85"/>
+                        <line x1="6.60" y1="16.36" x2="7.28" y2="16.17"/>
+                        <line x1="7.25" y1="18.7"  x2="8.50" y2="18.35"/>
+                        <line x1="23.75" y1="22.3"  x2="22.50" y2="21.95"/>
+                        <line x1="24.35" y1="20.14" x2="23.67" y2="19.95"/>
+                        <line x1="25.00" y1="17.8"  x2="23.75" y2="17.45"/>
+                        <line x1="25.60" y1="15.64" x2="24.92" y2="15.45"/>
+                        <line x1="26.25" y1="13.3"  x2="25.00" y2="12.95"/>
+                    </g>
                 </svg>
                 <span>Werk<strong>Bank</strong></span>
             </a>
@@ -45,7 +54,7 @@
                 </a>
                 <a href="#/zeiterfassung" data-nav="zeiterfassung" class="nav-link">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    Zeiten
+                    Personal &amp; Zeiten
                 </a>
                 <a href="#/kalender" data-nav="kalender" class="nav-link">
                     <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
@@ -330,16 +339,16 @@
                     </select>
                 </div>
                 <div class="view-toggle">
-                    <button class="view-toggle-btn active" data-view="cards" id="projekte-view-cards">Karten</button>
-                    <button class="view-toggle-btn" data-view="table" id="projekte-view-table">Tabelle</button>
+                    <button class="view-toggle-btn" data-view="cards" id="projekte-view-cards">Karten</button>
+                    <button class="view-toggle-btn active" data-view="table" id="projekte-view-table">Tabelle</button>
                 </div>
             </div>
 
-            <!-- Cards View -->
-            <div id="projekte-cards-container" class="projekte-cards-grid"></div>
+            <!-- Cards View (hidden by default) -->
+            <div id="projekte-cards-container" class="projekte-cards-grid hidden"></div>
 
-            <!-- Table View (hidden by default) -->
-            <div id="projekte-table-container" class="card hidden">
+            <!-- Table View -->
+            <div id="projekte-table-container" class="card">
                 <div class="table-wrap">
                     <table class="data-table">
                         <thead>
@@ -815,18 +824,18 @@
                         <input type="text" id="kunden-suche" placeholder="Kunde suchen (Name, Firma, Ort...)">
                     </div>
                     <div class="view-toggle">
-                        <button class="view-toggle-btn active" data-view="cards" id="kunden-view-cards">Karten</button>
-                        <button class="view-toggle-btn" data-view="table" id="kunden-view-table">Tabelle</button>
+                        <button class="view-toggle-btn" data-view="cards" id="kunden-view-cards">Karten</button>
+                        <button class="view-toggle-btn active" data-view="table" id="kunden-view-table">Tabelle</button>
                     </div>
                     <button class="btn btn-primary btn-sm" id="btn-neuer-kunde">+ Neuer Kunde</button>
                 </div>
             </div>
 
-            <!-- Cards View -->
-            <div id="kunden-cards-container" class="kunden-cards-grid"></div>
+            <!-- Cards View (hidden by default) -->
+            <div id="kunden-cards-container" class="kunden-cards-grid hidden"></div>
 
-            <!-- Table View (hidden by default) -->
-            <div id="kunden-table-container" class="card hidden">
+            <!-- Table View -->
+            <div id="kunden-table-container" class="card">
                 <div class="table-wrap">
                     <table class="data-table">
                         <thead>
@@ -983,109 +992,133 @@
     <section id="view-zeiterfassung" class="view hidden">
         <div class="container view-container">
             <div class="view-header">
-                <h1>Zeiterfassung</h1>
-                <div class="view-actions">
-                    <button class="btn btn-glow btn-sm" id="btn-zeit-neu">
-                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
-                        Neuer Eintrag
-                    </button>
-                </div>
+                <h1>Personal &amp; Zeiten</h1>
             </div>
 
-            <!-- Stoppuhr -->
-            <div class="calc-card">
-                <div class="calc-header">
-                    <span class="calc-step" style="background:linear-gradient(135deg,#10b981,#059669)">
-                        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    </span>
-                    <div><h3>Stoppuhr</h3><p>Arbeitszeit live mitlaufen lassen</p></div>
+            <!-- Stats-Kacheln -->
+            <div class="pz-stats">
+                <div class="pz-stat-card pz-stat-today">
+                    <div class="pz-stat-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="pz-stat-info">
+                        <span class="pz-stat-label">Heute</span>
+                        <span class="pz-stat-value" id="zeit-heute">0:00 h</span>
+                    </div>
                 </div>
-                <div class="calc-body">
-                    <div class="timer-row">
-                        <div class="timer-display" id="timer-display">00:00:00</div>
-                        <div class="timer-controls">
-                            <button class="btn btn-glow btn-sm" id="btn-timer-start">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
-                                Start
-                            </button>
-                            <button class="btn btn-glass btn-sm" id="btn-timer-pause" style="display:none">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/></svg>
-                                Pause
-                            </button>
-                            <button class="btn btn-danger btn-sm" id="btn-timer-stop" style="display:none">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
-                                Stopp
-                            </button>
-                        </div>
-                        <div class="form-group" style="margin:0;min-width:180px">
-                            <select id="timer-projekt" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem">
-                                <option value="">Projekt zuordnen...</option>
-                            </select>
-                        </div>
+                <div class="pz-stat-card pz-stat-week">
+                    <div class="pz-stat-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="pz-stat-info">
+                        <span class="pz-stat-label">Diese Woche</span>
+                        <span class="pz-stat-value" id="zeit-woche">0:00 h</span>
+                    </div>
+                </div>
+                <div class="pz-stat-card pz-stat-month">
+                    <div class="pz-stat-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <div class="pz-stat-info">
+                        <span class="pz-stat-label">Dieser Monat</span>
+                        <span class="pz-stat-value" id="zeit-monat">0:00 h</span>
+                    </div>
+                </div>
+                <div class="pz-stat-card pz-stat-total">
+                    <div class="pz-stat-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div class="pz-stat-info">
+                        <span class="pz-stat-label">Gesamt erfasst</span>
+                        <span class="pz-stat-value" id="zeit-offen">0:00 h</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter & Zusammenfassung -->
-            <div class="zeit-summary-row">
-                <div class="zeit-summary-card">
-                    <span class="zeit-summary-label">Heute</span>
-                    <span class="zeit-summary-value" id="zeit-heute">0:00 h</span>
+            <!-- Personal -->
+            <div class="pz-card">
+                <div class="pz-card-header">
+                    <div class="pz-card-title">
+                        <span class="pz-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </span>
+                        <div>
+                            <h3>Personal</h3>
+                            <p><span id="mitarbeiter-count">0</span> Mitarbeiter &middot; Stundens&auml;tze, Rollen, gebuchte Zeiten</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-glow btn-sm" id="btn-mitarbeiter-neu">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                        Mitarbeiter hinzuf&uuml;gen
+                    </button>
                 </div>
-                <div class="zeit-summary-card">
-                    <span class="zeit-summary-label">Diese Woche</span>
-                    <span class="zeit-summary-value" id="zeit-woche">0:00 h</span>
-                </div>
-                <div class="zeit-summary-card">
-                    <span class="zeit-summary-label">Dieser Monat</span>
-                    <span class="zeit-summary-value" id="zeit-monat">0:00 h</span>
-                </div>
-                <div class="zeit-summary-card">
-                    <span class="zeit-summary-label">Offene Stunden</span>
-                    <span class="zeit-summary-value" id="zeit-offen">0:00 h</span>
-                </div>
-            </div>
-
-            <!-- Filter -->
-            <div class="filter-row" style="margin-bottom:16px">
-                <div class="form-group" style="margin:0;flex:1;max-width:220px">
-                    <select id="zeit-filter-projekt" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem">
-                        <option value="">Alle Projekte</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin:0;flex:1;max-width:160px">
-                    <input type="date" id="zeit-filter-von" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem" placeholder="Von">
-                </div>
-                <div class="form-group" style="margin:0;flex:1;max-width:160px">
-                    <input type="date" id="zeit-filter-bis" style="padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.88rem" placeholder="Bis">
-                </div>
-            </div>
-
-            <!-- Zeiteintr&auml;ge Tabelle -->
-            <div class="calc-card">
-                <div class="calc-header">
-                    <span class="calc-step" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
-                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="2"/></svg>
-                    </span>
-                    <div><h3>Zeiteintr&auml;ge</h3><p>Alle erfassten Arbeitszeiten</p></div>
-                </div>
-                <div class="calc-body">
+                <div class="pz-card-body">
                     <div class="table-wrap">
-                        <table>
+                        <table class="pz-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Rolle</th>
+                                    <th>Stundensatz</th>
+                                    <th>Notiz</th>
+                                    <th>Gebuchte Stunden</th>
+                                    <th class="pz-col-actions">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mitarbeiter-liste-body">
+                                <tr class="empty-row"><td colspan="6">Noch keine Mitarbeiter angelegt.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zeiteintr&auml;ge -->
+            <div class="pz-card">
+                <div class="pz-card-header">
+                    <div class="pz-card-title">
+                        <span class="pz-card-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                        </span>
+                        <div>
+                            <h3>Zeiteintr&auml;ge</h3>
+                            <p>Stunden auf Mitarbeiter und Projekte buchen</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-glow btn-sm" id="btn-zeit-neu">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+                        Zeiteintrag hinzuf&uuml;gen
+                    </button>
+                </div>
+                <div class="pz-card-body">
+                    <div class="pz-filter-bar">
+                        <select id="zeit-filter-projekt" class="pz-filter-input">
+                            <option value="">Alle Projekte</option>
+                        </select>
+                        <select id="zeit-filter-mitarbeiter" class="pz-filter-input">
+                            <option value="">Alle Mitarbeiter</option>
+                        </select>
+                        <input type="date" id="zeit-filter-von" class="pz-filter-input" placeholder="Von">
+                        <input type="date" id="zeit-filter-bis" class="pz-filter-input" placeholder="Bis">
+                        <button class="btn btn-glass btn-sm" id="btn-zeit-filter-reset" type="button" style="margin-left:auto">Filter zur&uuml;ckset&shy;zen</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="pz-table">
                             <thead>
                                 <tr>
                                     <th>Datum</th>
+                                    <th>Mitarbeiter</th>
                                     <th>Projekt</th>
                                     <th>T&auml;tigkeit</th>
                                     <th>Typ</th>
                                     <th>Start</th>
                                     <th>Ende</th>
                                     <th>Dauer</th>
-                                    <th>Aktion</th>
+                                    <th class="pz-col-actions">Aktion</th>
                                 </tr>
                             </thead>
                             <tbody id="zeit-liste-body">
-                                <tr class="empty-row"><td colspan="8">Noch keine Zeiteintr&auml;ge vorhanden.</td></tr>
+                                <tr class="empty-row"><td colspan="9">Noch keine Zeiteintr&auml;ge vorhanden.</td></tr>
                             </tbody>
                         </table>
                     </div>
