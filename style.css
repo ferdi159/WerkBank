@@ -5540,7 +5540,10 @@ select.pos-kategorie optgroup option {
     border-bottom: 1px solid var(--border);
     margin-bottom: 12px;
 }
-.bom-preview-summary span:first-child { font-weight: 600; color: var(--accent); }
+.bom-preview-summary > span:first-child { font-weight: 600; color: var(--accent); }
+.bom-preview-actions { display: inline-flex; align-items: baseline; gap: 14px; }
+.bom-remap-link { color: var(--accent); font-size: 0.82rem; text-decoration: underline; cursor: pointer; }
+.bom-remap-link:hover { color: var(--primary); }
 .bom-preview-scroll { max-height: 55vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
 .bom-preview-table { font-size: 0.85rem; }
 .bom-preview-table .bom-cell-bezeichnung { min-width: 180px; }

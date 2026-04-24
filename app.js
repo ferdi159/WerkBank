@@ -8376,8 +8376,10 @@ function initBomImport() {
     // Step-Navigation
     document.getElementById('bom-mapping-back').addEventListener('click', () => showBomStep('file'));
     document.getElementById('bom-mapping-next').addEventListener('click', onBomMappingNext);
-    document.getElementById('bom-preview-back').addEventListener('click', () => showBomStep('mapping'));
+    document.getElementById('bom-preview-back').addEventListener('click', () => { renderMappingStep(); showBomStep('mapping'); });
     document.getElementById('bom-preview-commit').addEventListener('click', commitBomImport);
+    const remapLink = document.getElementById('bom-preview-remap');
+    if (remapLink) remapLink.addEventListener('click', (e) => { e.preventDefault(); renderMappingStep(); showBomStep('mapping'); });
     document.getElementById('bom-save-profile').addEventListener('click', saveCurrentBomProfile);
     document.getElementById('bom-profile-select').addEventListener('change', onBomProfileChange);
     // bom-preview-all wird bei jedem renderPreviewStep() neu gebunden (Thead wird dynamisch neu gebaut)
@@ -8419,12 +8421,40 @@ async function handleBomFile(file) {
         bomFlow.parseResult = parsed;
         bomFlow.profile = StuecklistenImport.detectProfile(parsed.headers, bomFlow.customProfiles);
         bomFlow.mapping = StuecklistenImport.buildMapping(parsed.headers, bomFlow.profile);
-        renderMappingStep();
-        showBomStep('mapping');
+
+        // Debug-Log (DevTools → Konsole) – hilfreich auch wenn Mapping übersprungen wird
+        console.group('[Stücklisten-Import] Auto-Mapping');
+        console.log('Profil:', bomFlow.profile.name);
+        console.log('Roh-Header:', parsed.headers);
+        console.log('Mapping:', bomFlow.mapping);
+        console.groupEnd();
+
+        // Pflichtfelder-Check: Wenn Auto-Detection reicht, Mapping-Schritt überspringen
+        const req = Object.entries(StuecklistenImport.CANONICAL_FIELDS).filter(([, m]) => m.required).map(([f]) => f);
+        const missing = req.filter(f => !bomFlow.mapping[f]);
+        if (missing.length === 0) {
+            // Direkt zur Vorschau – alles ist editierbar, Mapping nur als Fallback via Link
+            runBomNormalizeAndPreview();
+            showToast('Auto-Erkennung erfolgreich (' + parsed.rows.length + ' Zeilen)');
+        } else {
+            renderMappingStep();
+            showBomStep('mapping');
+            showToast('Bitte Spalten prüfen: ' + missing.join(', ') + ' fehlen', 'warning');
+        }
     } catch (err) {
         console.error('BOM-Parse-Fehler:', err);
         showToast('Datei konnte nicht gelesen werden: ' + err.message, 'error');
     }
+}
+
+// Gemeinsame Normalize+Preview-Routine (wird aus handleBomFile UND onBomMappingNext aufgerufen)
+function runBomNormalizeAndPreview() {
+    const normalized = bomFlow.parseResult.rows
+        .map(r => StuecklistenImport.normalizeRow(r, bomFlow.mapping, bomFlow.profile))
+        .filter(it => it.bezeichnung || it.artikelNr || it.material);
+    bomFlow.normalized = StuecklistenImport.matchMaterials(normalized, eigeneArtikelMaterialien || []);
+    renderPreviewStep();
+    showBomStep('preview');
 }
 
 function renderMappingStep() {
@@ -8463,6 +8493,10 @@ function renderMappingStep() {
             const col = bomFlow.mapping[field];
             return col ? String(r[col] !== undefined ? r[col] : '').trim() : '';
         }).filter(Boolean).slice(0, 2).join(' • ');
+        // Erste Option ist kontextabhängig beschriftet:
+        // - Nicht gemappt → klar kommunizieren, dass die Spalte fehlt (kein Tool-Fehler)
+        // - Gemappt     → "Nicht zuordnen" als bewusste Entscheidung des Users
+        const emptyLabel = mapped ? '– Nicht zuordnen –' : '— nicht in Datei vorhanden —';
         html += `
             <div class="bom-map-row ${meta.required ? 'bom-map-required' : ''} ${mapped ? 'bom-map-ok' : 'bom-map-missing'}">
                 <label class="bom-map-label">
@@ -8470,7 +8504,7 @@ function renderMappingStep() {
                     ${escapeHtml(meta.label)}${meta.required ? ' *' : ''}
                 </label>
                 <select class="bom-map-select" data-field="${field}">
-                    <option value="">– Nicht zuordnen –</option>
+                    <option value="" ${mapped ? '' : 'selected'}>${emptyLabel}</option>
                     ${parsed.headers.map(h => `<option value="${escapeHtml(h)}" ${h === bomFlow.mapping[field] ? 'selected' : ''}>${escapeHtml(h)}</option>`).join('')}
                 </select>
                 <span class="bom-map-sample" title="Beispielwerte">${escapeHtml(sample || '')}</span>
@@ -8504,13 +8538,7 @@ function onBomMappingNext() {
         showToast('Pflichtfelder fehlen: ' + missing.join(', '), 'warning');
         return;
     }
-    // Normalisieren + Matchen
-    const normalized = bomFlow.parseResult.rows
-        .map(r => StuecklistenImport.normalizeRow(r, bomFlow.mapping, bomFlow.profile))
-        .filter(it => it.bezeichnung || it.artikelNr || it.material);
-    bomFlow.normalized = StuecklistenImport.matchMaterials(normalized, eigeneArtikelMaterialien || []);
-    renderPreviewStep();
-    showBomStep('preview');
+    runBomNormalizeAndPreview();
 }
 
 function renderPreviewStep() {

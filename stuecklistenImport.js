@@ -387,20 +387,31 @@
     function buildMapping(headers, profile) {
         const normHeaders = headers.map(h => ({ raw: h, norm: normalizeHeader(h) }));
         const mapping = {};
-        const usedRaw = new Set();
-        // Sortiere Felder: spezifischere zuerst matchen (damit z.B. "artikelNr" vor "pos" geht)
+        // "Exklusiv-Set" nur für EXAKTE Alias-Treffer: verhindert, dass eine
+        // eindeutig identifizierte Spalte (z.B. "Länge") per Fuzzy-Match auch
+        // noch einem zweiten Feld zugeordnet wird.
+        const exactClaim = new Set();
         const fieldOrder = ['artikelNr', 'bezeichnung', 'material', 'menge', 'einheit', 'laenge_mm', 'breite_mm', 'dicke_mm', 'pos', 'kommentar', 'preis'];
+        // ----- Runde 1: nur Exakt-Match -----
         for (const field of fieldOrder) {
             if (!CANONICAL_FIELDS[field]) continue;
             const aliases = (profile.mapping && profile.mapping[field]) || [];
-            // 1. Exakt-Match
-            let found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.includes(h.norm));
-            // 2. "enthält" – Header enthält Alias (z.B. "cut length" enthält "length")
-            if (!found) found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.some(a => h.norm === a || h.norm.includes(a)));
-            // 3. Alias enthält Header (z.B. Alias "panel length", Header "length")
-            if (!found) found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.some(a => a.includes(h.norm) && h.norm.length >= 2));
-            if (found) { mapping[field] = found.raw; usedRaw.add(found.raw); }
+            const found = normHeaders.find(h => !exactClaim.has(h.raw) && aliases.includes(h.norm));
+            if (found) { mapping[field] = found.raw; exactClaim.add(found.raw); }
             else mapping[field] = '';
+        }
+        // ----- Runde 2: Fuzzy-Match für noch unbesetzte Felder -----
+        // Hier KEIN usedRaw mehr: eine Spalte darf mehreren Feldern zugeordnet
+        // werden, wenn die Aliase überlappen. Der User korrigiert im Dialog.
+        for (const field of fieldOrder) {
+            if (!CANONICAL_FIELDS[field]) continue;
+            if (mapping[field]) continue;
+            const aliases = (profile.mapping && profile.mapping[field]) || [];
+            // 2a. Header enthält Alias (z.B. "cut length" enthält "length")
+            let found = normHeaders.find(h => aliases.some(a => h.norm === a || h.norm.includes(a)));
+            // 2b. Alias enthält Header (z.B. Alias "panel length", Header "length")
+            if (!found) found = normHeaders.find(h => aliases.some(a => a.includes(h.norm) && h.norm.length >= 2));
+            if (found) mapping[field] = found.raw;
         }
         // Sicherstellen, dass alle Canonical-Felder einen Schlüssel haben
         for (const field in CANONICAL_FIELDS) { if (!(field in mapping)) mapping[field] = ''; }
