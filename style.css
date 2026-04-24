@@ -5418,49 +5418,15 @@ select.pos-kategorie optgroup option {
     padding-right: 12px;
 }
 
-/* Menge + Einheit kombiniert */
-.bom-menge-cell {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 4px !important;
+/* Numerische Zellen kompakter (Menge, L, B, D) */
+.bom-table td .bom-cell.num {
+    padding: 4px 6px;
+    font-variant-numeric: tabular-nums;
 }
-.bom-menge-input { flex: 1 1 55%; min-width: 40px; }
-.bom-einh-input { flex: 0 1 42%; min-width: 34px; font-size: 0.78rem; color: var(--text-light); }
-
-/* Maße (L × B × D) kombiniert */
-.bom-masse-cell {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 2px 4px !important;
+/* Text-Inputs innerhalb Tabelle nicht zu hoch */
+.bom-table td .bom-cell {
+    padding: 4px 6px;
 }
-.bom-dim {
-    flex: 1 1 0;
-    min-width: 42px;
-    max-width: 60px;
-    padding: 4px 4px !important;
-    font-size: 0.8rem;
-}
-.bom-dim-x {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    user-select: none;
-    flex-shrink: 0;
-}
-
-.bom-match {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-}
-.bom-match-artikelnr  { background: #dcfce7; color: #166534; }
-.bom-match-name_exact { background: #dbeafe; color: #1e40af; }
-.bom-match-name_fuzzy { background: #fef3c7; color: #92400e; }
-.bom-match-none       { background: #f1f5f9; color: #64748b; }
 
 /* Modal: Dropzone */
 .bom-step { padding: 8px 4px; }
@@ -5575,10 +5541,12 @@ select.pos-kategorie optgroup option {
     margin-bottom: 12px;
 }
 .bom-preview-summary span:first-child { font-weight: 600; color: var(--accent); }
-.bom-preview-scroll { max-height: 50vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
-.bom-preview-table .bom-cell { min-width: 80px; }
-.bom-preview-table .bom-cell-bezeichnung { min-width: 160px; }
-.bom-preview-table .bom-cell-material { min-width: 120px; }
+.bom-preview-scroll { max-height: 55vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+.bom-preview-table { font-size: 0.85rem; }
+.bom-preview-table .bom-cell-bezeichnung { min-width: 180px; }
+.bom-preview-table .bom-cell-material { min-width: 140px; }
+.bom-preview-table .bom-cell.num { min-width: 60px; }
+.bom-preview-table th, .bom-preview-table td { white-space: nowrap; }
 
 /* Dark-Theme Overrides */
 [data-theme="dark"] .bom-empty,
