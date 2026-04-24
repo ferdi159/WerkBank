@@ -361,7 +361,7 @@ let eigeneVorlagen = [];
 
 // ==================== IndexedDB ====================
 const DB_NAME = 'TischlerKalkPro';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 let db = null;
 
 // Eigene Artikel Arrays
@@ -403,6 +403,10 @@ function openDB() {
             // V5: Mitarbeiter Store
             if (!database.objectStoreNames.contains('mitarbeiter')) {
                 database.createObjectStore('mitarbeiter', { keyPath: 'id' });
+            }
+            // V6: Stücklisten-Import-Profile (benutzerdefinierte Mapping-Profile)
+            if (!database.objectStoreNames.contains('importProfile')) {
+                database.createObjectStore('importProfile', { keyPath: 'id' });
             }
         };
         request.onsuccess = (e) => { db = e.target.result; resolve(db); };
@@ -2037,6 +2041,11 @@ async function initProjektEditor(projekt) {
         // Legacy positions for Rechnung-Tab reference
         document.getElementById('positionen-container').innerHTML = '';
         positionCounter = 0;
+
+        // BOM-Items aus Projekt laden
+        window.currentBomItems = Array.isArray(projekt.bomItems) ? projekt.bomItems.slice() : [];
+        window.currentBomMeta  = projekt.bomMeta || null;
+        if (typeof renderBomTable === 'function') renderBomTable();
     } else {
         document.getElementById('proj-titel').value = '';
         schraenkeTitelEl.textContent = '';
@@ -2079,6 +2088,11 @@ async function initProjektEditor(projekt) {
 
         document.getElementById('positionen-container').innerHTML = '';
         positionCounter = 0;
+
+        // BOM-Items zurücksetzen für neues Projekt
+        window.currentBomItems = [];
+        window.currentBomMeta  = null;
+        if (typeof renderBomTable === 'function') renderBomTable();
     }
 
     clearFieldErrors('projekt-form');
@@ -4451,6 +4465,10 @@ async function saveProjekt() {
         positionen.push(pos);
     });
 
+    // BOM-Items (Stückliste aus CAD-Import) werden in window.currentBomItems gehalten
+    const bomItems = Array.isArray(window.currentBomItems) ? window.currentBomItems.slice() : [];
+    const bomMeta  = window.currentBomMeta || null;
+
     const projekt = {
         id: currentProjektId || generateId(),
         titel,
@@ -4463,6 +4481,8 @@ async function saveProjekt() {
         schraenke,
         arbeitszeiten,
         positionen,
+        bomItems,
+        bomMeta,
         zuschlaege: {
             mgk: parseFloat(document.getElementById('z-mgk').value) || 0,
             fgk: parseFloat(document.getElementById('z-fgk').value) || 0,
@@ -6477,6 +6497,9 @@ function initEvents() {
     // Project editor buttons
     document.getElementById('btn-schrank-add').addEventListener('click', () => addSchrankBlock());
 
+    // Stücklisten-Import
+    try { initBomImport(); } catch (e) { console.error('BOM-Import init fehlgeschlagen:', e); }
+
     // Projekttitel → Überschrift über Schränke sync
     document.getElementById('proj-titel').addEventListener('input', () => {
         const titel = document.getElementById('proj-titel').value.trim();
@@ -6888,7 +6911,7 @@ async function seedDemoData() {
 // ==================== DATEN EXPORT / IMPORT ====================
 async function exportAllData() {
     try {
-        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter'];
+        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter', 'importProfile'];
         const exportData = { _meta: { app: 'WerkBank', version: DB_VERSION, exportDate: new Date().toISOString() } };
         for (const name of storeNames) {
             exportData[name] = await dbGetAll(name);
@@ -6919,7 +6942,7 @@ async function importAllData(file) {
             showToast('Ung\u00fcltige Sicherungsdatei', 'error');
             return;
         }
-        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter'];
+        const storeNames = ['projekte', 'kunden', 'einstellungen', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter', 'importProfile'];
         for (const name of storeNames) {
             if (!data[name]) continue;
             // Clear existing store
@@ -8295,6 +8318,357 @@ function ensureJsPDF() {
         script.onload = () => resolve();
         script.onerror = () => reject(new Error('jsPDF konnte nicht geladen werden'));
         document.head.appendChild(script);
+    });
+}
+
+// ============================================================
+// STÜCKLISTEN-IMPORT – UI-Flow (Button, Modal, Preview, Commit)
+// ============================================================
+
+// State des aktuellen Import-Flows (nur während das Modal offen ist)
+let bomFlow = {
+    file: null,
+    parseResult: null,   // { headers, rows, format, ... }
+    profile: null,        // aktives Profil
+    mapping: null,        // Header→Canonical-Field Mapping
+    normalized: [],       // Array der normalisierten Items
+    customProfiles: []    // User-Profile aus DB
+};
+
+// currentBomItems / currentBomMeta liegen auf window (persistenter Projekt-Zustand)
+window.currentBomItems = window.currentBomItems || [];
+window.currentBomMeta  = window.currentBomMeta || null;
+
+function initBomImport() {
+    if (!window.StuecklistenImport) {
+        console.warn('StuecklistenImport-Modul nicht geladen');
+        return;
+    }
+    const btnOpen   = document.getElementById('btn-bom-import');
+    const btnClear  = document.getElementById('btn-bom-clear');
+    const modal     = document.getElementById('modal-bom-import');
+    const btnClose  = document.getElementById('modal-bom-close');
+    const dropzone  = document.getElementById('bom-dropzone');
+    const fileInput = document.getElementById('bom-file-input');
+
+    if (!btnOpen || !modal) return;
+
+    btnOpen.addEventListener('click', openBomImportModal);
+    btnClear.addEventListener('click', () => {
+        showConfirm('Stückliste entfernen', 'Alle importierten Positionen wirklich entfernen?', { okLabel: 'Entfernen', okClass: 'btn btn-danger btn-sm' })
+            .then((ok) => { if (ok) { window.currentBomItems = []; window.currentBomMeta = null; renderBomTable(); showToast('Stückliste entfernt'); } });
+    });
+    btnClose.addEventListener('click', closeBomImportModal);
+    modal.querySelector('.modal-backdrop').addEventListener('click', closeBomImportModal);
+
+    // Datei-Input
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleBomFile(e.target.files[0]);
+    });
+    // Drag & Drop
+    ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('bom-dropzone-active'); }));
+    ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('bom-dropzone-active'); }));
+    dropzone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) handleBomFile(e.dataTransfer.files[0]);
+    });
+
+    // Step-Navigation
+    document.getElementById('bom-mapping-back').addEventListener('click', () => showBomStep('file'));
+    document.getElementById('bom-mapping-next').addEventListener('click', onBomMappingNext);
+    document.getElementById('bom-preview-back').addEventListener('click', () => showBomStep('mapping'));
+    document.getElementById('bom-preview-commit').addEventListener('click', commitBomImport);
+    document.getElementById('bom-save-profile').addEventListener('click', saveCurrentBomProfile);
+    document.getElementById('bom-profile-select').addEventListener('change', onBomProfileChange);
+    document.getElementById('bom-preview-all').addEventListener('change', (e) => {
+        document.querySelectorAll('#bom-preview-body input.bom-row-check').forEach(cb => cb.checked = e.target.checked);
+    });
+
+    // Initial: wenn Projekt geladen, Tabelle rendern
+    renderBomTable();
+}
+
+async function openBomImportModal() {
+    // Lade eigene Profile
+    try { bomFlow.customProfiles = await dbGetAll('importProfile') || []; } catch (_) { bomFlow.customProfiles = []; }
+    bomFlow.file = null;
+    bomFlow.parseResult = null;
+    bomFlow.profile = null;
+    bomFlow.mapping = null;
+    bomFlow.normalized = [];
+    document.getElementById('bom-file-input').value = '';
+    showBomStep('file');
+    document.getElementById('modal-bom-import').classList.remove('hidden');
+}
+
+function closeBomImportModal() {
+    document.getElementById('modal-bom-import').classList.add('hidden');
+}
+
+function showBomStep(step) {
+    ['file', 'mapping', 'preview'].forEach(s => {
+        const el = document.getElementById('bom-step-' + s);
+        if (el) el.classList.toggle('hidden', s !== step);
+    });
+}
+
+async function handleBomFile(file) {
+    try {
+        showToast('Datei wird gelesen: ' + file.name);
+        const parsed = await StuecklistenImport.parseFile(file);
+        if (!parsed.rows || !parsed.rows.length) { showToast('Keine Datenzeilen gefunden', 'warning'); return; }
+        bomFlow.file = file;
+        bomFlow.parseResult = parsed;
+        bomFlow.profile = StuecklistenImport.detectProfile(parsed.headers, bomFlow.customProfiles);
+        bomFlow.mapping = StuecklistenImport.buildMapping(parsed.headers, bomFlow.profile);
+        renderMappingStep();
+        showBomStep('mapping');
+    } catch (err) {
+        console.error('BOM-Parse-Fehler:', err);
+        showToast('Datei konnte nicht gelesen werden: ' + err.message, 'error');
+    }
+}
+
+function renderMappingStep() {
+    const parsed = bomFlow.parseResult;
+    const profile = bomFlow.profile;
+    const allProfiles = [].concat(StuecklistenImport.DEFAULT_PROFILES, bomFlow.customProfiles);
+
+    // Profil-Select
+    const sel = document.getElementById('bom-profile-select');
+    sel.innerHTML = allProfiles.map(p => `<option value="${escapeHtml(p.id)}" ${p.id === profile.id ? 'selected' : ''}>${escapeHtml(p.name)}${p._custom ? ' ★' : ''}</option>`).join('');
+
+    document.getElementById('bom-detected-title').textContent = 'Erkannt: ' + profile.name;
+    document.getElementById('bom-detected-sub').textContent = (profile.description || '') +
+        ' • ' + parsed.rows.length + ' Zeilen' +
+        ' • ' + parsed.headers.length + ' Spalten' +
+        (parsed.format === 'csv' && parsed.delimiter ? ' • Trennzeichen "' + parsed.delimiter + '"' : '') +
+        (parsed.sheetName ? ' • Sheet "' + parsed.sheetName + '"' : '');
+
+    // Mapping-Grid
+    const grid = document.getElementById('bom-mapping-grid');
+    const fields = StuecklistenImport.CANONICAL_FIELDS;
+    let html = '';
+    for (const field in fields) {
+        const meta = fields[field];
+        const sample = parsed.rows.slice(0, 3).map(r => {
+            const col = bomFlow.mapping[field];
+            return col ? String(r[col] !== undefined ? r[col] : '').trim() : '';
+        }).filter(Boolean).slice(0, 2).join(' • ');
+        html += `
+            <div class="bom-map-row ${meta.required ? 'bom-map-required' : ''}">
+                <label class="bom-map-label">${escapeHtml(meta.label)}${meta.required ? ' *' : ''}</label>
+                <select class="bom-map-select" data-field="${field}">
+                    <option value="">– Nicht zuordnen –</option>
+                    ${parsed.headers.map(h => `<option value="${escapeHtml(h)}" ${h === bomFlow.mapping[field] ? 'selected' : ''}>${escapeHtml(h)}</option>`).join('')}
+                </select>
+                <span class="bom-map-sample" title="Beispielwerte">${escapeHtml(sample || '')}</span>
+            </div>`;
+    }
+    grid.innerHTML = html;
+    // Mapping-Änderungen live in State übernehmen
+    grid.querySelectorAll('.bom-map-select').forEach(s => {
+        s.addEventListener('change', (e) => {
+            bomFlow.mapping[e.target.dataset.field] = e.target.value;
+        });
+    });
+}
+
+function onBomProfileChange(e) {
+    const id = e.target.value;
+    const all = [].concat(StuecklistenImport.DEFAULT_PROFILES, bomFlow.customProfiles);
+    const p = all.find(x => x.id === id);
+    if (!p) return;
+    bomFlow.profile = p;
+    bomFlow.mapping = StuecklistenImport.buildMapping(bomFlow.parseResult.headers, p);
+    renderMappingStep();
+}
+
+function onBomMappingNext() {
+    // Pflichtfelder prüfen
+    const req = Object.entries(StuecklistenImport.CANONICAL_FIELDS).filter(([, m]) => m.required).map(([f]) => f);
+    const missing = req.filter(f => !bomFlow.mapping[f]);
+    if (missing.length) {
+        showToast('Pflichtfelder fehlen: ' + missing.join(', '), 'warning');
+        return;
+    }
+    // Normalisieren + Matchen
+    const normalized = bomFlow.parseResult.rows
+        .map(r => StuecklistenImport.normalizeRow(r, bomFlow.mapping, bomFlow.profile))
+        .filter(it => it.bezeichnung || it.artikelNr || it.material);
+    bomFlow.normalized = StuecklistenImport.matchMaterials(normalized, eigeneArtikelMaterialien || []);
+    renderPreviewStep();
+    showBomStep('preview');
+}
+
+function renderPreviewStep() {
+    const body = document.getElementById('bom-preview-body');
+    const items = bomFlow.normalized;
+    let matchedCount = 0;
+    body.innerHTML = items.map((it, i) => {
+        const matched = it._matchedMaterial;
+        if (matched) matchedCount++;
+        const matchTxt = matched
+            ? `<span class="bom-match bom-match-${it._matchType}" title="${escapeHtml(matched.name)}">${it._matchType === 'artikelnr' ? 'Art-Nr' : it._matchType === 'name_exact' ? 'exakt' : 'fuzzy'}</span>`
+            : `<span class="bom-match bom-match-none">neu</span>`;
+        return `
+            <tr data-idx="${i}">
+                <td><input type="checkbox" class="bom-row-check" checked></td>
+                <td>${escapeHtml(it.pos || String(i + 1))}</td>
+                <td><input type="text" class="bom-cell bom-cell-bezeichnung" value="${escapeHtml(it.bezeichnung)}"></td>
+                <td><input type="text" class="bom-cell bom-cell-material" value="${escapeHtml(it.material)}"></td>
+                <td><input type="number" class="bom-cell bom-cell-menge" value="${it.menge}" min="0" step="0.01"></td>
+                <td><input type="text" class="bom-cell bom-cell-einheit" value="${escapeHtml(it.einheit)}"></td>
+                <td><input type="number" class="bom-cell" value="${it.laenge_mm || ''}" data-f="laenge_mm" min="0" step="1"></td>
+                <td><input type="number" class="bom-cell" value="${it.breite_mm || ''}" data-f="breite_mm" min="0" step="1"></td>
+                <td><input type="number" class="bom-cell" value="${it.dicke_mm  || ''}" data-f="dicke_mm"  min="0" step="1"></td>
+                <td><input type="text" class="bom-cell" value="${escapeHtml(it.artikelNr)}" data-f="artikelNr"></td>
+                <td><input type="number" class="bom-cell" value="${it.preis !== null ? it.preis : ''}" data-f="preis" min="0" step="0.01"></td>
+                <td>${matchTxt}</td>
+            </tr>`;
+    }).join('');
+    document.getElementById('bom-preview-count').textContent = items.length + ' Position' + (items.length === 1 ? '' : 'en');
+    document.getElementById('bom-preview-matched').textContent = matchedCount + '/' + items.length + ' Material-Treffer im Stamm';
+}
+
+function collectPreviewItems() {
+    const rows = document.querySelectorAll('#bom-preview-body tr');
+    const out = [];
+    rows.forEach((tr) => {
+        const idx = parseInt(tr.dataset.idx, 10);
+        const base = Object.assign({}, bomFlow.normalized[idx]);
+        const check = tr.querySelector('.bom-row-check');
+        if (!check || !check.checked) return;
+        base.bezeichnung = tr.querySelector('.bom-cell-bezeichnung').value.trim();
+        base.material    = tr.querySelector('.bom-cell-material').value.trim();
+        base.menge       = parseFloat(tr.querySelector('.bom-cell-menge').value) || 0;
+        base.einheit     = tr.querySelector('.bom-cell-einheit').value.trim();
+        ['laenge_mm', 'breite_mm', 'dicke_mm'].forEach(f => {
+            const v = tr.querySelector(`[data-f="${f}"]`).value;
+            base[f] = v ? parseInt(v, 10) : null;
+        });
+        base.artikelNr = tr.querySelector('[data-f="artikelNr"]').value.trim();
+        const preisVal = tr.querySelector('[data-f="preis"]').value;
+        base.preis = preisVal ? parseFloat(preisVal) : null;
+        // Roh-Zeile wird nicht mit übernommen
+        delete base._rohZeile;
+        out.push(base);
+    });
+    return out;
+}
+
+function commitBomImport() {
+    const items = collectPreviewItems();
+    if (!items.length) { showToast('Keine Positionen ausgewählt', 'warning'); return; }
+    // An bestehende BOM-Items anhängen
+    window.currentBomItems = (window.currentBomItems || []).concat(items);
+    window.currentBomMeta = {
+        fileName: bomFlow.file ? bomFlow.file.name : '',
+        profile: bomFlow.profile ? bomFlow.profile.id : '',
+        profileName: bomFlow.profile ? bomFlow.profile.name : '',
+        importedAt: new Date().toISOString(),
+        rowsImported: items.length
+    };
+    renderBomTable();
+    closeBomImportModal();
+    showToast(items.length + ' Positionen importiert – nicht vergessen: Projekt speichern!');
+}
+
+async function saveCurrentBomProfile() {
+    const name = prompt('Profil-Name (z.B. "SolidWorks – Bootbau"):', bomFlow.profile ? bomFlow.profile.name + ' (eigen)' : '');
+    if (!name) return;
+    const profile = {
+        id: 'custom_' + generateId(),
+        name: name.trim(),
+        description: 'Benutzerdefiniert – basiert auf ' + (bomFlow.profile ? bomFlow.profile.name : 'Generisch'),
+        fingerprint: { requireAll: [], requireAny: [], score: 50 },
+        mapping: {},
+        defaults: (bomFlow.profile && bomFlow.profile.defaults) || { einheit: 'Stk', unit_length: 'mm' },
+        _custom: true,
+        createdAt: new Date().toISOString()
+    };
+    // Mapping umkehren: aus Header → Field wird Field → [Header]
+    for (const field in StuecklistenImport.CANONICAL_FIELDS) {
+        const col = bomFlow.mapping[field];
+        profile.mapping[field] = col ? [col.toLowerCase().trim()] : [];
+    }
+    try {
+        await dbPut('importProfile', profile);
+        bomFlow.customProfiles = await dbGetAll('importProfile') || [];
+        bomFlow.profile = profile;
+        renderMappingStep();
+        showToast('Profil gespeichert: ' + profile.name);
+    } catch (err) {
+        console.error(err);
+        showToast('Profil konnte nicht gespeichert werden', 'error');
+    }
+}
+
+function renderBomTable() {
+    const items = window.currentBomItems || [];
+    const empty = document.getElementById('bom-empty');
+    const wrap  = document.getElementById('bom-table-wrap');
+    const body  = document.getElementById('bom-table-body');
+    const badge = document.getElementById('bom-info-badge');
+    const btnClear = document.getElementById('btn-bom-clear');
+    if (!empty || !wrap || !body) return;
+
+    if (!items.length) {
+        empty.classList.remove('hidden');
+        wrap.classList.add('hidden');
+        if (btnClear) btnClear.classList.add('hidden');
+        if (badge) badge.textContent = '';
+        return;
+    }
+
+    empty.classList.add('hidden');
+    wrap.classList.remove('hidden');
+    if (btnClear) btnClear.classList.remove('hidden');
+
+    let summe = 0;
+    body.innerHTML = items.map((it, i) => {
+        const zeilenSumme = (parseFloat(it.menge) || 0) * (parseFloat(it.preis) || 0);
+        summe += zeilenSumme;
+        return `
+            <tr data-bom-idx="${i}">
+                <td>${escapeHtml(it.pos || String(i + 1))}</td>
+                <td><input type="text" class="bom-cell" data-f="bezeichnung" value="${escapeHtml(it.bezeichnung || '')}"></td>
+                <td><input type="text" class="bom-cell" data-f="material"    value="${escapeHtml(it.material || '')}"></td>
+                <td><input type="number" class="bom-cell num" data-f="menge" value="${it.menge}" min="0" step="0.01"></td>
+                <td><input type="text" class="bom-cell" data-f="einheit" value="${escapeHtml(it.einheit || 'Stk')}"></td>
+                <td><input type="number" class="bom-cell num" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1"></td>
+                <td><input type="number" class="bom-cell num" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1"></td>
+                <td><input type="number" class="bom-cell num" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1"></td>
+                <td><input type="text" class="bom-cell" data-f="artikelNr" value="${escapeHtml(it.artikelNr || '')}"></td>
+                <td><input type="number" class="bom-cell num" data-f="preis" value="${it.preis !== null && it.preis !== undefined ? it.preis : ''}" min="0" step="0.01"></td>
+                <td><button type="button" class="btn-icon btn-icon-danger" data-bom-remove="${i}" title="Zeile entfernen">&#128465;</button></td>
+            </tr>`;
+    }).join('');
+
+    if (badge) {
+        const src = (window.currentBomMeta && window.currentBomMeta.profileName) ? ' (' + window.currentBomMeta.profileName + ')' : '';
+        badge.textContent = items.length + ' Positionen' + src + ' • Σ ' + summe.toFixed(2).replace('.', ',') + ' €';
+    }
+
+    // Inline-Edit wiring
+    body.querySelectorAll('.bom-cell').forEach(inp => {
+        inp.addEventListener('change', (e) => {
+            const tr = e.target.closest('tr');
+            const idx = parseInt(tr.dataset.bomIdx, 10);
+            const f = e.target.dataset.f;
+            let v = e.target.value;
+            if (['menge', 'preis'].includes(f)) v = v === '' ? null : parseFloat(v);
+            else if (['laenge_mm', 'breite_mm', 'dicke_mm'].includes(f)) v = v === '' ? null : parseInt(v, 10);
+            window.currentBomItems[idx][f] = v;
+            renderBomTable(); // neu rendern für Summe
+        });
+    });
+    body.querySelectorAll('[data-bom-remove]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.dataset.bomRemove, 10);
+            window.currentBomItems.splice(idx, 1);
+            renderBomTable();
+        });
     });
 }
 
