@@ -8380,9 +8380,7 @@ function initBomImport() {
     document.getElementById('bom-preview-commit').addEventListener('click', commitBomImport);
     document.getElementById('bom-save-profile').addEventListener('click', saveCurrentBomProfile);
     document.getElementById('bom-profile-select').addEventListener('change', onBomProfileChange);
-    document.getElementById('bom-preview-all').addEventListener('change', (e) => {
-        document.querySelectorAll('#bom-preview-body input.bom-row-check').forEach(cb => cb.checked = e.target.checked);
-    });
+    // bom-preview-all wird bei jedem renderPreviewStep() neu gebunden (Thead wird dynamisch neu gebaut)
 
     // Initial: wenn Projekt geladen, Tabelle rendern
     renderBomTable();
@@ -8438,10 +8436,19 @@ function renderMappingStep() {
     const sel = document.getElementById('bom-profile-select');
     sel.innerHTML = allProfiles.map(p => `<option value="${escapeHtml(p.id)}" ${p.id === profile.id ? 'selected' : ''}>${escapeHtml(p.name)}${p._custom ? ' ★' : ''}</option>`).join('');
 
+    // Debug-Log für Diagnose (DevTools → Konsole)
+    console.group('[Stücklisten-Import] Mapping-Ergebnis');
+    console.log('Profil:', profile.name);
+    console.log('Roh-Header:', parsed.headers);
+    console.log('Mapping:', bomFlow.mapping);
+    console.groupEnd();
+
     document.getElementById('bom-detected-title').textContent = 'Erkannt: ' + profile.name;
+    const mappedCount = Object.values(bomFlow.mapping).filter(Boolean).length;
+    const totalFields = Object.keys(StuecklistenImport.CANONICAL_FIELDS).length;
     document.getElementById('bom-detected-sub').textContent = (profile.description || '') +
         ' • ' + parsed.rows.length + ' Zeilen' +
-        ' • ' + parsed.headers.length + ' Spalten' +
+        ' • ' + mappedCount + '/' + totalFields + ' Felder zugeordnet' +
         (parsed.format === 'csv' && parsed.delimiter ? ' • Trennzeichen "' + parsed.delimiter + '"' : '') +
         (parsed.sheetName ? ' • Sheet "' + parsed.sheetName + '"' : '');
 
@@ -8451,13 +8458,17 @@ function renderMappingStep() {
     let html = '';
     for (const field in fields) {
         const meta = fields[field];
+        const mapped = !!bomFlow.mapping[field];
         const sample = parsed.rows.slice(0, 3).map(r => {
             const col = bomFlow.mapping[field];
             return col ? String(r[col] !== undefined ? r[col] : '').trim() : '';
         }).filter(Boolean).slice(0, 2).join(' • ');
         html += `
-            <div class="bom-map-row ${meta.required ? 'bom-map-required' : ''}">
-                <label class="bom-map-label">${escapeHtml(meta.label)}${meta.required ? ' *' : ''}</label>
+            <div class="bom-map-row ${meta.required ? 'bom-map-required' : ''} ${mapped ? 'bom-map-ok' : 'bom-map-missing'}">
+                <label class="bom-map-label">
+                    <span class="bom-map-status" aria-hidden="true">${mapped ? '✓' : '○'}</span>
+                    ${escapeHtml(meta.label)}${meta.required ? ' *' : ''}
+                </label>
                 <select class="bom-map-select" data-field="${field}">
                     <option value="">– Nicht zuordnen –</option>
                     ${parsed.headers.map(h => `<option value="${escapeHtml(h)}" ${h === bomFlow.mapping[field] ? 'selected' : ''}>${escapeHtml(h)}</option>`).join('')}
@@ -8466,10 +8477,11 @@ function renderMappingStep() {
             </div>`;
     }
     grid.innerHTML = html;
-    // Mapping-Änderungen live in State übernehmen
+    // Mapping-Änderungen live in State übernehmen + Re-Render für Status-Icon
     grid.querySelectorAll('.bom-map-select').forEach(s => {
         s.addEventListener('change', (e) => {
             bomFlow.mapping[e.target.dataset.field] = e.target.value;
+            renderMappingStep();
         });
     });
 }
@@ -8502,55 +8514,93 @@ function onBomMappingNext() {
 }
 
 function renderPreviewStep() {
-    const body = document.getElementById('bom-preview-body');
+    const scroll = document.getElementById('bom-preview-scroll');
     const items = bomFlow.normalized;
     let matchedCount = 0;
-    body.innerHTML = items.map((it, i) => {
+
+    // Spalten-Sichtbarkeit genauso wie Haupttabelle
+    const show = {
+        masse:     items.some(it => it.laenge_mm || it.breite_mm || it.dicke_mm),
+        artikelNr: items.some(it => (it.artikelNr || '').trim()),
+        preis:     items.some(it => it.preis !== null && it.preis !== undefined && it.preis !== '')
+    };
+
+    let thead = '<tr>';
+    thead += '<th style="width:32px"><input type="checkbox" id="bom-preview-all" checked></th>';
+    thead += '<th style="width:40px">Pos</th>';
+    thead += '<th>Bezeichnung</th>';
+    thead += '<th style="width:140px">Material</th>';
+    thead += '<th style="width:90px">Menge</th>';
+    if (show.masse)     thead += '<th style="width:190px">Maße (mm)</th>';
+    if (show.artikelNr) thead += '<th style="width:100px">Art.-Nr</th>';
+    if (show.preis)     thead += '<th style="width:70px">EP</th>';
+    thead += '<th style="width:80px">Match</th></tr>';
+
+    const rows = items.map((it, i) => {
         const matched = it._matchedMaterial;
         if (matched) matchedCount++;
         const matchTxt = matched
             ? `<span class="bom-match bom-match-${it._matchType}" title="${escapeHtml(matched.name)}">${it._matchType === 'artikelnr' ? 'Art-Nr' : it._matchType === 'name_exact' ? 'exakt' : 'fuzzy'}</span>`
             : `<span class="bom-match bom-match-none">neu</span>`;
-        return `
-            <tr data-idx="${i}">
-                <td><input type="checkbox" class="bom-row-check" checked></td>
-                <td>${escapeHtml(it.pos || String(i + 1))}</td>
-                <td><input type="text" class="bom-cell bom-cell-bezeichnung" value="${escapeHtml(it.bezeichnung)}"></td>
-                <td><input type="text" class="bom-cell bom-cell-material" value="${escapeHtml(it.material)}"></td>
-                <td><input type="number" class="bom-cell bom-cell-menge" value="${it.menge}" min="0" step="0.01"></td>
-                <td><input type="text" class="bom-cell bom-cell-einheit" value="${escapeHtml(it.einheit)}"></td>
-                <td><input type="number" class="bom-cell" value="${it.laenge_mm || ''}" data-f="laenge_mm" min="0" step="1"></td>
-                <td><input type="number" class="bom-cell" value="${it.breite_mm || ''}" data-f="breite_mm" min="0" step="1"></td>
-                <td><input type="number" class="bom-cell" value="${it.dicke_mm  || ''}" data-f="dicke_mm"  min="0" step="1"></td>
-                <td><input type="text" class="bom-cell" value="${escapeHtml(it.artikelNr)}" data-f="artikelNr"></td>
-                <td><input type="number" class="bom-cell" value="${it.preis !== null ? it.preis : ''}" data-f="preis" min="0" step="0.01"></td>
-                <td>${matchTxt}</td>
-            </tr>`;
+        let tr = `<tr data-idx="${i}">`;
+        tr += '<td><input type="checkbox" class="bom-row-check" checked></td>';
+        tr += `<td class="bom-pos">${escapeHtml(it.pos || String(i + 1))}</td>`;
+        tr += `<td><input type="text" class="bom-cell bom-cell-bezeichnung" value="${escapeHtml(it.bezeichnung)}"></td>`;
+        tr += `<td><input type="text" class="bom-cell bom-cell-material" value="${escapeHtml(it.material)}"></td>`;
+        tr += `<td class="bom-menge-cell">
+                  <input type="number" class="bom-cell num bom-menge-input bom-cell-menge" value="${it.menge}" min="0" step="0.01">
+                  <input type="text" class="bom-cell bom-einh-input bom-cell-einheit" value="${escapeHtml(it.einheit)}" title="Einheit">
+               </td>`;
+        if (show.masse) {
+            tr += `<td class="bom-masse-cell">
+                      <input type="number" class="bom-cell num bom-dim" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1" placeholder="L">
+                      <span class="bom-dim-x">×</span>
+                      <input type="number" class="bom-cell num bom-dim" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1" placeholder="B">
+                      <span class="bom-dim-x">×</span>
+                      <input type="number" class="bom-cell num bom-dim" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1" placeholder="D">
+                   </td>`;
+        }
+        if (show.artikelNr) tr += `<td><input type="text" class="bom-cell" value="${escapeHtml(it.artikelNr)}" data-f="artikelNr"></td>`;
+        if (show.preis)     tr += `<td><input type="number" class="bom-cell num" value="${it.preis !== null ? it.preis : ''}" data-f="preis" min="0" step="0.01"></td>`;
+        tr += `<td>${matchTxt}</td></tr>`;
+        return tr;
     }).join('');
+
+    scroll.innerHTML = '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody></table>';
+    // Re-Bind "Alle-auswählen"-Checkbox (weil thead neu gebaut wurde)
+    const all = document.getElementById('bom-preview-all');
+    if (all) all.addEventListener('change', (e) => {
+        document.querySelectorAll('#bom-preview-body input.bom-row-check').forEach(cb => cb.checked = e.target.checked);
+    });
+
     document.getElementById('bom-preview-count').textContent = items.length + ' Position' + (items.length === 1 ? '' : 'en');
-    document.getElementById('bom-preview-matched').textContent = matchedCount + '/' + items.length + ' Material-Treffer im Stamm';
+    document.getElementById('bom-preview-matched').textContent = matchedCount + '/' + items.length + ' Treffer im Material-Stamm';
 }
 
 function collectPreviewItems() {
     const rows = document.querySelectorAll('#bom-preview-body tr');
     const out = [];
+    const getVal = (tr, selector) => {
+        const el = tr.querySelector(selector);
+        return el ? el.value : '';
+    };
     rows.forEach((tr) => {
         const idx = parseInt(tr.dataset.idx, 10);
         const base = Object.assign({}, bomFlow.normalized[idx]);
         const check = tr.querySelector('.bom-row-check');
         if (!check || !check.checked) return;
-        base.bezeichnung = tr.querySelector('.bom-cell-bezeichnung').value.trim();
-        base.material    = tr.querySelector('.bom-cell-material').value.trim();
-        base.menge       = parseFloat(tr.querySelector('.bom-cell-menge').value) || 0;
-        base.einheit     = tr.querySelector('.bom-cell-einheit').value.trim();
+        base.bezeichnung = (getVal(tr, '.bom-cell-bezeichnung') || '').trim();
+        base.material    = (getVal(tr, '.bom-cell-material') || '').trim();
+        base.menge       = parseFloat(getVal(tr, '.bom-cell-menge')) || 0;
+        base.einheit     = (getVal(tr, '.bom-cell-einheit') || '').trim();
         ['laenge_mm', 'breite_mm', 'dicke_mm'].forEach(f => {
-            const v = tr.querySelector(`[data-f="${f}"]`).value;
+            const v = getVal(tr, `[data-f="${f}"]`);
             base[f] = v ? parseInt(v, 10) : null;
         });
-        base.artikelNr = tr.querySelector('[data-f="artikelNr"]').value.trim();
-        const preisVal = tr.querySelector('[data-f="preis"]').value;
-        base.preis = preisVal ? parseFloat(preisVal) : null;
-        // Roh-Zeile wird nicht mit übernommen
+        const artNr = getVal(tr, '[data-f="artikelNr"]');
+        if (artNr !== '') base.artikelNr = artNr.trim();
+        const preisVal = getVal(tr, '[data-f="preis"]');
+        if (preisVal !== '') base.preis = parseFloat(preisVal);
         delete base._rohZeile;
         out.push(base);
     });
@@ -8608,10 +8658,9 @@ function renderBomTable() {
     const items = window.currentBomItems || [];
     const empty = document.getElementById('bom-empty');
     const wrap  = document.getElementById('bom-table-wrap');
-    const body  = document.getElementById('bom-table-body');
     const badge = document.getElementById('bom-info-badge');
     const btnClear = document.getElementById('btn-bom-clear');
-    if (!empty || !wrap || !body) return;
+    if (!empty || !wrap) return;
 
     if (!items.length) {
         empty.classList.remove('hidden');
@@ -8625,29 +8674,61 @@ function renderBomTable() {
     wrap.classList.remove('hidden');
     if (btnClear) btnClear.classList.remove('hidden');
 
+    // Spalten-Sichtbarkeit: Spalte nur zeigen, wenn mindestens ein Item Werte hat
+    const show = {
+        masse:     items.some(it => it.laenge_mm || it.breite_mm || it.dicke_mm),
+        artikelNr: items.some(it => (it.artikelNr || '').trim()),
+        preis:     items.some(it => it.preis !== null && it.preis !== undefined && it.preis !== '')
+    };
+
+    // Tabellen-Kopf dynamisch bauen
+    let thead = '<tr>';
+    thead += '<th style="width:44px">Pos</th>';
+    thead += '<th>Bezeichnung</th>';
+    thead += '<th style="width:180px">Material</th>';
+    thead += '<th style="width:100px">Menge</th>';
+    if (show.masse)     thead += '<th style="width:200px" title="L × B × D in mm">Maße (mm)</th>';
+    if (show.artikelNr) thead += '<th style="width:120px">Artikel-Nr</th>';
+    if (show.preis)     thead += '<th style="width:90px">EP&nbsp;(€)</th>';
+    if (show.preis)     thead += '<th style="width:90px">Σ&nbsp;(€)</th>';
+    thead += '<th style="width:40px"></th></tr>';
+
     let summe = 0;
-    body.innerHTML = items.map((it, i) => {
+    const rows = items.map((it, i) => {
         const zeilenSumme = (parseFloat(it.menge) || 0) * (parseFloat(it.preis) || 0);
         summe += zeilenSumme;
-        return `
-            <tr data-bom-idx="${i}">
-                <td>${escapeHtml(it.pos || String(i + 1))}</td>
-                <td><input type="text" class="bom-cell" data-f="bezeichnung" value="${escapeHtml(it.bezeichnung || '')}"></td>
-                <td><input type="text" class="bom-cell" data-f="material"    value="${escapeHtml(it.material || '')}"></td>
-                <td><input type="number" class="bom-cell num" data-f="menge" value="${it.menge}" min="0" step="0.01"></td>
-                <td><input type="text" class="bom-cell" data-f="einheit" value="${escapeHtml(it.einheit || 'Stk')}"></td>
-                <td><input type="number" class="bom-cell num" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1"></td>
-                <td><input type="number" class="bom-cell num" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1"></td>
-                <td><input type="number" class="bom-cell num" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1"></td>
-                <td><input type="text" class="bom-cell" data-f="artikelNr" value="${escapeHtml(it.artikelNr || '')}"></td>
-                <td><input type="number" class="bom-cell num" data-f="preis" value="${it.preis !== null && it.preis !== undefined ? it.preis : ''}" min="0" step="0.01"></td>
-                <td><button type="button" class="btn-icon btn-icon-danger" data-bom-remove="${i}" title="Zeile entfernen">&#128465;</button></td>
-            </tr>`;
+        let tr = `<tr data-bom-idx="${i}">`;
+        tr += `<td class="bom-pos">${escapeHtml(it.pos || String(i + 1))}</td>`;
+        tr += `<td><input type="text" class="bom-cell" data-f="bezeichnung" value="${escapeHtml(it.bezeichnung || '')}"></td>`;
+        tr += `<td><input type="text" class="bom-cell" data-f="material" value="${escapeHtml(it.material || '')}"></td>`;
+        tr += `<td class="bom-menge-cell">
+                  <input type="number" class="bom-cell num bom-menge-input" data-f="menge" value="${it.menge}" min="0" step="0.01">
+                  <input type="text" class="bom-cell bom-einh-input" data-f="einheit" value="${escapeHtml(it.einheit || 'Stk')}" title="Einheit">
+               </td>`;
+        if (show.masse) {
+            tr += `<td class="bom-masse-cell">
+                      <input type="number" class="bom-cell num bom-dim" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1" placeholder="L">
+                      <span class="bom-dim-x">×</span>
+                      <input type="number" class="bom-cell num bom-dim" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1" placeholder="B">
+                      <span class="bom-dim-x">×</span>
+                      <input type="number" class="bom-cell num bom-dim" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1" placeholder="D">
+                   </td>`;
+        }
+        if (show.artikelNr) tr += `<td><input type="text" class="bom-cell" data-f="artikelNr" value="${escapeHtml(it.artikelNr || '')}"></td>`;
+        if (show.preis)     tr += `<td><input type="number" class="bom-cell num" data-f="preis" value="${it.preis !== null && it.preis !== undefined ? it.preis : ''}" min="0" step="0.01"></td>`;
+        if (show.preis)     tr += `<td class="bom-sum">${zeilenSumme ? zeilenSumme.toFixed(2).replace('.', ',') : '–'}</td>`;
+        tr += `<td><button type="button" class="btn-icon btn-icon-danger" data-bom-remove="${i}" title="Zeile entfernen">&#128465;</button></td>`;
+        tr += '</tr>';
+        return tr;
     }).join('');
 
+    wrap.innerHTML = '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody></table>';
+    const body = document.getElementById('bom-table-body');
+
     if (badge) {
-        const src = (window.currentBomMeta && window.currentBomMeta.profileName) ? ' (' + window.currentBomMeta.profileName + ')' : '';
-        badge.textContent = items.length + ' Positionen' + src + ' • Σ ' + summe.toFixed(2).replace('.', ',') + ' €';
+        const src = (window.currentBomMeta && window.currentBomMeta.profileName) ? ' · ' + window.currentBomMeta.profileName : '';
+        const sumPart = summe ? ' · Σ ' + summe.toFixed(2).replace('.', ',') + ' €' : '';
+        badge.textContent = items.length + ' Pos.' + src + sumPart;
     }
 
     // Inline-Edit wiring
@@ -8660,7 +8741,7 @@ function renderBomTable() {
             if (['menge', 'preis'].includes(f)) v = v === '' ? null : parseFloat(v);
             else if (['laenge_mm', 'breite_mm', 'dicke_mm'].includes(f)) v = v === '' ? null : parseInt(v, 10);
             window.currentBomItems[idx][f] = v;
-            renderBomTable(); // neu rendern für Summe
+            renderBomTable();
         });
     });
     body.querySelectorAll('[data-bom-remove]').forEach(btn => {

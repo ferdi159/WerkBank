@@ -34,6 +34,31 @@
     };
 
     // ============================================================
+    // HEADER-NORMALISIERUNG
+    // ============================================================
+    // Wandelt rohe Header-Strings in eine Form um, die robust mit
+    // Alias-Listen verglichen werden kann.
+    //
+    // Beispiele:
+    //   "Länge (mm)"     → "länge"
+    //   "L / mm"         → "l"
+    //   "Width [mm]"     → "width"
+    //   "Dicke in mm"    → "dicke"
+    //   "Part # / PartNo"→ "part # / partno"
+    //   "Qty."           → "qty"
+    function normalizeHeader(s) {
+        if (s === null || s === undefined) return '';
+        let h = String(s).toLowerCase().trim();
+        // Einheit-Suffixe und -Klammer-Zusätze entfernen
+        h = h.replace(/[\s\-_/]*\(\s*(mm|cm|m|inch|in|"|kg|stk|pcs|pieces?|€|eur|euro)\s*\)\s*$/i, '');
+        h = h.replace(/[\s\-_/]*\[\s*(mm|cm|m|inch|in|"|kg|stk|pcs|pieces?|€|eur|euro)\s*\]\s*$/i, '');
+        h = h.replace(/[\s\-_/]+(in\s+)?(mm|cm|m|inch|in|kg|stk|pcs|pieces?|€|eur|euro)\s*$/i, '');
+        h = h.replace(/[._:;]+$/, '');
+        h = h.replace(/\s+/g, ' ').trim();
+        return h;
+    }
+
+    // ============================================================
     // VORDEFINIERTE PROFILE (mit Fingerprint-Regeln)
     // ============================================================
     // Matching-Regeln sind Listen von Header-Aliassen (lowercase).
@@ -192,17 +217,17 @@
             description: 'Fallback-Profil mit intelligenter Heuristik',
             fingerprint: { requireAny: [], requireAll: [], score: 10 },
             mapping: {
-                pos:         ['pos', 'pos.', 'position', 'nr', 'item', 'itemno', 'index'],
-                bezeichnung: ['bezeichnung', 'name', 'description', 'bauteil', 'designation', 'title'],
-                material:    ['material', 'werkstoff', 'holzart', 'matter'],
-                menge:       ['menge', 'anzahl', 'stück', 'stueck', 'stk', 'qty', 'quantity', 'count'],
-                einheit:     ['einheit', 'unit', 'uom'],
-                laenge_mm:   ['länge', 'laenge', 'length', 'l'],
-                breite_mm:   ['breite', 'width', 'b', 'w'],
-                dicke_mm:    ['dicke', 'stärke', 'staerke', 'thickness', 'd', 't'],
-                artikelNr:   ['artikelnr', 'artikel-nr', 'part number', 'partno', 'partnumber', 'code', 'reference'],
-                kommentar:   ['kommentar', 'bemerkung', 'comment', 'notes', 'note', 'info'],
-                preis:       ['preis', 'price', 'ep', 'einzelpreis', 'unit price']
+                pos:         ['pos', 'position', 'nr', 'item', 'itemno', 'index', 'teil-nr', 'teil nr', 'teilnr', 'no'],
+                bezeichnung: ['bezeichnung', 'name', 'description', 'bauteil', 'designation', 'title', 'teil', 'benennung', 'artikel', 'part'],
+                material:    ['material', 'werkstoff', 'holzart', 'matter', 'mat', 'werkst', 'holz'],
+                menge:       ['menge', 'anzahl', 'stück', 'stueck', 'stk', 'qty', 'quantity', 'count', 'num', 'number'],
+                einheit:     ['einheit', 'unit', 'uom', 'me'],
+                laenge_mm:   ['länge', 'laenge', 'length', 'l', 'teillänge', 'teil länge', 'zuschnitt länge', 'panel length', 'cut length', 'long', 'höhe', 'hoehe', 'height', 'h', 'part length'],
+                breite_mm:   ['breite', 'width', 'b', 'w', 'teilbreite', 'teil breite', 'zuschnitt breite', 'panel width', 'cut width', 'tiefe', 'depth', 'part width'],
+                dicke_mm:    ['dicke', 'stärke', 'staerke', 'thickness', 'd', 't', 'th', 'thick', 'stock size', 'plate thickness', 'materialstärke', 'plattenstärke', 'plattenstaerke', 'strength'],
+                artikelNr:   ['artikelnr', 'artikel-nr', 'artikel nr', 'artikelnummer', 'part number', 'partno', 'partnumber', 'part #', 'code', 'reference', 'ref', 'art-nr', 'artnr', 'sku'],
+                kommentar:   ['kommentar', 'bemerkung', 'comment', 'notes', 'note', 'info', 'remark', 'hinweis', 'anmerkung'],
+                preis:       ['preis', 'price', 'ep', 'einzelpreis', 'unit price', 'cost', 'stückpreis', 'stueckpreis', 'preis pro stk']
             },
             defaults: { einheit: 'Stk', unit_length: 'mm' }
         }
@@ -324,7 +349,7 @@
     // 2. FINGERPRINT-LAYER
     // ============================================================
     function detectProfile(headers, customProfiles) {
-        const normHeaders = headers.map(h => String(h).toLowerCase().trim().replace(/[._:]+$/, ''));
+        const normHeaders = headers.map(h => normalizeHeader(h));
         const all = [].concat(DEFAULT_PROFILES, customProfiles || []);
         let best = null, bestScore = -1;
         for (const p of all) {
@@ -351,7 +376,7 @@
         let n = 0;
         for (const field in mapping) {
             const aliases = mapping[field] || [];
-            if (aliases.some(a => normHeaders.includes(a))) n++;
+            if (aliases.some(a => normHeaders.includes(a) || normHeaders.some(h => h.includes(a)))) n++;
         }
         return n;
     }
@@ -360,16 +385,25 @@
     // 3. MAPPING-LAYER (Profile → konkretes Header-Mapping)
     // ============================================================
     function buildMapping(headers, profile) {
-        const normHeaders = headers.map(h => ({ raw: h, norm: String(h).toLowerCase().trim().replace(/[._:]+$/, '') }));
+        const normHeaders = headers.map(h => ({ raw: h, norm: normalizeHeader(h) }));
         const mapping = {};
-        for (const field in CANONICAL_FIELDS) {
+        const usedRaw = new Set();
+        // Sortiere Felder: spezifischere zuerst matchen (damit z.B. "artikelNr" vor "pos" geht)
+        const fieldOrder = ['artikelNr', 'bezeichnung', 'material', 'menge', 'einheit', 'laenge_mm', 'breite_mm', 'dicke_mm', 'pos', 'kommentar', 'preis'];
+        for (const field of fieldOrder) {
+            if (!CANONICAL_FIELDS[field]) continue;
             const aliases = (profile.mapping && profile.mapping[field]) || [];
-            // Exakt-Match zuerst
-            let found = normHeaders.find(h => aliases.includes(h.norm));
-            // Dann "enthält"
-            if (!found) found = normHeaders.find(h => aliases.some(a => h.norm.includes(a)));
-            mapping[field] = found ? found.raw : '';
+            // 1. Exakt-Match
+            let found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.includes(h.norm));
+            // 2. "enthält" – Header enthält Alias (z.B. "cut length" enthält "length")
+            if (!found) found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.some(a => h.norm === a || h.norm.includes(a)));
+            // 3. Alias enthält Header (z.B. Alias "panel length", Header "length")
+            if (!found) found = normHeaders.find(h => !usedRaw.has(h.raw) && aliases.some(a => a.includes(h.norm) && h.norm.length >= 2));
+            if (found) { mapping[field] = found.raw; usedRaw.add(found.raw); }
+            else mapping[field] = '';
         }
+        // Sicherstellen, dass alle Canonical-Felder einen Schlüssel haben
+        for (const field in CANONICAL_FIELDS) { if (!(field in mapping)) mapping[field] = ''; }
         return mapping;
     }
 
@@ -517,6 +551,7 @@
         runImport,
         matchMaterials,
         // Utilities
+        normalizeHeader,
         parseNumber,
         toMillimeters
     };

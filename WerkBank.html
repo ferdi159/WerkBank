@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WerkBank | Professionelle Tischlerei-Software</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M8 14 L18 50 L26 50 L32 30 L38 50 L46 50 L56 14 L48 14 L42 40 L36 20 L28 20 L22 40 L16 14 Z' fill='%23fff'/%3E%3Cg stroke='%231e3a8a' stroke-width='0.9' stroke-linecap='round'%3E%3Cline x1='9.5' y1='19.4' x2='12.0' y2='18.7'/%3E%3Cline x1='10.7' y1='23.72' x2='12.06' y2='23.34'/%3E%3Cline x1='12.0' y1='28.4' x2='14.5' y2='27.7'/%3E%3Cline x1='13.2' y1='32.72' x2='14.56' y2='32.34'/%3E%3Cline x1='14.5' y1='37.4' x2='17.0' y2='36.7'/%3E%3Cline x1='47.5' y1='44.6' x2='45.0' y2='43.9'/%3E%3Cline x1='48.7' y1='40.28' x2='47.34' y2='39.9'/%3E%3Cline x1='50.0' y1='35.6' x2='47.5' y2='34.9'/%3E%3Cline x1='51.2' y1='31.28' x2='49.84' y2='30.9'/%3E%3Cline x1='52.5' y1='26.6' x2='50.0' y2='25.9'/%3E%3C/g%3E%3C/svg%3E">
-    <link rel="stylesheet" href="style.css?v=20260424a">
+    <link rel="stylesheet" href="style.css?v=20260424b">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -490,26 +490,7 @@
                         <div id="bom-empty" class="bom-empty">
                             Noch keine Stückliste importiert. Unterstützte Formate: <strong>CSV, TXT, XLSX, XLS</strong> – aus <strong>AutoCAD (DATAEXTRACTION), Vectorworks/ElementsCAD, TopSolid Wood, SolidWorks, Inventor, cadwork</strong> oder beliebige Tabellen.
                         </div>
-                        <div id="bom-table-wrap" class="bom-table-wrap hidden">
-                            <table class="bom-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width:40px">Pos</th>
-                                        <th>Bezeichnung</th>
-                                        <th>Material</th>
-                                        <th style="width:70px">Menge</th>
-                                        <th style="width:60px">Einh.</th>
-                                        <th style="width:70px">L&nbsp;(mm)</th>
-                                        <th style="width:70px">B&nbsp;(mm)</th>
-                                        <th style="width:70px">D&nbsp;(mm)</th>
-                                        <th style="width:90px">Artikel-Nr</th>
-                                        <th style="width:90px">EP&nbsp;(€)</th>
-                                        <th style="width:40px"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bom-table-body"></tbody>
-                            </table>
-                        </div>
+                        <div id="bom-table-wrap" class="bom-table-wrap hidden"></div>
                     </div>
                 </div>
 
@@ -2297,27 +2278,7 @@
                         <span id="bom-preview-count"></span>
                         <span id="bom-preview-matched" class="bom-muted"></span>
                     </div>
-                    <div class="bom-preview-scroll">
-                        <table class="bom-table bom-preview-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:32px"><input type="checkbox" id="bom-preview-all" checked></th>
-                                    <th style="width:40px">Pos</th>
-                                    <th>Bezeichnung</th>
-                                    <th>Material</th>
-                                    <th style="width:64px">Menge</th>
-                                    <th style="width:56px">Einh.</th>
-                                    <th style="width:64px">L</th>
-                                    <th style="width:64px">B</th>
-                                    <th style="width:64px">D</th>
-                                    <th style="width:80px">Art.-Nr</th>
-                                    <th style="width:80px">EP€</th>
-                                    <th style="width:80px">Match</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bom-preview-body"></tbody>
-                        </table>
-                    </div>
+                    <div class="bom-preview-scroll" id="bom-preview-scroll"></div>
                     <div class="bom-mapping-footer">
                         <button type="button" class="btn btn-secondary btn-sm" id="bom-preview-back">← Mapping</button>
                         <button type="button" class="btn btn-primary btn-sm" id="bom-preview-commit">Als Positionen übernehmen</button>
@@ -2372,7 +2333,7 @@
             document.head.appendChild(sp);
         }
     </script>
-    <script src="stuecklistenImport.js?v=20260424a"></script>
-    <script src="app.js?v=20260424a"></script>
+    <script src="stuecklistenImport.js?v=20260424b"></script>
+    <script src="app.js?v=20260424b"></script>
 </body>
 </html>

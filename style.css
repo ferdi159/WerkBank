@@ -5401,6 +5401,54 @@ select.pos-kategorie optgroup option {
 .bom-cell:focus { outline: none; background: white; border-color: var(--accent); }
 .bom-cell.num { text-align: right; font-variant-numeric: tabular-nums; }
 
+/* Pos-Spalte: mittig, leicht gedimmt */
+.bom-pos {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Summe-Spalte */
+.bom-sum {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    font-weight: 500;
+    padding-right: 12px;
+}
+
+/* Menge + Einheit kombiniert */
+.bom-menge-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px !important;
+}
+.bom-menge-input { flex: 1 1 55%; min-width: 40px; }
+.bom-einh-input { flex: 0 1 42%; min-width: 34px; font-size: 0.78rem; color: var(--text-light); }
+
+/* Maße (L × B × D) kombiniert */
+.bom-masse-cell {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px !important;
+}
+.bom-dim {
+    flex: 1 1 0;
+    min-width: 42px;
+    max-width: 60px;
+    padding: 4px 4px !important;
+    font-size: 0.8rem;
+}
+.bom-dim-x {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    user-select: none;
+    flex-shrink: 0;
+}
+
 .bom-match {
     display: inline-block;
     padding: 2px 8px;
@@ -5476,7 +5524,21 @@ select.pos-kategorie optgroup option {
     border: 1px solid var(--border);
 }
 .bom-map-required { border-color: var(--accent-light); background: var(--wood-light); }
-.bom-map-label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.bom-map-ok { border-left: 3px solid #16a34a; }
+.bom-map-missing { border-left: 3px solid #e2e8f0; }
+.bom-map-label { font-size: 0.85rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.bom-map-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.bom-map-ok .bom-map-status { background: #dcfce7; color: #166534; }
+.bom-map-missing .bom-map-status { background: #f1f5f9; color: #94a3b8; }
 .bom-map-select {
     padding: 6px 8px;
     border: 1px solid var(--border);
