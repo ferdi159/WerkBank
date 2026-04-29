@@ -5428,6 +5428,27 @@ select.pos-kategorie optgroup option {
     padding: 4px 6px;
 }
 
+/* m²-Spalte: rechtsbündig, hervorgehoben */
+.bom-flaeche {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    color: var(--accent);
+    padding-right: 12px !important;
+}
+
+/* Σ-Fläche-Zeile am Tabellenende */
+.bom-sum-row td {
+    background: var(--wood-light);
+    border-top: 2px solid var(--accent-light) !important;
+    padding: 8px 6px !important;
+}
+.bom-flaeche-sum {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
 /* Modal: Dropzone */
 .bom-step { padding: 8px 4px; }
 .bom-dropzone {

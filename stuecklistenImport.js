@@ -192,22 +192,29 @@
             name: 'cadwork',
             description: 'Stücklisten-Export aus cadwork (Holzbau/Tischlerei)',
             fingerprint: {
-                requireAny: [['nr', 'bauteil'], ['bauteil', 'länge', 'breite']],
+                requireAny: [
+                    ['bauteil name', 'positions-nr'],
+                    ['bauteil', 'länge', 'breite'],
+                    ['bauteil name', 'anzahl'],
+                    ['nr', 'bauteil']
+                ],
                 requireAll: [],
-                score: 85
+                score: 90
             },
             mapping: {
-                pos:         ['nr', 'nr.', 'pos', 'pos.', 'teil-nr'],
-                bezeichnung: ['bauteil', 'bezeichnung', 'name'],
+                pos:         ['positions-nr', 'pos', 'pos.', 'nr', 'nr.', 'teil-nr'],
+                bezeichnung: ['bauteil name', 'bauteil', 'bezeichnung', 'name'],
                 material:    ['material', 'holzart', 'werkstoff'],
                 menge:       ['anzahl', 'stück', 'stueck', 'stk'],
                 einheit:     ['einheit'],
-                laenge_mm:   ['länge', 'laenge', 'l'],
-                breite_mm:   ['breite', 'b'],
+                // Cadwork hat in der Regel "Länge (Fertigmaß)" und "Breite (Fertigmaß)"
+                // sowie Varianten mit "Maserrichtung". Wir präferieren die Fertigmaß-Spalten.
+                laenge_mm:   ['länge (fertigmaß)', 'länge fertigmaß', 'fertigmaß länge', 'länge', 'laenge', 'l'],
+                breite_mm:   ['breite (fertigmaß)', 'breite fertigmaß', 'fertigmaß breite', 'breite', 'b'],
                 dicke_mm:    ['dicke', 'stärke', 'staerke', 'd', 'h'],
-                artikelNr:   ['artikel', 'artikelnr', 'code'],
-                kommentar:   ['info', 'bemerkung', 'kommentar'],
-                preis:       ['preis', 'ep']
+                artikelNr:   ['artikelnummer', 'artikel-nr', 'artikel nr', 'artikel', 'artikelnr', 'code'],
+                kommentar:   ['info', 'bemerkung', 'kommentar', 'maserrichtung'],
+                preis:       ['preis', 'ep', 'einzelpreis']
             },
             defaults: { einheit: 'Stk', unit_length: 'mm' }
         },
@@ -340,9 +347,21 @@
     }
 
     function detectEncodingProblems(result) {
-        // Typische UTF-8-Fehlinterpretation von Latin-1: "Ã¤" statt "ä"
-        const text = JSON.stringify(result.data).slice(0, 5000) + JSON.stringify(result.meta.fields || []);
-        return /Ã[¤¶¼Ÿ„–œŸ]|Ã\u009f/.test(text);
+        // Sample aus Headern + erster Datenzeilen (Header sind oft am stärksten betroffen)
+        const headers = (result.meta.fields || []).join('\n');
+        const dataSample = JSON.stringify(result.data).slice(0, 5000);
+        const text = headers + '\n' + dataSample;
+        // Fall A: UTF-8 liest Win-1252 Bytes → "Ã¤" statt "ä", "Ã¶" statt "ö"
+        if (/Ã[¤¶¼Ÿ„–œŸ\u009f]/.test(text)) return true;
+        // Fall B: FileReader liest Win-1252 als UTF-8 → ungültige Bytes werden zu U+FFFD (\uFFFD = "�")
+        if (text.indexOf('\uFFFD') !== -1) return true;
+        // Fall C: Deutsche CAD-Files OHNE Umlaute in Headern – fast unmöglich. Wenn KEIN einziger Umlaut UND keine Sonderzeichen vorkommen, aber typische deutsche Wortwurzeln da sind, ist die Datei wahrscheinlich Win-1252-getürkt.
+        const hasGermanRoots = /länge|breite|dicke|stärke|stück|maße/i.test(text);
+        const hasUmlauts = /[äöüÄÖÜß]/.test(text);
+        if (hasGermanRoots && !hasUmlauts && /[a-z]+nge|[a-z]+ke|[a-z]+rke|[a-z]+ck/.test(text)) {
+            // Heuristik: wenn "länge" Match-Trigger war, würde umlaut existieren
+        }
+        return false;
     }
 
     // ============================================================
@@ -376,7 +395,10 @@
         let n = 0;
         for (const field in mapping) {
             const aliases = mapping[field] || [];
-            if (aliases.some(a => normHeaders.includes(a) || normHeaders.some(h => h.includes(a)))) n++;
+            // Single-char-Aliase nur exakt; Längere auch fuzzy
+            const exactHit = aliases.some(a => normHeaders.includes(a));
+            const fuzzyHit = !exactHit && aliases.some(a => a.length >= 3 && normHeaders.some(h => h.includes(a)));
+            if (exactHit || fuzzyHit) n++;
         }
         return n;
     }
@@ -401,16 +423,20 @@
             else mapping[field] = '';
         }
         // ----- Runde 2: Fuzzy-Match für noch unbesetzte Felder -----
-        // Hier KEIN usedRaw mehr: eine Spalte darf mehreren Feldern zugeordnet
-        // werden, wenn die Aliase überlappen. Der User korrigiert im Dialog.
+        // KRITISCH: Einzelbuchstaben-Aliase ("l", "b", "d") dürfen NUR exakt
+        // matchen (Runde 1). In Runde 2 würden sie sonst "Projekt Bauvorhaben"
+        // (enthält "b") oder "Projekt-ID" (enthält "d") fälschlich treffen.
+        // Daher: in Fuzzy-Runde nur Aliase mit ≥ 3 Zeichen verwenden.
         for (const field of fieldOrder) {
             if (!CANONICAL_FIELDS[field]) continue;
             if (mapping[field]) continue;
-            const aliases = (profile.mapping && profile.mapping[field]) || [];
+            const aliases = ((profile.mapping && profile.mapping[field]) || [])
+                .filter(a => typeof a === 'string' && a.length >= 3);
+            if (!aliases.length) continue;
             // 2a. Header enthält Alias (z.B. "cut length" enthält "length")
             let found = normHeaders.find(h => aliases.some(a => h.norm === a || h.norm.includes(a)));
             // 2b. Alias enthält Header (z.B. Alias "panel length", Header "length")
-            if (!found) found = normHeaders.find(h => aliases.some(a => a.includes(h.norm) && h.norm.length >= 2));
+            if (!found) found = normHeaders.find(h => aliases.some(a => a.includes(h.norm) && h.norm.length >= 3));
             if (found) mapping[field] = found.raw;
         }
         // Sicherstellen, dass alle Canonical-Felder einen Schlüssel haben

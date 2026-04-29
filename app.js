@@ -8547,6 +8547,14 @@ function renderPreviewStep() {
 
     // Material-Spalte nur wenn irgendwo Material-Daten da sind
     const showMaterial = items.some(it => (it.material || '').trim());
+    const showDicke = items.some(it => it.dicke_mm);
+
+    const flaecheM2 = (it) => {
+        const l = parseFloat(it.laenge_mm) || 0;
+        const b = parseFloat(it.breite_mm) || 0;
+        const m = parseFloat(it.menge) || 0;
+        return (l * b * m) / 1000000;
+    };
 
     let thead = '<tr>';
     thead += '<th style="width:32px"><input type="checkbox" id="bom-preview-all" checked></th>';
@@ -8557,10 +8565,14 @@ function renderPreviewStep() {
     thead += '<th style="width:54px">Einh.</th>';
     thead += '<th style="width:70px" title="Länge in mm">L (mm)</th>';
     thead += '<th style="width:70px" title="Breite in mm">B (mm)</th>';
-    thead += '<th style="width:70px" title="Dicke in mm">D (mm)</th>';
+    if (showDicke) thead += '<th style="width:70px" title="Dicke in mm">D (mm)</th>';
+    thead += '<th style="width:80px" title="Fläche = (L × B / 1.000.000) × Menge">m²</th>';
     thead += '</tr>';
 
+    let summeM2 = 0;
     const rows = items.map((it, i) => {
+        const fl = flaecheM2(it);
+        summeM2 += fl;
         let tr = `<tr data-idx="${i}">`;
         tr += '<td><input type="checkbox" class="bom-row-check" checked></td>';
         tr += `<td class="bom-pos">${escapeHtml(it.pos || String(i + 1))}</td>`;
@@ -8570,19 +8582,54 @@ function renderPreviewStep() {
         tr += `<td><input type="text" class="bom-cell bom-cell-einheit" value="${escapeHtml(it.einheit || 'Stk')}"></td>`;
         tr += `<td><input type="number" class="bom-cell num" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1"></td>`;
         tr += `<td><input type="number" class="bom-cell num" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1"></td>`;
-        tr += `<td><input type="number" class="bom-cell num" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1"></td>`;
+        if (showDicke) tr += `<td><input type="number" class="bom-cell num" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1"></td>`;
+        tr += `<td class="bom-flaeche">${fl > 0 ? fl.toFixed(3).replace('.', ',') : '–'}</td>`;
         tr += `</tr>`;
         return tr;
     }).join('');
 
-    scroll.innerHTML = '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody></table>';
+    // Σ-Zeile
+    const colSpanLeft = 3 + (showMaterial ? 1 : 0) + 4 + (showDicke ? 1 : 0); // Check+Pos+Bez+(Mat)+Menge+Einh+L+B+(D)
+    const tfoot = `<tfoot><tr class="bom-sum-row">
+        <td colspan="${colSpanLeft}" style="text-align:right;font-weight:600;">Σ Fläche</td>
+        <td class="bom-flaeche bom-flaeche-sum">${summeM2 > 0 ? summeM2.toFixed(3).replace('.', ',') + ' m²' : '–'}</td>
+    </tr></tfoot>`;
+
+    scroll.innerHTML = '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody>' + tfoot + '</table>';
     // Re-Bind "Alle-auswählen"-Checkbox (weil thead neu gebaut wurde)
     const all = document.getElementById('bom-preview-all');
     if (all) all.addEventListener('change', (e) => {
         document.querySelectorAll('#bom-preview-body input.bom-row-check').forEach(cb => cb.checked = e.target.checked);
     });
+    // Live-Update der m²-Werte beim Editieren
+    document.querySelectorAll('#bom-preview-body input').forEach(inp => {
+        inp.addEventListener('input', () => renderPreviewStep_updateSums());
+    });
 
     document.getElementById('bom-preview-count').textContent = items.length + ' Position' + (items.length === 1 ? '' : 'en');
+}
+
+// Live-Recompute der m²-Werte ohne kompletten Re-Render (vermeidet Fokus-Verlust beim Tippen)
+function renderPreviewStep_updateSums() {
+    const rows = document.querySelectorAll('#bom-preview-body tr');
+    let summe = 0;
+    rows.forEach(tr => {
+        const check = tr.querySelector('.bom-row-check');
+        if (!check || !check.checked) {
+            const fl = tr.querySelector('.bom-flaeche');
+            if (fl) fl.textContent = '–';
+            return;
+        }
+        const menge = parseFloat(tr.querySelector('.bom-cell-menge')?.value) || 0;
+        const l = parseFloat(tr.querySelector('[data-f="laenge_mm"]')?.value) || 0;
+        const b = parseFloat(tr.querySelector('[data-f="breite_mm"]')?.value) || 0;
+        const fl = (l * b * menge) / 1000000;
+        summe += fl;
+        const cell = tr.querySelector('.bom-flaeche');
+        if (cell) cell.textContent = fl > 0 ? fl.toFixed(3).replace('.', ',') : '–';
+    });
+    const sumCell = document.querySelector('.bom-flaeche-sum');
+    if (sumCell) sumCell.textContent = summe > 0 ? summe.toFixed(3).replace('.', ',') + ' m²' : '–';
 }
 
 function collectPreviewItems() {
@@ -8680,8 +8727,18 @@ function renderBomTable() {
 
     // Material-Spalte nur, wenn Daten vorhanden
     const showMaterial = items.some(it => (it.material || '').trim());
+    // Dicke-Spalte nur, wenn mindestens eine Zeile Werte hat (cadwork-Holzbau hat oft keine D)
+    const showDicke = items.some(it => it.dicke_mm);
 
-    // Tabellen-Kopf dynamisch bauen — reduziert auf Mengen & Größen
+    // Hilfsfunktion: m² pro Zeile = (L × B / 1.000.000) × Menge
+    const flaecheM2 = (it) => {
+        const l = parseFloat(it.laenge_mm) || 0;
+        const b = parseFloat(it.breite_mm) || 0;
+        const m = parseFloat(it.menge) || 0;
+        return (l * b * m) / 1000000;
+    };
+
+    // Tabellen-Kopf dynamisch bauen — reduziert auf Mengen & Größen + m²
     let thead = '<tr>';
     thead += '<th style="width:44px">Pos</th>';
     thead += '<th>Bezeichnung</th>';
@@ -8690,10 +8747,14 @@ function renderBomTable() {
     thead += '<th style="width:60px">Einh.</th>';
     thead += '<th style="width:80px" title="Länge in mm">L (mm)</th>';
     thead += '<th style="width:80px" title="Breite in mm">B (mm)</th>';
-    thead += '<th style="width:80px" title="Dicke in mm">D (mm)</th>';
+    if (showDicke) thead += '<th style="width:80px" title="Dicke in mm">D (mm)</th>';
+    thead += '<th style="width:90px" title="Fläche = (L × B / 1.000.000) × Menge">m²</th>';
     thead += '<th style="width:40px"></th></tr>';
 
+    let summeM2 = 0;
     const rows = items.map((it, i) => {
+        const fl = flaecheM2(it);
+        summeM2 += fl;
         let tr = `<tr data-bom-idx="${i}">`;
         tr += `<td class="bom-pos">${escapeHtml(it.pos || String(i + 1))}</td>`;
         tr += `<td><input type="text" class="bom-cell" data-f="bezeichnung" value="${escapeHtml(it.bezeichnung || '')}"></td>`;
@@ -8702,18 +8763,28 @@ function renderBomTable() {
         tr += `<td><input type="text" class="bom-cell" data-f="einheit" value="${escapeHtml(it.einheit || 'Stk')}"></td>`;
         tr += `<td><input type="number" class="bom-cell num" data-f="laenge_mm" value="${it.laenge_mm || ''}" min="0" step="1"></td>`;
         tr += `<td><input type="number" class="bom-cell num" data-f="breite_mm" value="${it.breite_mm || ''}" min="0" step="1"></td>`;
-        tr += `<td><input type="number" class="bom-cell num" data-f="dicke_mm"  value="${it.dicke_mm  || ''}" min="0" step="1"></td>`;
+        if (showDicke) tr += `<td><input type="number" class="bom-cell num" data-f="dicke_mm" value="${it.dicke_mm || ''}" min="0" step="1"></td>`;
+        tr += `<td class="bom-flaeche">${fl > 0 ? fl.toFixed(3).replace('.', ',') : '–'}</td>`;
         tr += `<td><button type="button" class="btn-icon btn-icon-danger" data-bom-remove="${i}" title="Zeile entfernen">&#128465;</button></td>`;
         tr += '</tr>';
         return tr;
     }).join('');
 
-    wrap.innerHTML = '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody></table>';
+    // Σ-Zeile mit Gesamtfläche
+    const colSpanLeft = 2 + (showMaterial ? 1 : 0) + 4 + (showDicke ? 1 : 0); // Pos+Bez+(Mat)+Menge+Einh+L+B+(D)
+    const tfoot = `<tfoot><tr class="bom-sum-row">
+        <td colspan="${colSpanLeft}" style="text-align:right;font-weight:600;">Σ Fläche</td>
+        <td class="bom-flaeche bom-flaeche-sum">${summeM2 > 0 ? summeM2.toFixed(3).replace('.', ',') + ' m²' : '–'}</td>
+        <td></td>
+    </tr></tfoot>`;
+
+    wrap.innerHTML = '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody>' + tfoot + '</table>';
     const body = document.getElementById('bom-table-body');
 
     if (badge) {
         const src = (window.currentBomMeta && window.currentBomMeta.profileName) ? ' · ' + window.currentBomMeta.profileName : '';
-        badge.textContent = items.length + ' Pos.' + src;
+        const flPart = summeM2 > 0 ? ' · ' + summeM2.toFixed(2).replace('.', ',') + ' m²' : '';
+        badge.textContent = items.length + ' Pos.' + src + flPart;
     }
 
     // Inline-Edit wiring
