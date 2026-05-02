@@ -613,6 +613,31 @@
     // ============================================================
     // 6. MATERIAL-MATCHER (gegen eigeneMaterialien-Store)
     // ============================================================
+    // Tokenize Material-/Artikelcodes für Token-basierten Match
+    // "HPL_VP-1_G_BTXX_W980_18_ST9" → ["hpl","vp","1","g","btxx","w980","18","st9"]
+    function tokenizeForMatch(s) {
+        if (!s) return [];
+        return String(s).toLowerCase()
+            .split(/[\s\-_/\\.,;()[\]*]+/)
+            .filter(t => t.length > 0);
+    }
+
+    // Score: wie viele relevante Tokens des kürzeren Codes finden sich im längeren?
+    function tokenOverlapScore(a, b) {
+        const ta = tokenizeForMatch(a);
+        const tb = tokenizeForMatch(b);
+        if (!ta.length || !tb.length) return 0;
+        const setB = new Set(tb);
+        let hit = 0;
+        for (const t of ta) {
+            if (t.length < 2) continue; // Single-Chars nicht zählen
+            if (setB.has(t)) hit++;
+        }
+        // Anteil der Treffer am kürzeren Set (ohne Single-Chars)
+        const significant = ta.filter(t => t.length >= 2).length;
+        return significant > 0 ? hit / significant : 0;
+    }
+
     function matchMaterials(items, eigeneMaterialien) {
         if (!eigeneMaterialien || !eigeneMaterialien.length) return items;
         return items.map(item => {
@@ -630,12 +655,25 @@
             if (matName) {
                 const byName = eigeneMaterialien.find(m => (m.name || '').toLowerCase() === matName);
                 if (byName) { enriched._matchedMaterial = byName; enriched._matchType = 'name_exact'; return enriched; }
-                // 3. Fuzzy: Name enthält oder ist enthalten
-                const byFuzzy = eigeneMaterialien.find(m => {
+                // 3. Substring: Stamm-Name in BOM-Material (oder umgekehrt) — nur wenn der kürzere Name min. 4 Zeichen hat
+                const bySubstring = eigeneMaterialien.find(m => {
                     const mn = (m.name || '').toLowerCase();
-                    return mn && (mn.includes(matName) || matName.includes(mn));
+                    if (!mn || mn.length < 4) return false;
+                    return mn.includes(matName) || (matName.length >= 4 && matName.includes(mn));
                 });
-                if (byFuzzy) { enriched._matchedMaterial = byFuzzy; enriched._matchType = 'name_fuzzy'; return enriched; }
+                if (bySubstring) { enriched._matchedMaterial = bySubstring; enriched._matchType = 'name_fuzzy'; return enriched; }
+                // 4. Token-Overlap: gemeinsame Tokens (z.B. "HPL_VP-1_..._18_ST9" matcht Stamm-Eintrag mit "HPL VP-1 18")
+                let bestScore = 0, bestMat = null;
+                eigeneMaterialien.forEach(m => {
+                    const score = tokenOverlapScore(matName, m.name || '');
+                    if (score > bestScore) { bestScore = score; bestMat = m; }
+                });
+                if (bestMat && bestScore >= 0.5) {
+                    enriched._matchedMaterial = bestMat;
+                    enriched._matchType = 'token';
+                    enriched._matchScore = bestScore;
+                    return enriched;
+                }
             }
             return enriched;
         });

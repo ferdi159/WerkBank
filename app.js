@@ -511,8 +511,28 @@ async function deleteEigeneOberflaeche(id) {
 }
 
 // CRUD: Eigene Materialien
-async function saveEigenesMaterial(id, kategorie, name, basisPreis) {
-    const item = { id: id || generateId(), kategorie, name, basisPreis: parseFloat(basisPreis) };
+// extras (optional): { staerke_mm, format_l_mm, format_b_mm, preisProPlatte }
+async function saveEigenesMaterial(id, kategorie, name, basisPreis, extras) {
+    const item = {
+        id: id || generateId(),
+        kategorie,
+        name,
+        basisPreis: basisPreis === '' || basisPreis === null || basisPreis === undefined ? null : parseFloat(basisPreis)
+    };
+    if (extras && typeof extras === 'object') {
+        ['staerke_mm', 'format_l_mm', 'format_b_mm', 'preisProPlatte'].forEach(k => {
+            const v = extras[k];
+            if (v === '' || v === null || v === undefined) return;
+            const n = parseFloat(v);
+            if (!isNaN(n) && n > 0) item[k] = n;
+        });
+        // Wenn Plattenpreis + Format gesetzt, basisPreis automatisch ableiten (€/m²)
+        if (item.preisProPlatte && item.format_l_mm && item.format_b_mm && (item.basisPreis === null || isNaN(item.basisPreis))) {
+            const flM2 = (item.format_l_mm * item.format_b_mm) / 1000000;
+            if (flM2 > 0) item.basisPreis = item.preisProPlatte / flM2;
+        }
+    }
+    if (item.basisPreis === null || isNaN(item.basisPreis)) item.basisPreis = 0;
     await dbPut('eigeneMaterialien', item);
     await loadEigeneArtikel();
     refreshAllDropdowns('material');
@@ -611,13 +631,21 @@ function renderEigeneOberflaechen() {
 function renderEigeneMaterialien() {
     const container = document.getElementById('eigene-materialien-content');
     if (!container) return;
-    let html = '<table class="article-table"><thead><tr><th>Kategorie</th><th>Name</th><th>Basispreis</th><th></th></tr></thead><tbody>';
+    let html = '<table class="article-table"><thead><tr><th>Kategorie</th><th>Name</th><th>St\u00e4rke</th><th>Format (mm)</th><th>\u20ac/Platte</th><th>\u20ac/m\u00b2</th><th></th></tr></thead><tbody>';
     eigeneArtikelMaterialien.forEach(m => {
         const katName = materialDaten[m.kategorie] ? materialDaten[m.kategorie].name : m.kategorie;
+        const staerkeTxt = m.staerke_mm ? m.staerke_mm + ' mm' : '<span class="bom-muted">\u2013</span>';
+        const formatTxt = (m.format_l_mm && m.format_b_mm) ? (m.format_l_mm + ' \u00d7 ' + m.format_b_mm) : '<span class="bom-muted">\u2013</span>';
+        const platteTxt = m.preisProPlatte ? m.preisProPlatte.toFixed(2).replace('.', ',') + ' \u20ac' : '<span class="bom-muted">\u2013</span>';
+        const m2Val = (m.basisPreis !== null && m.basisPreis !== undefined) ? m.basisPreis : 0;
+        const m2Txt = (m2Val > 0) ? m2Val.toFixed(2).replace('.', ',') + ' \u20ac/m\u00b2' : '<span class="bom-muted">\u2013</span>';
         html += `<tr>
             <td>${escapeHtml(katName)}</td>
             <td>${escapeHtml(m.name)}</td>
-            <td>${m.basisPreis.toFixed(2).replace('.', ',')} \u20ac/m\u00b2</td>
+            <td>${staerkeTxt}</td>
+            <td>${formatTxt}</td>
+            <td>${platteTxt}</td>
+            <td>${m2Txt}</td>
             <td>
                 <button class="btn-icon btn-icon-danger" onclick="deleteEigenesMaterial('${m.id}').then(() => { renderEigeneMaterialien(); showToast('Material gelöscht'); })" title="Löschen">&#128465;</button>
             </td>
@@ -627,8 +655,19 @@ function renderEigeneMaterialien() {
     html += `<div class="article-add-form">
         <div class="form-grid-3" style="margin-bottom:0">
             <div class="form-group"><label>Kategorie</label><select id="ea-material-kategorie">${buildKategorieOptions()}</select></div>
-            <div class="form-group"><label>Name</label><input type="text" id="ea-material-name" placeholder="z.B. Spezialplatte"></div>
-            <div class="form-group"><label>Basispreis (\u20ac/m\u00b2)</label><input type="number" id="ea-material-preis" min="0" step="0.01" placeholder="25.00"></div>
+            <div class="form-group"><label>Name</label><input type="text" id="ea-material-name" placeholder="z.B. HPL_VP-1_..._18_ST9"></div>
+            <div class="form-group"><label>Stärke (mm)</label><input type="number" id="ea-material-staerke" min="0" step="1" placeholder="18"></div>
+        </div>
+        <div class="form-grid-3" style="margin-bottom:8px">
+            <div class="form-group"><label>Plattenformat L (mm)</label><input type="number" id="ea-material-format-l" min="0" step="1" placeholder="2800"></div>
+            <div class="form-group"><label>Plattenformat B (mm)</label><input type="number" id="ea-material-format-b" min="0" step="1" placeholder="2100"></div>
+            <div class="form-group"><label>Preis pro Platte (€)</label><input type="number" id="ea-material-preis-platte" min="0" step="0.01" placeholder="89.00"></div>
+        </div>
+        <div class="form-grid-3" style="margin-bottom:0">
+            <div class="form-group" style="grid-column:1 / -1">
+                <label>Basispreis (€/m²) <span class="bom-muted">— optional, wird aus Plattenpreis ÷ Format auto-berechnet</span></label>
+                <input type="number" id="ea-material-preis" min="0" step="0.01" placeholder="leer lassen für Auto-Berechnung">
+            </div>
         </div>
         <div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="handleAddEigenesMaterial()">Hinzufügen</button></div>
     </div>`;
@@ -658,9 +697,22 @@ async function handleAddEigeneOberflaeche() {
 async function handleAddEigenesMaterial() {
     const kategorie = document.getElementById('ea-material-kategorie').value;
     const name = document.getElementById('ea-material-name').value.trim();
+    const staerke = document.getElementById('ea-material-staerke').value;
+    const formatL = document.getElementById('ea-material-format-l').value;
+    const formatB = document.getElementById('ea-material-format-b').value;
+    const preisPlatte = document.getElementById('ea-material-preis-platte').value;
     const preis = document.getElementById('ea-material-preis').value;
-    if (!kategorie || !name || !preis) { showToast('Bitte alle Felder ausfüllen', 'warning'); return; }
-    await saveEigenesMaterial(null, kategorie, name, preis);
+    if (!kategorie || !name) { showToast('Bitte mindestens Kategorie und Name angeben', 'warning'); return; }
+    // Mindestens eine Preisangabe (€/Platte oder €/m²) muss vorhanden sein – sonst ist Material für Angebote unbrauchbar
+    if (!preis && !preisPlatte) { showToast('Bitte Preis pro Platte ODER €/m² angeben', 'warning'); return; }
+    // Wenn Plattenpreis ohne Format → Hinweis (Auto-Berechnung €/m² braucht das Format)
+    if (preisPlatte && (!formatL || !formatB)) { showToast('Plattenformat L und B angeben, damit €/m² automatisch berechnet wird', 'warning'); return; }
+    await saveEigenesMaterial(null, kategorie, name, preis, {
+        staerke_mm:    staerke,
+        format_l_mm:   formatL,
+        format_b_mm:   formatB,
+        preisProPlatte: preisPlatte
+    });
     renderEigeneMaterialien();
     showToast('Eigenes Material gespeichert');
 }
@@ -8599,6 +8651,7 @@ function renderPreviewStep() {
     const groupHtml = renderBomMaterialGroups(items, summeM2);
 
     scroll.innerHTML = groupHtml + '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody>' + tfoot + '</table>';
+    if (typeof bindBomMaterialGroupsActions === 'function') bindBomMaterialGroupsActions();
     // Re-Bind "Alle-auswählen"-Checkbox (weil thead neu gebaut wurde)
     const all = document.getElementById('bom-preview-all');
     if (all) all.addEventListener('change', (e) => {
@@ -8785,6 +8838,7 @@ function renderBomTable() {
     const groupHtml = renderBomMaterialGroups(items, summeM2);
 
     wrap.innerHTML = groupHtml + '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody>' + tfoot + '</table>';
+    if (typeof bindBomMaterialGroupsActions === 'function') bindBomMaterialGroupsActions();
     const body = document.getElementById('bom-table-body');
 
     if (badge) {
@@ -8815,10 +8869,14 @@ function renderBomTable() {
     });
 }
 
-// Materialgruppierung: zeigt pro (Material × Stärke) eine Zeile mit Σ m² und Anzahl Pos.
+// Materialgruppierung: pro (Material × Stärke) eine Zeile mit Σ m², Plattenanzahl und €.
 // Das ist die zentrale Übersicht für die Angebotskalkulation.
+// Verschnitt-Faktor: User-Eingabe in window.bomVerschnittPct (Default 10 %).
 function renderBomMaterialGroups(items, summeGesamtM2) {
     if (!items || !items.length) return '';
+    const verschnittPct = (typeof window.bomVerschnittPct === 'number') ? window.bomVerschnittPct : 10;
+    const verschnittFaktor = 1 + verschnittPct / 100;
+
     const map = new Map();
     items.forEach(it => {
         const mat = (it.material || '').trim() || '— ohne Material —';
@@ -8832,32 +8890,164 @@ function renderBomMaterialGroups(items, summeGesamtM2) {
         g.count += 1;
         g.summeM2 += fl;
     });
+
+    // Materialstamm-Match pro Gruppe (Fuzzy via tokenOverlap)
+    const stamm = (typeof eigeneArtikelMaterialien !== 'undefined' && eigeneArtikelMaterialien) ? eigeneArtikelMaterialien : [];
+    map.forEach(g => {
+        if (g.material === '— ohne Material —' || !stamm.length) return;
+        // 1. Exakter Treffer auf Name
+        let best = stamm.find(m => (m.name || '').toLowerCase() === g.material.toLowerCase());
+        // 2. Substring (>= 4 Zeichen)
+        if (!best) best = stamm.find(m => {
+            const mn = (m.name || '').toLowerCase();
+            const gm = g.material.toLowerCase();
+            if (!mn || mn.length < 4) return false;
+            return mn.includes(gm) || (gm.length >= 4 && gm.includes(mn));
+        });
+        // 3. Token-Overlap (>= 0.5 Score)
+        if (!best && window.StuecklistenImport) {
+            let bestScore = 0;
+            stamm.forEach(m => {
+                const ta = (g.material.toLowerCase()).split(/[\s\-_/\\.,;()[\]*]+/).filter(t => t.length >= 2);
+                const tb = (m.name || '').toLowerCase().split(/[\s\-_/\\.,;()[\]*]+/).filter(t => t.length >= 2);
+                if (!ta.length || !tb.length) return;
+                const setB = new Set(tb);
+                let hit = 0;
+                ta.forEach(t => { if (setB.has(t)) hit++; });
+                const score = hit / ta.length;
+                if (score > bestScore) { bestScore = score; best = m; }
+            });
+            if (bestScore < 0.5) best = null;
+        }
+        if (best) {
+            g.matched = best;
+            // Wenn Stamm Stärke hat aber Gruppe nicht (oder umgekehrt), übernimm Stamm-Stärke
+            if (best.staerke_mm && !g.dicke) g.dicke = best.staerke_mm;
+            // Plattenanzahl-Berechnung (mit Verschnitt)
+            if (best.format_l_mm && best.format_b_mm) {
+                const platteM2 = (best.format_l_mm * best.format_b_mm) / 1000000;
+                if (platteM2 > 0) {
+                    g.platteM2 = platteM2;
+                    g.plattenBedarfRoh = (g.summeM2 * verschnittFaktor) / platteM2;
+                    g.plattenBedarfGanz = Math.ceil(g.plattenBedarfRoh);
+                }
+            }
+            // Preis: bevorzugt €/Platte × Anzahl, sonst basisPreis × m²
+            if (best.preisProPlatte && g.plattenBedarfGanz) {
+                g.preisGesamt = g.plattenBedarfGanz * best.preisProPlatte;
+            } else if (best.basisPreis && best.basisPreis > 0) {
+                g.preisGesamt = g.summeM2 * verschnittFaktor * best.basisPreis;
+            }
+        }
+    });
+
     // Sortieren: nach Stärke absteigend (Hauptplatten oben), dann nach Σ m² absteigend
     const groups = Array.from(map.values()).sort((a, b) => {
         if (b.dicke !== a.dicke) return b.dicke - a.dicke;
         return b.summeM2 - a.summeM2;
     });
-    if (groups.length <= 1) return ''; // bei nur einer Gruppe lohnt sich die Übersicht nicht
+    if (groups.length === 0) return '';
+
+    // Σ €
+    let summePreis = 0;
+    groups.forEach(g => { if (g.preisGesamt) summePreis += g.preisGesamt; });
+    const hatPreise = summePreis > 0;
+
     let html = '<div class="bom-groups">';
-    html += '<div class="bom-groups-title">Material-Übersicht <span class="bom-muted">(für Angebotskalkulation)</span></div>';
+    html += '<div class="bom-groups-title-row">';
+    html += '  <div class="bom-groups-title">Material-Übersicht <span class="bom-muted">(für Angebotskalkulation)</span></div>';
+    html += `  <div class="bom-verschnitt-wrap"><label>Verschnitt</label><input type="number" id="bom-verschnitt-input" min="0" max="100" step="1" value="${verschnittPct}" /><span class="bom-muted">%</span></div>`;
+    html += '</div>';
+
+    // Tabellenkopf
     html += '<div class="bom-groups-list">';
+    html += `<div class="bom-group-row bom-group-head">
+        <span>Material</span>
+        <span class="bom-group-dicke">Stärke</span>
+        <span class="bom-group-count">m² netto</span>
+        <span class="bom-group-platten">Platten</span>
+        <span class="bom-group-sum">${hatPreise ? 'Σ €' : 'Σ m²'}</span>
+    </div>`;
+
     groups.forEach(g => {
-        const dickeTxt = g.dicke ? `<span class="bom-group-dicke">${g.dicke} mm</span>` : '<span class="bom-muted bom-group-dicke">– mm</span>';
-        html += `<div class="bom-group-row">
-            <span class="bom-group-mat">${escapeHtml(g.material)}</span>
-            ${dickeTxt}
-            <span class="bom-group-count">${g.count} Pos.</span>
-            <span class="bom-group-sum">${g.summeM2.toFixed(3).replace('.', ',')} m²</span>
+        const dickeTxt = g.dicke ? `${g.dicke} mm` : '<span class="bom-muted">–</span>';
+        let plattenTxt;
+        if (g.matched && g.plattenBedarfGanz) {
+            const fmt = g.matched.format_l_mm + '×' + g.matched.format_b_mm;
+            const rohRound = g.plattenBedarfRoh.toFixed(2).replace('.', ',');
+            plattenTxt = `<strong>${g.plattenBedarfGanz}</strong> <span class="bom-muted">(${rohRound} · ${fmt})</span>`;
+        } else if (g.matched) {
+            plattenTxt = '<span class="bom-muted">kein Format</span>';
+        } else {
+            plattenTxt = '<span class="bom-muted bom-no-match" title="Material nicht im Stamm – per Klick anlegen" data-bom-add-mat="' + escapeHtml(g.material) + '|' + (g.dicke || '') + '">+ in Stamm anlegen</span>';
+        }
+        let sumTxt;
+        if (g.preisGesamt) {
+            sumTxt = `<strong>${g.preisGesamt.toFixed(2).replace('.', ',')} €</strong>`;
+        } else {
+            sumTxt = `<span class="bom-muted">${g.summeM2.toFixed(3).replace('.', ',')} m²</span>`;
+        }
+        html += `<div class="bom-group-row${g.matched ? ' bom-group-matched' : ''}">
+            <span class="bom-group-mat" title="${escapeHtml(g.material)}">${escapeHtml(g.material)}</span>
+            <span class="bom-group-dicke">${dickeTxt}</span>
+            <span class="bom-group-count">${g.summeM2.toFixed(2).replace('.', ',')} <span class="bom-muted">(${g.count} Pos.)</span></span>
+            <span class="bom-group-platten">${plattenTxt}</span>
+            <span class="bom-group-sum">${sumTxt}</span>
         </div>`;
     });
     html += `<div class="bom-group-row bom-group-total">
         <span class="bom-group-mat" style="font-weight:700;">Σ Gesamt</span>
-        <span></span>
-        <span class="bom-group-count">${items.length} Pos.</span>
-        <span class="bom-group-sum">${summeGesamtM2.toFixed(3).replace('.', ',')} m²</span>
+        <span class="bom-group-dicke"></span>
+        <span class="bom-group-count">${summeGesamtM2.toFixed(2).replace('.', ',')} m² <span class="bom-muted">(${items.length} Pos.)</span></span>
+        <span class="bom-group-platten"></span>
+        <span class="bom-group-sum">${hatPreise ? '<strong>' + summePreis.toFixed(2).replace('.', ',') + ' €</strong>' : summeGesamtM2.toFixed(3).replace('.', ',') + ' m²'}</span>
     </div>`;
     html += '</div></div>';
     return html;
+}
+
+// Verschnitt-Input und "Material in Stamm anlegen"-Buttons live binden
+function bindBomMaterialGroupsActions() {
+    const inp = document.getElementById('bom-verschnitt-input');
+    if (inp && !inp.dataset.bound) {
+        inp.dataset.bound = '1';
+        inp.addEventListener('change', (e) => {
+            const v = parseFloat(e.target.value);
+            window.bomVerschnittPct = (isNaN(v) || v < 0) ? 0 : Math.min(v, 100);
+            renderBomTable(); // Re-Render mit neuem Faktor
+        });
+    }
+    document.querySelectorAll('[data-bom-add-mat]').forEach(el => {
+        if (el.dataset.bound) return;
+        el.dataset.bound = '1';
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            const raw = e.currentTarget.dataset.bomAddMat || '';
+            const [name, dicke] = raw.split('|');
+            openAddMaterialFromBom(name, dicke);
+        });
+    });
+}
+
+// Vorausgefülltes Material-Anlege-Dialog (springt in Einstellungen → Eigene Artikel → Materialien)
+function openAddMaterialFromBom(name, dicke) {
+    if (!confirm('Material "' + name + '" zum Materialstamm hinzufügen?\n\nDu wirst zu den Einstellungen weitergeleitet, wo du Format und Preis ergänzen kannst.')) return;
+    // Speichere Pre-Fill in sessionStorage für die Einstellungen-Seite
+    sessionStorage.setItem('bomAddMatPrefill', JSON.stringify({ name, dicke: dicke || '' }));
+    // Navigate zu Einstellungen
+    window.location.hash = '#/einstellungen';
+    // Tab-Switch + Pre-Fill nach kurzer Wartezeit (DOM muss sich aufgebaut haben)
+    setTimeout(() => {
+        if (typeof switchArticleTab === 'function') switchArticleTab('materialien');
+        const prefill = JSON.parse(sessionStorage.getItem('bomAddMatPrefill') || '{}');
+        if (prefill.name) {
+            const nameInp = document.getElementById('ea-material-name');
+            if (nameInp) { nameInp.value = prefill.name; nameInp.scrollIntoView({ behavior: 'smooth', block: 'center' }); nameInp.focus(); }
+            const stInp = document.getElementById('ea-material-staerke');
+            if (stInp && prefill.dicke) stInp.value = prefill.dicke;
+            sessionStorage.removeItem('bomAddMatPrefill');
+        }
+    }, 200);
 }
 
 document.addEventListener('DOMContentLoaded', init);

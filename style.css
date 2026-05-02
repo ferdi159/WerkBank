@@ -5464,24 +5464,38 @@ select.pos-kategorie optgroup option {
     margin-bottom: 8px;
 }
 .bom-groups-list { display: flex; flex-direction: column; gap: 4px; }
+/* 5-Spalten-Layout: Material | Stärke | m² netto (Pos) | Platten | Σ € */
 .bom-group-row {
     display: grid;
-    grid-template-columns: 1fr 80px 80px 110px;
+    grid-template-columns: 1fr 70px 130px 180px 110px;
     gap: 12px;
     align-items: center;
-    padding: 4px 6px;
+    padding: 5px 6px;
     font-size: 0.88rem;
     font-variant-numeric: tabular-nums;
 }
-.bom-group-row:hover:not(.bom-group-total) { background: rgba(0,0,0,0.03); border-radius: 4px; }
-.bom-group-mat { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bom-group-dicke {
-    text-align: right;
-    font-weight: 600;
-    color: var(--accent);
+.bom-group-row:hover:not(.bom-group-total):not(.bom-group-head) { background: rgba(0,0,0,0.03); border-radius: 4px; }
+.bom-group-head {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px !important;
+    margin-bottom: 2px;
 }
-.bom-group-count { text-align: right; color: var(--text-light); font-size: 0.82rem; }
+.bom-group-head span { font-weight: 600; }
+.bom-group-mat { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bom-group-dicke { text-align: right; font-weight: 600; color: var(--accent); }
+.bom-group-count { text-align: right; color: var(--text); font-size: 0.85rem; }
+.bom-group-platten { text-align: right; font-size: 0.85rem; }
+.bom-group-platten strong { color: var(--accent); font-size: 1rem; }
 .bom-group-sum { text-align: right; font-weight: 600; color: var(--primary); }
+.bom-group-sum strong { color: var(--accent); font-size: 1rem; }
+.bom-group-matched { background: rgba(34,197,94,0.04); border-left: 3px solid #22c55e; padding-left: 8px !important; border-radius: 4px; }
+.bom-no-match { color: #ef4444 !important; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.bom-no-match:hover { color: #dc2626 !important; }
+
 .bom-group-total {
     border-top: 1px solid var(--border);
     margin-top: 4px;
@@ -5489,9 +5503,36 @@ select.pos-kategorie optgroup option {
     font-weight: 700;
 }
 .bom-group-total .bom-group-sum { font-size: 1rem; color: var(--accent); }
-@media (max-width: 600px) {
-    .bom-group-row { grid-template-columns: 1fr 60px 80px; }
-    .bom-group-count { display: none; }
+
+/* Verschnitt-Eingabe in der Header-Leiste */
+.bom-groups-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.bom-verschnitt-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+.bom-verschnitt-wrap label { font-weight: 600; color: var(--text); margin: 0; }
+.bom-verschnitt-wrap input {
+    width: 50px;
+    padding: 3px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    background: white;
+}
+
+@media (max-width: 720px) {
+    .bom-group-row { grid-template-columns: 1fr 50px 100px 100px; }
+    .bom-group-platten { display: none; }
 }
 
 /* Modal: Dropzone */
