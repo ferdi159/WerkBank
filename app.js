@@ -8595,7 +8595,10 @@ function renderPreviewStep() {
         <td class="bom-flaeche bom-flaeche-sum">${summeM2 > 0 ? summeM2.toFixed(3).replace('.', ',') + ' m²' : '–'}</td>
     </tr></tfoot>`;
 
-    scroll.innerHTML = '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody>' + tfoot + '</table>';
+    // Material-Gruppierung (auch hier in der Vorschau)
+    const groupHtml = renderBomMaterialGroups(items, summeM2);
+
+    scroll.innerHTML = groupHtml + '<table class="bom-table bom-preview-table"><thead>' + thead + '</thead><tbody id="bom-preview-body">' + rows + '</tbody>' + tfoot + '</table>';
     // Re-Bind "Alle-auswählen"-Checkbox (weil thead neu gebaut wurde)
     const all = document.getElementById('bom-preview-all');
     if (all) all.addEventListener('change', (e) => {
@@ -8778,7 +8781,10 @@ function renderBomTable() {
         <td></td>
     </tr></tfoot>`;
 
-    wrap.innerHTML = '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody>' + tfoot + '</table>';
+    // Material-Gruppierung: pro (Material × Stärke) summieren – das ist der Teil fürs Angebot
+    const groupHtml = renderBomMaterialGroups(items, summeM2);
+
+    wrap.innerHTML = groupHtml + '<table class="bom-table"><thead>' + thead + '</thead><tbody id="bom-table-body">' + rows + '</tbody>' + tfoot + '</table>';
     const body = document.getElementById('bom-table-body');
 
     if (badge) {
@@ -8807,6 +8813,51 @@ function renderBomTable() {
             renderBomTable();
         });
     });
+}
+
+// Materialgruppierung: zeigt pro (Material × Stärke) eine Zeile mit Σ m² und Anzahl Pos.
+// Das ist die zentrale Übersicht für die Angebotskalkulation.
+function renderBomMaterialGroups(items, summeGesamtM2) {
+    if (!items || !items.length) return '';
+    const map = new Map();
+    items.forEach(it => {
+        const mat = (it.material || '').trim() || '— ohne Material —';
+        const dicke = it.dicke_mm || 0;
+        const key = mat + '|||' + dicke;
+        const fl = ((parseFloat(it.laenge_mm) || 0) * (parseFloat(it.breite_mm) || 0) * (parseFloat(it.menge) || 0)) / 1000000;
+        if (!map.has(key)) {
+            map.set(key, { material: mat, dicke, count: 0, summeM2: 0 });
+        }
+        const g = map.get(key);
+        g.count += 1;
+        g.summeM2 += fl;
+    });
+    // Sortieren: nach Stärke absteigend (Hauptplatten oben), dann nach Σ m² absteigend
+    const groups = Array.from(map.values()).sort((a, b) => {
+        if (b.dicke !== a.dicke) return b.dicke - a.dicke;
+        return b.summeM2 - a.summeM2;
+    });
+    if (groups.length <= 1) return ''; // bei nur einer Gruppe lohnt sich die Übersicht nicht
+    let html = '<div class="bom-groups">';
+    html += '<div class="bom-groups-title">Material-Übersicht <span class="bom-muted">(für Angebotskalkulation)</span></div>';
+    html += '<div class="bom-groups-list">';
+    groups.forEach(g => {
+        const dickeTxt = g.dicke ? `<span class="bom-group-dicke">${g.dicke} mm</span>` : '<span class="bom-muted bom-group-dicke">– mm</span>';
+        html += `<div class="bom-group-row">
+            <span class="bom-group-mat">${escapeHtml(g.material)}</span>
+            ${dickeTxt}
+            <span class="bom-group-count">${g.count} Pos.</span>
+            <span class="bom-group-sum">${g.summeM2.toFixed(3).replace('.', ',')} m²</span>
+        </div>`;
+    });
+    html += `<div class="bom-group-row bom-group-total">
+        <span class="bom-group-mat" style="font-weight:700;">Σ Gesamt</span>
+        <span></span>
+        <span class="bom-group-count">${items.length} Pos.</span>
+        <span class="bom-group-sum">${summeGesamtM2.toFixed(3).replace('.', ',')} m²</span>
+    </div>`;
+    html += '</div></div>';
+    return html;
 }
 
 document.addEventListener('DOMContentLoaded', init);

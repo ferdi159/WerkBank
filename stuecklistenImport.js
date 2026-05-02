@@ -188,6 +188,38 @@
             defaults: { einheit: 'Stk', unit_length: 'mm' }
         },
         {
+            id: 'vectorworks',
+            name: 'Vectorworks (Zuschnitt-Stückliste)',
+            description: 'Stücklisten-Export aus Vectorworks (Zuschnitt/Schnittprofit)',
+            fingerprint: {
+                // Sehr eindeutige Vectorworks-Marker
+                requireAny: [
+                    ['kanten code schnittprofit'],
+                    ['bauteil name', 'positions-nr', 'anzahl', 'artikelnummer'],
+                    ['bauteil name', 'fertigmaß'],
+                    ['belag 1', 'beschichtung 1']
+                ],
+                requireAll: [],
+                score: 95
+            },
+            mapping: {
+                pos:         ['positions-nr', 'pos.', 'pos', 'nr.', 'nr'],
+                bezeichnung: ['bauteil name', 'bauteil', 'bezeichnung'],
+                // Material steckt in der Artikelnummer-Spalte (z.B. "FU-MAE-18", "HPL_VP-1_G_BTXX_W980_18_ST9")
+                material:    ['artikelnummer'],
+                menge:       ['anzahl'],
+                einheit:     ['einheit'],
+                laenge_mm:   ['länge (fertigmaß)', 'länge fertigmaß', 'fertigmaß länge', 'länge'],
+                breite_mm:   ['breite (fertigmaß)', 'breite fertigmaß', 'fertigmaß breite', 'breite'],
+                // Keine eigene Dicke-Spalte – wird aus Material-Code geparst (siehe normalizeRow)
+                dicke_mm:    [],
+                artikelNr:   [],
+                kommentar:   ['maserrichtung'],
+                preis:       []
+            },
+            defaults: { einheit: 'Stk', unit_length: 'mm', parseDickeFromMaterial: true }
+        },
+        {
             id: 'cadwork',
             name: 'cadwork',
             description: 'Stücklisten-Export aus cadwork (Holzbau/Tischlerei)',
@@ -519,7 +551,41 @@
                 out[f] = Math.round(toMillimeters(n, unit));
             }
         });
+        // Stärke aus Material-Code extrahieren, wenn noch nicht gesetzt UND Profil das wünscht
+        // (z.B. Vectorworks: Stärke steckt in "FU-MAE-18" oder "HPL_..._18_ST9", keine eigene Spalte)
+        if (out.dicke_mm === null && defaults.parseDickeFromMaterial) {
+            const code = out.material || out.artikelNr || '';
+            const dicke = parseDickeFromMaterial(code);
+            if (dicke !== null) out.dicke_mm = dicke;
+        }
         return out;
+    }
+
+    // Standard-Plattenstärken (mm) – höchste Priorität bei mehrdeutigen Codes
+    const PLATTENSTAERKEN_STANDARD = [4, 5, 6, 8, 10, 12, 13, 15, 16, 18, 19, 20, 22, 25, 28, 30, 35, 38, 40, 45, 50];
+
+    // Aus Material-/Artikelcodes wie "FU-MAE-18" oder "HPL_VP-1_G_BTXX_W980_18_ST9"
+    // die Plattenstärke in mm extrahieren.
+    function parseDickeFromMaterial(s) {
+        if (!s) return null;
+        // Tokenize an typischen Trennern (NICHT *, , damit "Ka-MAE-24*0,6" keine Zahl liefert)
+        const tokens = String(s).split(/[\s\-_/\\.;()[\]]+/);
+        const candidates = [];
+        for (const t of tokens) {
+            // Reine 1-2-stellige Zahl, optional mit mm/cm-Suffix
+            const m = t.match(/^(\d{1,2})(mm|cm)?$/i);
+            if (m) candidates.push(parseInt(m[1], 10));
+        }
+        if (!candidates.length) return null;
+        // 1. Standard-Plattenstärken bevorzugen (von rechts: spezifischer Teil des Codes)
+        for (let i = candidates.length - 1; i >= 0; i--) {
+            if (PLATTENSTAERKEN_STANDARD.includes(candidates[i])) return candidates[i];
+        }
+        // 2. Fallback: irgendeine plausible Stärke (4–80 mm), letzter Treffer
+        for (let i = candidates.length - 1; i >= 0; i--) {
+            if (candidates[i] >= 4 && candidates[i] <= 80) return candidates[i];
+        }
+        return null;
     }
 
     // ============================================================
@@ -590,6 +656,7 @@
         // Utilities
         normalizeHeader,
         parseNumber,
-        toMillimeters
+        toMillimeters,
+        parseDickeFromMaterial
     };
 })();
