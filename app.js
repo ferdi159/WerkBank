@@ -6378,13 +6378,17 @@ function initEvents() {
     document.getElementById('btn-settings-save').addEventListener('click', saveSettings);
 
     // Data export/import
-    document.getElementById('btn-export-data').addEventListener('click', exportAllData);
-    document.getElementById('import-file-input').addEventListener('change', function () {
+    const btnExp = document.getElementById('btn-export-data');
+    btnExp.addEventListener('click', () => withButtonLock(btnExp, exportAllData, { busyText: 'Exportiere…' }));
+    document.getElementById('import-file-input').addEventListener('change', async function () {
         const file = this.files[0];
         if (!file) return;
-        if (confirm('Achtung: Alle bestehenden Daten werden durch die Sicherung ersetzt. Fortfahren?')) {
-            importAllData(file);
-        }
+        const ok = await showConfirm(
+            'Sicherung wiederherstellen',
+            'Achtung: Alle bestehenden Daten werden durch die Sicherung ersetzt. Fortfahren?',
+            { okLabel: 'Wiederherstellen', okClass: 'btn btn-danger btn-sm' }
+        );
+        if (ok) importAllData(file);
         this.value = '';
     });
 
@@ -6566,8 +6570,10 @@ function initEvents() {
         bindMitarbeiterSelects(container);
     });
     document.getElementById('btn-berechnen').addEventListener('click', () => berechneAlles());
-    document.getElementById('btn-projekt-speichern').addEventListener('click', () => saveProjekt());
-    document.getElementById('btn-pdf').addEventListener('click', () => generatePDF());
+    const btnSave = document.getElementById('btn-projekt-speichern');
+    btnSave.addEventListener('click', () => withButtonLock(btnSave, () => saveProjekt(), { busyText: 'Speichere…' }));
+    const btnPdf = document.getElementById('btn-pdf');
+    btnPdf.addEventListener('click', () => withButtonLock(btnPdf, () => generatePDF(), { busyText: 'Erstelle PDF…' }));
 
     // Rechnung (Angebot-Tab legacy buttons)
     document.getElementById('btn-rechnung-erstellen').addEventListener('click', () => erstelleRechnung());
@@ -7525,7 +7531,8 @@ async function renderZeiterfassung() {
     // Delete handlers
     tbody.querySelectorAll('.btn-delete-zeit').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('Zeiteintrag wirklich löschen?')) return;
+            const ok = await showConfirm('Zeiteintrag löschen', 'Diesen Zeiteintrag wirklich löschen?', { okLabel: 'Löschen' });
+            if (!ok) return;
             await dbDelete('zeiten', btn.dataset.id);
             showToast('Zeiteintrag gelöscht');
             await renderZeiterfassung();
@@ -7568,7 +7575,12 @@ function renderMitarbeiterTable(mitarbeiter, zeiten) {
     });
     tbody.querySelectorAll('.btn-delete-mitarbeiter').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('Mitarbeiter wirklich löschen? Bereits erfasste Zeiteinträge bleiben erhalten (zeigen dann "Gelöscht").')) return;
+            const ok = await showConfirm(
+                'Mitarbeiter löschen',
+                'Wirklich löschen? Bereits erfasste Zeiteinträge bleiben erhalten (zeigen dann „Gelöscht").',
+                { okLabel: 'Löschen' }
+            );
+            if (!ok) return;
             await dbDelete('mitarbeiter', btn.dataset.id);
             showToast('Mitarbeiter gelöscht');
             await renderZeiterfassung();
@@ -8018,7 +8030,8 @@ async function openTagesansicht(dateStr) {
     // Event listeners für eigene Termine
     listEl.querySelectorAll('.btn-delete-termin').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('Termin wirklich löschen?')) return;
+            const ok = await showConfirm('Termin löschen', 'Diesen Termin wirklich löschen?', { okLabel: 'Löschen' });
+            if (!ok) return;
             await dbDelete('termine', btn.dataset.id);
             showToast('Termin gelöscht');
             await renderKalender();
@@ -8295,6 +8308,7 @@ async function init() {
         applyTheme(savedTheme);
         initEvents();
         initThemeSwitcher();
+        initKeyboardShortcuts();
         try { initGlobalSearch(); } catch(e) { console.error('GlobalSearch init error:', e); }
         try { initZeiterfassung(); } catch(e) { console.error('Zeiterfassung init error:', e); }
         try { initKalender(); } catch(e) { console.error('Kalender init error:', e); }
@@ -8429,7 +8443,8 @@ function initBomImport() {
     document.getElementById('bom-mapping-back').addEventListener('click', () => showBomStep('file'));
     document.getElementById('bom-mapping-next').addEventListener('click', onBomMappingNext);
     document.getElementById('bom-preview-back').addEventListener('click', () => { renderMappingStep(); showBomStep('mapping'); });
-    document.getElementById('bom-preview-commit').addEventListener('click', commitBomImport);
+    const btnBomCommit = document.getElementById('bom-preview-commit');
+    btnBomCommit.addEventListener('click', () => withButtonLock(btnBomCommit, () => commitBomImport(), { busyText: 'Übernehme…' }));
     const remapLink = document.getElementById('bom-preview-remap');
     if (remapLink) remapLink.addEventListener('click', (e) => { e.preventDefault(); renderMappingStep(); showBomStep('mapping'); });
     document.getElementById('bom-save-profile').addEventListener('click', saveCurrentBomProfile);
@@ -9030,8 +9045,13 @@ function bindBomMaterialGroupsActions() {
 }
 
 // Vorausgefülltes Material-Anlege-Dialog (springt in Einstellungen → Eigene Artikel → Materialien)
-function openAddMaterialFromBom(name, dicke) {
-    if (!confirm('Material "' + name + '" zum Materialstamm hinzufügen?\n\nDu wirst zu den Einstellungen weitergeleitet, wo du Format und Preis ergänzen kannst.')) return;
+async function openAddMaterialFromBom(name, dicke) {
+    const ok = await showConfirm(
+        'Material zum Stamm hinzufügen',
+        'Material „' + name + '" zum Materialstamm hinzufügen? Du wirst zu den Einstellungen weitergeleitet, wo du Format und Preis ergänzen kannst.',
+        { okLabel: 'Anlegen', okClass: 'btn btn-primary btn-sm' }
+    );
+    if (!ok) return;
     // Speichere Pre-Fill in sessionStorage für die Einstellungen-Seite
     sessionStorage.setItem('bomAddMatPrefill', JSON.stringify({ name, dicke: dicke || '' }));
     // Navigate zu Einstellungen
@@ -9048,6 +9068,111 @@ function openAddMaterialFromBom(name, dicke) {
             sessionStorage.removeItem('bomAddMatPrefill');
         }
     }, 200);
+}
+
+// ==================== DOPPELKLICK-SCHUTZ ====================
+// Wickelt einen Button so ein, dass er während einer asynchronen Aktion
+// disabled ist und einen "Bitte warten..."-Text zeigt. Verhindert doppelte
+// Submits (z.B. doppelte Rechnungen bei zweimaligem Klick).
+//
+// Verwendung:
+//   const btn = document.getElementById('btn-x');
+//   btn.addEventListener('click', () => withButtonLock(btn, async () => {
+//       await meineLangeOperation();
+//   }));
+function withButtonLock(btn, asyncFn, options) {
+    if (!btn || btn.disabled) return; // bereits gesperrt → ignoriere Doppelklick
+    const opts = options || {};
+    const busyText = opts.busyText || '… wird ausgeführt';
+    const originalDisabled = btn.disabled;
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.dataset.locked = '1';
+    if (opts.changeText !== false) btn.textContent = busyText;
+    return Promise.resolve().then(() => asyncFn()).catch((err) => {
+        console.error('withButtonLock: Fehler in Action:', err);
+        if (typeof showToast === 'function') showToast('Fehler: ' + (err && err.message ? err.message : err), 'error');
+    }).finally(() => {
+        btn.disabled = originalDisabled;
+        delete btn.dataset.locked;
+        if (opts.changeText !== false) btn.innerHTML = originalContent;
+    });
+}
+
+// ==================== TASTATUR-SHORTCUTS ====================
+// Esc        → schließt das oberste sichtbare Modal
+// Strg+S     → speichert das aktuell geöffnete Projekt (im Editor)
+// Strg+N     → neues Projekt (von überall aus)
+// /          → fokussiert die globale Suche im Header
+//
+// Shortcuts werden ignoriert, wenn der Fokus in einem text-/textarea-/contenteditable-
+// Element liegt UND es kein Modifier-Strg-Kommando ist.
+function initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        const ae = document.activeElement;
+        const inField = ae && (
+            ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT' ||
+            ae.isContentEditable
+        );
+        const ctrl = e.ctrlKey || e.metaKey;
+
+        // Esc: Modal schließen / Suche entfokussieren
+        if (e.key === 'Escape') {
+            // 1. Globale Suche fokussiert? → blur + Ergebnisse schließen
+            const search = document.getElementById('global-search-input');
+            if (search && document.activeElement === search) {
+                search.blur();
+                const results = document.getElementById('global-search-results');
+                if (results) results.classList.add('hidden');
+                e.preventDefault();
+                return;
+            }
+            // 2. Sichtbares Modal schließen (oberstes)
+            const openModals = Array.from(document.querySelectorAll('.modal:not(.hidden)'));
+            if (openModals.length) {
+                const top = openModals[openModals.length - 1];
+                const closeBtn = top.querySelector('.modal-close, [id$="-close"], [id$="-cancel"]');
+                if (closeBtn) {
+                    closeBtn.click();
+                } else {
+                    top.classList.add('hidden');
+                }
+                e.preventDefault();
+                return;
+            }
+            return;
+        }
+
+        // Strg+S: Projekt speichern (nur wenn Editor sichtbar)
+        if (ctrl && (e.key === 's' || e.key === 'S')) {
+            const editor = document.getElementById('view-projekt-editor');
+            const saveBtn = document.getElementById('btn-projekt-speichern');
+            if (editor && !editor.classList.contains('hidden') && saveBtn) {
+                e.preventDefault();
+                saveBtn.click();
+            }
+            return;
+        }
+
+        // Strg+N: Neues Projekt (überall)
+        if (ctrl && (e.key === 'n' || e.key === 'N')) {
+            // Browser-Default (neues Fenster) bewusst überschreiben
+            e.preventDefault();
+            window.location.hash = '#/projekt/neu';
+            return;
+        }
+
+        // /  : Globale Suche fokussieren (nur wenn nicht in Eingabe)
+        if (e.key === '/' && !inField && !ctrl && !e.altKey) {
+            const search = document.getElementById('global-search-input');
+            if (search) {
+                e.preventDefault();
+                search.focus();
+                search.select();
+            }
+            return;
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', init);
