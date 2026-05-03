@@ -4310,6 +4310,15 @@ function berechneAlles() {
         fertigungsEinzelkosten += result.arbeitGesamt;
     });
 
+    // STÜCKLISTE: importierte BOM-Items mit Stamm-Match liefern auch Materialkosten
+    let bomMaterialKosten = 0;
+    let bomCalc = null;
+    if (window.currentBomItems && window.currentBomItems.length && typeof calcBomMaterialKosten === 'function') {
+        bomCalc = calcBomMaterialKosten(window.currentBomItems);
+        bomMaterialKosten = bomCalc.summePreis || 0;
+        materialEinzelkosten += bomMaterialKosten;
+    }
+
     // KLR-Kalkulation
     const mgkProzent = parseFloat(document.getElementById('z-mgk').value) / 100 || 0;
     const fgkProzent = parseFloat(document.getElementById('z-fgk').value) / 100 || 0;
@@ -4372,6 +4381,8 @@ function berechneAlles() {
         schraenke: schraenkeErgebnisse,
         positionen: positionenErgebnisse,
         arbeitDetails,
+        bomMaterialKosten,
+        bomCalc,
         materialEinzelkosten,
         fertigungsEinzelkosten,
         mgkBetrag,
@@ -4567,6 +4578,7 @@ function renderErgebnis(calc) {
     bodyHtml += `<div class="result-section klr-section">
         <h4>Kalkulation (KLR)</h4>
         <div class="result-row"><span>Materialeinzelkosten</span><span>${formatCurrency(calc.materialEinzelkosten)}</span></div>
+        ${calc.bomMaterialKosten > 0 ? `<div class="result-row sub" style="color:var(--accent)"><span>↳ davon aus Stückliste (${calc.bomCalc && calc.bomCalc.groups ? calc.bomCalc.groups.filter(g => g.matched).length : 0} Material-Gruppen)</span><span>${formatCurrency(calc.bomMaterialKosten)}</span></div>` : ''}
         <div class="result-row light"><span>+ Materialgemeinkosten (${calc.mgkProzent}%)</span><span>${formatCurrency(calc.mgkBetrag)}</span></div>
         <div class="result-row bold"><span>= Materialkosten</span><span>${formatCurrency(calc.materialKosten)}</span></div>
 
@@ -9044,46 +9056,49 @@ function renderBomTable() {
     });
 }
 
-// Materialgruppierung: pro (Material × Stärke) eine Zeile mit Σ m², Plattenanzahl und €.
-// Das ist die zentrale Übersicht für die Angebotskalkulation.
-// Verschnitt-Faktor: User-Eingabe in window.bomVerschnittPct (Default 10 %).
-function renderBomMaterialGroups(items, summeGesamtM2) {
-    if (!items || !items.length) return '';
-    const verschnittPct = (typeof window.bomVerschnittPct === 'number') ? window.bomVerschnittPct : 10;
+// Berechnet die Material-Gruppen aus BOM-Items + Stamm-Match.
+// Gibt zurück: Array von { material, dicke, count, summeM2, matched, plattenBedarfRoh, plattenBedarfGanz, preisGesamt, platteM2 }
+// + summeGesamtM2 + summePreis
+// Wird sowohl von renderBomMaterialGroups (UI) als auch von berechneAlles (KLR) genutzt.
+function calcBomMaterialKosten(items, verschnittPctOverride) {
+    const result = { groups: [], summeM2: 0, summePreis: 0, hatPreise: false };
+    if (!items || !items.length) return result;
+    const verschnittPct = (typeof verschnittPctOverride === 'number') ? verschnittPctOverride
+        : ((typeof window.bomVerschnittPct === 'number') ? window.bomVerschnittPct : 10);
     const verschnittFaktor = 1 + verschnittPct / 100;
 
+    // 1. Gruppieren nach Material × Stärke
     const map = new Map();
     items.forEach(it => {
         const mat = (it.material || '').trim() || '— ohne Material —';
         const dicke = it.dicke_mm || 0;
         const key = mat + '|||' + dicke;
         const fl = ((parseFloat(it.laenge_mm) || 0) * (parseFloat(it.breite_mm) || 0) * (parseFloat(it.menge) || 0)) / 1000000;
-        if (!map.has(key)) {
-            map.set(key, { material: mat, dicke, count: 0, summeM2: 0 });
-        }
+        if (!map.has(key)) map.set(key, { material: mat, dicke, count: 0, summeM2: 0 });
         const g = map.get(key);
         g.count += 1;
         g.summeM2 += fl;
+        result.summeM2 += fl;
     });
 
-    // Materialstamm-Match pro Gruppe (Fuzzy via tokenOverlap)
+    // 2. Stamm-Match pro Gruppe (Fuzzy via Token-Overlap)
     const stamm = (typeof eigeneArtikelMaterialien !== 'undefined' && eigeneArtikelMaterialien) ? eigeneArtikelMaterialien : [];
     map.forEach(g => {
         if (g.material === '— ohne Material —' || !stamm.length) return;
-        // 1. Exakter Treffer auf Name
-        let best = stamm.find(m => (m.name || '').toLowerCase() === g.material.toLowerCase());
-        // 2. Substring (>= 4 Zeichen)
+        const gm = g.material.toLowerCase();
+        // 1) Exakter Treffer auf Name
+        let best = stamm.find(m => (m.name || '').toLowerCase() === gm);
+        // 2) Substring (>= 4 Zeichen)
         if (!best) best = stamm.find(m => {
             const mn = (m.name || '').toLowerCase();
-            const gm = g.material.toLowerCase();
             if (!mn || mn.length < 4) return false;
             return mn.includes(gm) || (gm.length >= 4 && gm.includes(mn));
         });
-        // 3. Token-Overlap (>= 0.5 Score)
-        if (!best && window.StuecklistenImport) {
+        // 3) Token-Overlap (>= 0.5 Score)
+        if (!best) {
             let bestScore = 0;
             stamm.forEach(m => {
-                const ta = (g.material.toLowerCase()).split(/[\s\-_/\\.,;()[\]*]+/).filter(t => t.length >= 2);
+                const ta = gm.split(/[\s\-_/\\.,;()[\]*]+/).filter(t => t.length >= 2);
                 const tb = (m.name || '').toLowerCase().split(/[\s\-_/\\.,;()[\]*]+/).filter(t => t.length >= 2);
                 if (!ta.length || !tb.length) return;
                 const setB = new Set(tb);
@@ -9096,9 +9111,8 @@ function renderBomMaterialGroups(items, summeGesamtM2) {
         }
         if (best) {
             g.matched = best;
-            // Wenn Stamm Stärke hat aber Gruppe nicht (oder umgekehrt), übernimm Stamm-Stärke
             if (best.staerke_mm && !g.dicke) g.dicke = best.staerke_mm;
-            // Plattenanzahl-Berechnung (mit Verschnitt)
+            // Plattenbedarf
             if (best.format_l_mm && best.format_b_mm) {
                 const platteM2 = (best.format_l_mm * best.format_b_mm) / 1000000;
                 if (platteM2 > 0) {
@@ -9107,26 +9121,36 @@ function renderBomMaterialGroups(items, summeGesamtM2) {
                     g.plattenBedarfGanz = Math.ceil(g.plattenBedarfRoh);
                 }
             }
-            // Preis: bevorzugt €/Platte × Anzahl, sonst basisPreis × m²
+            // Preis: bevorzugt €/Platte × ganze Plattenanzahl, sonst €/m² × Σ m² × Verschnitt
             if (best.preisProPlatte && g.plattenBedarfGanz) {
                 g.preisGesamt = g.plattenBedarfGanz * best.preisProPlatte;
             } else if (best.basisPreis && best.basisPreis > 0) {
                 g.preisGesamt = g.summeM2 * verschnittFaktor * best.basisPreis;
             }
+            if (g.preisGesamt) result.summePreis += g.preisGesamt;
         }
     });
 
-    // Sortieren: nach Stärke absteigend (Hauptplatten oben), dann nach Σ m² absteigend
-    const groups = Array.from(map.values()).sort((a, b) => {
+    // Sortieren: nach Stärke absteigend, dann nach Σ m² absteigend
+    result.groups = Array.from(map.values()).sort((a, b) => {
         if (b.dicke !== a.dicke) return b.dicke - a.dicke;
         return b.summeM2 - a.summeM2;
     });
-    if (groups.length === 0) return '';
+    result.hatPreise = result.summePreis > 0;
+    return result;
+}
 
-    // Σ €
-    let summePreis = 0;
-    groups.forEach(g => { if (g.preisGesamt) summePreis += g.preisGesamt; });
-    const hatPreise = summePreis > 0;
+// Materialgruppierung: pro (Material × Stärke) eine Zeile mit Σ m², Plattenanzahl und €.
+// Das ist die zentrale Übersicht für die Angebotskalkulation.
+// Nutzt calcBomMaterialKosten() als Single-Source-of-Truth für die Berechnung.
+function renderBomMaterialGroups(items, summeGesamtM2) {
+    if (!items || !items.length) return '';
+    const verschnittPct = (typeof window.bomVerschnittPct === 'number') ? window.bomVerschnittPct : 10;
+    const calc = calcBomMaterialKosten(items);
+    const groups = calc.groups;
+    if (groups.length === 0) return '';
+    const summePreis = calc.summePreis;
+    const hatPreise = calc.hatPreise;
 
     let html = '<div class="bom-groups">';
     html += '<div class="bom-groups-title-row">';
