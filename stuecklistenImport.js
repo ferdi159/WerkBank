@@ -115,13 +115,13 @@
             defaults: { einheit: 'Stk', unit_length: 'mm' }
         },
         {
-            id: 'vectorworks',
-            name: 'Vectorworks / ElementsCAD',
-            description: 'Berichte/Reports aus Vectorworks, v.a. ElementsCAD für Tischlerei',
+            id: 'vectorworks_elementscad',
+            name: 'Vectorworks / ElementsCAD (Bericht)',
+            description: 'Generische Berichte/Reports aus Vectorworks, v.a. ElementsCAD für Tischlerei',
             fingerprint: {
                 requireAny: [['bezeichnung', 'material'], ['bauteil', 'stück'], ['bauteil', 'stueck'], ['bezeichnung', 'stärke']],
                 requireAll: [],
-                score: 95
+                score: 80
             },
             mapping: {
                 pos:         ['pos', 'pos.', 'position', 'nr', 'nr.', 'teil-nr'],

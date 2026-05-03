@@ -9173,7 +9173,13 @@ function snapshotProjektEditor() {
     const editor = document.getElementById('view-projekt-editor');
     if (!editor || editor.classList.contains('hidden')) return null;
     const fields = {};
-    editor.querySelectorAll('input[id^="proj-"], select[id^="proj-"], textarea[id^="proj-"], input[id^="kunde-"], input[id^="rabatt-"], input[id^="skonto-"], input[id^="klr-"]').forEach(el => {
+    // Erfasst alle statischen Editor-Felder: Projekt-Stammdaten (proj-*),
+    // Angebots-Zuschläge (z-*), Rechnungs-Zuschläge (rz-*)
+    editor.querySelectorAll(
+        'input[id^="proj-"], select[id^="proj-"], textarea[id^="proj-"], ' +
+        'input[id^="z-"], select[id^="z-"], ' +
+        'input[id^="rz-"], select[id^="rz-"]'
+    ).forEach(el => {
         if (el.type === 'checkbox') fields[el.id] = el.checked;
         else fields[el.id] = el.value;
     });
