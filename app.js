@@ -2179,10 +2179,11 @@ async function initProjektEditor(projekt) {
         document.getElementById('proj-montage-personal-container').innerHTML = '';
         addMontageWorkerRow('proj-montage-personal-container');
 
-        // Schraenke
+        // Schraenke: KEINEN Default-Schrank mehr erzeugen — User wählt erst per
+        // Workflow-Choice (Stückliste vs. manuell). Bei "manuell" wird btn-schrank-add
+        // automatisch geklickt und der erste Schrank kommt rein.
         document.getElementById('schraenke-container').innerHTML = '';
         schrankCounter = 0;
-        addSchrankBlock();
 
         // Global Arbeitszeit
         const globalArbeitContainer = document.getElementById('global-arbeitszeit-container');
@@ -2215,6 +2216,79 @@ async function initProjektEditor(projekt) {
         try { await offerDraftRestore(projekt); } catch (e) { console.warn('Draft-Restore-Fehler:', e); }
     }
     if (typeof startAutoSave === 'function') startAutoSave();
+
+    // Workflow-Wahl entscheiden: zeige Wahl-Karten ODER passende Sektion(en)
+    if (typeof updateWorkflowChoice === 'function') updateWorkflowChoice(projekt);
+}
+
+// Workflow-Choice steuert die Anzeige von:
+//   #workflow-choice (Wahl-Karten)
+//   #card-bom       (Stückliste-Sektion)
+//   #card-moebel    (Möbel manuell-Sektion)
+//
+// Logik:
+// - Neues Projekt + leer → Wahl-Karten anzeigen, beide Sektionen verstecken
+// - Stückliste vorhanden → BOM-Sektion offen, Möbel-Karte versteckt (außer es gibt auch Schränke)
+// - Schränke vorhanden → Möbel-Sektion offen, BOM-Karte versteckt (außer es gibt auch Stückliste)
+// - Beides vorhanden → beide Sektionen sichtbar, Wahl-Karten weg
+function updateWorkflowChoice(projekt) {
+    const choice = document.getElementById('workflow-choice');
+    const cardBom = document.getElementById('card-bom');
+    const cardMoebel = document.getElementById('card-moebel');
+    if (!choice || !cardBom || !cardMoebel) return;
+
+    // Stückliste: aus aktuellem In-Memory-State (auch nach gerade importiert)
+    const hatStueckliste = !!(window.currentBomItems && window.currentBomItems.length);
+    // Schränke: bevorzugt aus DOM (zeigt User-Stand), Fallback auf Projekt-Objekt
+    const schraenkeContainer = document.getElementById('schraenke-container');
+    const domSchraenke = schraenkeContainer ? schraenkeContainer.querySelectorAll('.schrank-block').length : 0;
+    const projektSchraenke = (projekt && projekt.schraenke && projekt.schraenke.length) || 0;
+    const hatSchraenke = domSchraenke > 0 || projektSchraenke > 0;
+
+    if (!hatStueckliste && !hatSchraenke) {
+        choice.classList.remove('hidden');
+        cardBom.classList.add('hidden');
+        cardMoebel.classList.add('hidden');
+    } else {
+        choice.classList.add('hidden');
+        cardBom.classList.toggle('hidden', !hatStueckliste);
+        cardMoebel.classList.toggle('hidden', !hatSchraenke);
+    }
+}
+
+// Click-Handler für die Wahl-Karten — wird einmalig in initEvents gebunden
+function initWorkflowChoice() {
+    const choice = document.getElementById('workflow-choice');
+    if (!choice) return;
+    choice.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-workflow]');
+        if (!btn) return;
+        const wf = btn.dataset.workflow;
+        if (wf === 'bom') {
+            // Stückliste: Wahl-Karten weg, BOM-Sektion zeigen, Import-Modal direkt öffnen
+            choice.classList.add('hidden');
+            const card = document.getElementById('card-bom');
+            if (card) card.classList.remove('hidden');
+            // Body offen lassen
+            const body = document.getElementById('section-bom');
+            if (body) body.classList.remove('hidden');
+            // Modal öffnen
+            const importBtn = document.getElementById('btn-bom-import');
+            if (importBtn) importBtn.click();
+        } else if (wf === 'manual') {
+            // Manuell: Wahl-Karten weg, Möbel-Sektion zeigen + offen + erstes Möbel anlegen
+            choice.classList.add('hidden');
+            const card = document.getElementById('card-moebel');
+            if (card) card.classList.remove('hidden');
+            const body = document.getElementById('section-moebel');
+            if (body) body.classList.remove('hidden');
+            // Erstes Möbel direkt anlegen
+            const addBtn = document.getElementById('btn-schrank-add');
+            if (addBtn) addBtn.click();
+            // Hin scrollen
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 }
 
 function setSlider(sliderId, displayId, value) {
@@ -8382,6 +8456,7 @@ async function init() {
         initEvents();
         initThemeSwitcher();
         initKeyboardShortcuts();
+        initWorkflowChoice();
         try { initGlobalSearch(); } catch(e) { console.error('GlobalSearch init error:', e); }
         try { initZeiterfassung(); } catch(e) { console.error('Zeiterfassung init error:', e); }
         try { initKalender(); } catch(e) { console.error('Kalender init error:', e); }
@@ -8501,7 +8576,7 @@ function initBomImport() {
     btnOpen.addEventListener('click', openBomImportModal);
     btnClear.addEventListener('click', () => {
         showConfirm('Stückliste entfernen', 'Alle importierten Positionen wirklich entfernen?', { okLabel: 'Entfernen', okClass: 'btn btn-danger btn-sm' })
-            .then((ok) => { if (ok) { window.currentBomItems = []; window.currentBomMeta = null; renderBomTable(); showToast('Stückliste entfernt'); } });
+            .then((ok) => { if (ok) { window.currentBomItems = []; window.currentBomMeta = null; renderBomTable(); if (typeof updateWorkflowChoice === 'function') updateWorkflowChoice(); showToast('Stückliste entfernt'); } });
     });
     btnClose.addEventListener('click', closeBomImportModal);
     modal.querySelector('.modal-backdrop').addEventListener('click', closeBomImportModal);
@@ -8821,6 +8896,7 @@ function commitBomImport() {
         rowsImported: items.length
     };
     renderBomTable();
+    if (typeof updateWorkflowChoice === 'function') updateWorkflowChoice();
     closeBomImportModal();
     showToast(items.length + ' Positionen importiert – nicht vergessen: Projekt speichern!');
 }
