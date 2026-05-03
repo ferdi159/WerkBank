@@ -2481,6 +2481,76 @@ input::placeholder {
     background: var(--orange);
 }
 
+/* App-Boot-Overlay (wird beim init ausgeblendet) */
+#app-boot-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--cream, #fafaf6);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+#app-boot-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.boot-spinner-wrap { text-align: center; }
+.boot-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(30, 58, 138, 0.18);
+    border-top-color: var(--accent, #1e3a8a);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: boot-spin 0.8s linear infinite;
+}
+.boot-spinner-text {
+    color: var(--text-light, #64748b);
+    font-size: 0.92rem;
+    font-weight: 500;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+
+/* Generische Skeleton-Klasse für ladende Listen/Karten */
+.skeleton {
+    background: linear-gradient(90deg, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+    border-radius: 4px;
+    color: transparent !important;
+    user-select: none;
+    pointer-events: none;
+}
+@keyframes skeleton-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Undo-/Action-Button im Toast */
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.toast-text { flex: 1 1 auto; }
+.toast-action {
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+}
+.toast-action:hover { background: rgba(255, 255, 255, 0.35); }
+
 /* ==================== LEGAL PAGES ==================== */
 .legal-card {
     padding: 40px;

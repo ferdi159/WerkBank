@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WerkBank | Professionelle Tischlerei-Software</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M8 14 L18 50 L26 50 L32 30 L38 50 L46 50 L56 14 L48 14 L42 40 L36 20 L28 20 L22 40 L16 14 Z' fill='%23fff'/%3E%3Cg stroke='%231e3a8a' stroke-width='0.9' stroke-linecap='round'%3E%3Cline x1='9.5' y1='19.4' x2='12.0' y2='18.7'/%3E%3Cline x1='10.7' y1='23.72' x2='12.06' y2='23.34'/%3E%3Cline x1='12.0' y1='28.4' x2='14.5' y2='27.7'/%3E%3Cline x1='13.2' y1='32.72' x2='14.56' y2='32.34'/%3E%3Cline x1='14.5' y1='37.4' x2='17.0' y2='36.7'/%3E%3Cline x1='47.5' y1='44.6' x2='45.0' y2='43.9'/%3E%3Cline x1='48.7' y1='40.28' x2='47.34' y2='39.9'/%3E%3Cline x1='50.0' y1='35.6' x2='47.5' y2='34.9'/%3E%3Cline x1='51.2' y1='31.28' x2='49.84' y2='30.9'/%3E%3Cline x1='52.5' y1='26.6' x2='50.0' y2='25.9'/%3E%3C/g%3E%3C/svg%3E">
-    <link rel="stylesheet" href="style.css?v=20260502c">
+    <link rel="stylesheet" href="style.css?v=20260503a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -86,6 +86,14 @@
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
+
+    <!-- App-Boot-Spinner (wird in init() ausgeblendet) -->
+    <div id="app-boot-overlay" aria-live="polite" aria-busy="true">
+        <div class="boot-spinner-wrap">
+            <div class="boot-spinner"></div>
+            <div class="boot-spinner-text">WerkBank wird geladen…</div>
+        </div>
+    </div>
 
     <!-- ==================== DASHBOARD ==================== -->
     <section id="view-dashboard" class="view">
@@ -2336,7 +2344,7 @@
             document.head.appendChild(sp);
         }
     </script>
-    <script src="stuecklistenImport.js?v=20260502c"></script>
-    <script src="app.js?v=20260502c"></script>
+    <script src="stuecklistenImport.js?v=20260503a"></script>
+    <script src="app.js?v=20260503a"></script>
 </body>
 </html>

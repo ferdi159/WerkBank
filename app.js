@@ -540,9 +540,19 @@ async function saveEigenesMaterial(id, kategorie, name, basisPreis, extras) {
 }
 
 async function deleteEigenesMaterial(id) {
+    const backup = await dbGet('eigeneMaterialien', id);
     await dbDelete('eigeneMaterialien', id);
     await loadEigeneArtikel();
     refreshAllDropdowns('material');
+    if (backup) {
+        showUndoToast('Material gelöscht', async () => {
+            await dbPut('eigeneMaterialien', backup);
+            await loadEigeneArtikel();
+            refreshAllDropdowns('material');
+            renderEigeneMaterialien();
+            showToast('Wiederhergestellt');
+        });
+    }
 }
 
 // Refresh all open position dropdowns
@@ -647,7 +657,7 @@ function renderEigeneMaterialien() {
             <td>${platteTxt}</td>
             <td>${m2Txt}</td>
             <td>
-                <button class="btn-icon btn-icon-danger" onclick="deleteEigenesMaterial('${m.id}').then(() => { renderEigeneMaterialien(); showToast('Material gelöscht'); })" title="Löschen">&#128465;</button>
+                <button class="btn-icon btn-icon-danger" onclick="deleteEigenesMaterial('${m.id}').then(() => renderEigeneMaterialien())" title="Löschen">&#128465;</button>
             </td>
         </tr>`;
     });
@@ -885,18 +895,54 @@ function escapeHtml(str) {
 }
 
 // ==================== TOAST ====================
-function showToast(message, type) {
+// showToast(message, type)
+// showToast(message, type, { actionLabel, onAction, timeout })
+function showToast(message, type, options) {
     type = type || 'success';
+    const opts = options || {};
+    const timeout = opts.timeout || (opts.onAction ? 8000 : 3000);
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast toast-' + type;
-    toast.textContent = message;
-    container.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('toast-show'));
-    setTimeout(() => {
+
+    const text = document.createElement('span');
+    text.className = 'toast-text';
+    text.textContent = message;
+    toast.appendChild(text);
+
+    let dismissed = false;
+    const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
         toast.classList.remove('toast-show');
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    };
+
+    if (opts.actionLabel && opts.onAction) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'toast-action';
+        btn.textContent = opts.actionLabel;
+        btn.addEventListener('click', () => {
+            try { opts.onAction(); } catch (err) { console.error('Toast-Action-Fehler:', err); }
+            dismiss();
+        });
+        toast.appendChild(btn);
+    }
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('toast-show'));
+    setTimeout(dismiss, timeout);
+}
+
+// Undo-Toast: zeigt "X gelöscht — Rückgängig" für 8s.
+// Wenn auf Rückgängig geklickt, wird restoreFn() aufgerufen.
+function showUndoToast(message, restoreFn) {
+    showToast(message, 'success', {
+        actionLabel: 'Rückgängig',
+        onAction: restoreFn,
+        timeout: 8000
+    });
 }
 
 // ==================== CONFIRM MODAL ====================
@@ -928,6 +974,12 @@ function hideAllViews() {
 }
 
 function showView(name) {
+    // Auto-Save anhalten, wenn wir den Editor verlassen
+    if (name !== 'projekt-editor' && typeof stopAutoSave === 'function') {
+        // Vor dem Verlassen noch ein letzter Snapshot, falls Editor offen war
+        try { if (typeof persistAutoSave === 'function') persistAutoSave(); } catch (_) {}
+        stopAutoSave();
+    }
     hideAllViews();
     const el = document.getElementById('view-' + name);
     if (el) el.classList.remove('hidden');
@@ -2001,6 +2053,8 @@ async function initProjektEditor(projekt) {
     document.getElementById('projekt-editor-title').textContent = projekt ? 'Projekt bearbeiten' : 'Neues Projekt';
     document.getElementById('ergebnis').classList.add('hidden');
     document.getElementById('ergebnis-actions').classList.add('hidden');
+    // Auto-Save für vorigen Editor stoppen (falls noch offen)
+    if (typeof stopAutoSave === 'function') stopAutoSave();
 
     // Reset to Angebot tab
     switchEditorTab('angebot');
@@ -2155,6 +2209,12 @@ async function initProjektEditor(projekt) {
     } else {
         updateRechnungUI(null);
     }
+
+    // Auto-Save: prüfe Draft, biete Wiederherstellung an, starte Intervall
+    if (typeof offerDraftRestore === 'function') {
+        try { await offerDraftRestore(projekt); } catch (e) { console.warn('Draft-Restore-Fehler:', e); }
+    }
+    if (typeof startAutoSave === 'function') startAutoSave();
 }
 
 function setSlider(sliderId, displayId, value) {
@@ -4577,6 +4637,8 @@ async function saveProjekt() {
 
     await dbPut('projekte', projekt);
     currentProjektId = projekt.id;
+    // Auto-Save-Draft löschen (Projekt ist sauber gespeichert)
+    if (typeof clearAutoSave === 'function') clearAutoSave();
 
     // Also save rechnungsDaten if the Rechnung tab has data
     if (projekt.rechnungsDaten && document.querySelectorAll('#rechnung-positionen-container .position-block').length > 0) {
@@ -6289,6 +6351,11 @@ function initEvents() {
     // Router
     window.addEventListener('hashchange', router);
 
+    // Beim Tab-Schließen / Reload: letzten Auto-Save-Snapshot sichern
+    window.addEventListener('beforeunload', () => {
+        try { if (typeof persistAutoSave === 'function') persistAutoSave(); } catch (_) {}
+    });
+
     // Mobile nav toggle
     document.getElementById('nav-toggle').addEventListener('click', () => {
         document.getElementById('nav-links').classList.toggle('nav-open');
@@ -7533,8 +7600,11 @@ async function renderZeiterfassung() {
         btn.addEventListener('click', async () => {
             const ok = await showConfirm('Zeiteintrag löschen', 'Diesen Zeiteintrag wirklich löschen?', { okLabel: 'Löschen' });
             if (!ok) return;
+            const backup = await dbGet('zeiten', btn.dataset.id);
             await dbDelete('zeiten', btn.dataset.id);
-            showToast('Zeiteintrag gelöscht');
+            showUndoToast('Zeiteintrag gelöscht', async () => {
+                if (backup) { await dbPut('zeiten', backup); renderZeiterfassung(); showToast('Wiederhergestellt'); }
+            });
             await renderZeiterfassung();
         });
     });
@@ -8032,8 +8102,11 @@ async function openTagesansicht(dateStr) {
         btn.addEventListener('click', async () => {
             const ok = await showConfirm('Termin löschen', 'Diesen Termin wirklich löschen?', { okLabel: 'Löschen' });
             if (!ok) return;
+            const backup = await dbGet('termine', btn.dataset.id);
             await dbDelete('termine', btn.dataset.id);
-            showToast('Termin gelöscht');
+            showUndoToast('Termin gelöscht', async () => {
+                if (backup) { await dbPut('termine', backup); renderKommendeTermine(); showToast('Wiederhergestellt'); }
+            });
             await renderKalender();
             openTagesansicht(dateStr);
         });
@@ -8373,6 +8446,12 @@ async function init() {
     }
     // Globale Suche immer initialisieren, auch wenn oben etwas fehlschlägt
     try { initGlobalSearch(); } catch (e) { console.error('GlobalSearch fehlgeschlagen:', e); }
+    // App-Boot-Spinner ausblenden (auch im Fehlerfall)
+    const bootOverlay = document.getElementById('app-boot-overlay');
+    if (bootOverlay) {
+        bootOverlay.classList.add('hidden');
+        setTimeout(() => bootOverlay.remove(), 400);
+    }
 }
 
 // jsPDF Fallback: Wenn CDN-Script nicht geladen, erneut versuchen
@@ -8878,8 +8957,13 @@ function renderBomTable() {
     body.querySelectorAll('[data-bom-remove]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const idx = parseInt(e.currentTarget.dataset.bomRemove, 10);
-            window.currentBomItems.splice(idx, 1);
+            const removed = window.currentBomItems.splice(idx, 1)[0];
             renderBomTable();
+            showUndoToast('Position entfernt: ' + (removed.bezeichnung || 'Pos.' + (idx+1)), () => {
+                window.currentBomItems.splice(idx, 0, removed);
+                renderBomTable();
+                showToast('Wiederhergestellt');
+            });
         });
     });
 }
@@ -9068,6 +9152,101 @@ async function openAddMaterialFromBom(name, dicke) {
             sessionStorage.removeItem('bomAddMatPrefill');
         }
     }, 200);
+}
+
+// ==================== AUTO-SAVE PROJEKT-EDITOR ====================
+// Speichert alle 30 s einen leichten Snapshot der Editor-Eingaben in localStorage.
+// Beim nächsten Editor-Open: prüft Draft, fragt nach Wiederherstellung.
+//
+// Bewusst minimaler Scope: nur statische Felder (proj-*) + BOM-Items.
+// Dynamische Schränke werden NICHT erfasst (zu komplex), aber alles Andere
+// rettet bei Crash/versehentl. Schließen die mühsame Eingabe.
+let autoSaveIntervalId = null;
+const AUTOSAVE_INTERVAL_MS = 30000;
+const AUTOSAVE_KEY_PREFIX = 'werkbank_draft_';
+
+function getAutoSaveKey() {
+    return AUTOSAVE_KEY_PREFIX + (currentProjektId || 'new');
+}
+
+function snapshotProjektEditor() {
+    const editor = document.getElementById('view-projekt-editor');
+    if (!editor || editor.classList.contains('hidden')) return null;
+    const fields = {};
+    editor.querySelectorAll('input[id^="proj-"], select[id^="proj-"], textarea[id^="proj-"], input[id^="kunde-"], input[id^="rabatt-"], input[id^="skonto-"], input[id^="klr-"]').forEach(el => {
+        if (el.type === 'checkbox') fields[el.id] = el.checked;
+        else fields[el.id] = el.value;
+    });
+    return {
+        ts: Date.now(),
+        projektId: currentProjektId || null,
+        fields,
+        bomItems: window.currentBomItems ? JSON.parse(JSON.stringify(window.currentBomItems)) : [],
+        bomMeta: window.currentBomMeta ? JSON.parse(JSON.stringify(window.currentBomMeta)) : null
+    };
+}
+
+function persistAutoSave() {
+    try {
+        const snap = snapshotProjektEditor();
+        if (!snap) return;
+        // Nur speichern wenn mind. 1 Feld einen Wert hat (sonst leere Drafts)
+        const hasContent = Object.values(snap.fields).some(v => v !== '' && v !== false && v !== null);
+        if (!hasContent && (!snap.bomItems || !snap.bomItems.length)) return;
+        localStorage.setItem(getAutoSaveKey(), JSON.stringify(snap));
+    } catch (err) {
+        // Quota überschritten oder Storage disabled — still scheitern, nicht den User stören
+        console.warn('Auto-Save fehlgeschlagen:', err);
+    }
+}
+
+function clearAutoSave() {
+    try { localStorage.removeItem(getAutoSaveKey()); } catch(_) {}
+}
+
+function startAutoSave() {
+    stopAutoSave();
+    autoSaveIntervalId = setInterval(persistAutoSave, AUTOSAVE_INTERVAL_MS);
+}
+
+function stopAutoSave() {
+    if (autoSaveIntervalId) { clearInterval(autoSaveIntervalId); autoSaveIntervalId = null; }
+}
+
+// Wiederherstellung anbieten falls Draft vorhanden + neuer als letzte Speicherung
+async function offerDraftRestore(projekt) {
+    let draft;
+    try {
+        const raw = localStorage.getItem(getAutoSaveKey());
+        if (!raw) return;
+        draft = JSON.parse(raw);
+    } catch (_) { return; }
+    if (!draft || !draft.ts) return;
+    // Wenn das gespeicherte Projekt jünger als der Draft ist, ist der Draft veraltet → still verwerfen
+    const projTs = projekt && projekt.aktualisiertAm ? new Date(projekt.aktualisiertAm).getTime() : 0;
+    if (projTs >= draft.ts) { clearAutoSave(); return; }
+    const minutesAgo = Math.max(1, Math.round((Date.now() - draft.ts) / 60000));
+    const ok = await showConfirm(
+        'Ungespeicherter Entwurf gefunden',
+        `Vor ca. ${minutesAgo} Min. wurde ein Entwurf automatisch gespeichert (Browser geschlossen oder abgestürzt?). Wiederherstellen?`,
+        { okLabel: 'Wiederherstellen', okClass: 'btn btn-primary btn-sm' }
+    );
+    if (!ok) { clearAutoSave(); return; }
+    // Felder zurücksetzen
+    Object.entries(draft.fields || {}).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!val;
+        else el.value = val;
+        // Change-Event triggern für abhängige Felder
+        try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+    });
+    if (draft.bomItems && draft.bomItems.length) {
+        window.currentBomItems = draft.bomItems;
+        window.currentBomMeta = draft.bomMeta || null;
+        if (typeof renderBomTable === 'function') renderBomTable();
+    }
+    showToast('Entwurf wiederhergestellt');
 }
 
 // ==================== DOPPELKLICK-SCHUTZ ====================
