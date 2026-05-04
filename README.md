@@ -1,6 +1,6 @@
 # WerkBank
 
-Kalkulations- und Projekt-App für Tischler und Yacht-Innenausbauer.
+Kalkulations- und Projekt-App für Tischler.
 Statische PWA (HTML/CSS/JS), kein Backend nötig, kein Build-Step.
 
 ## Quickstart (lokal)
