@@ -415,41 +415,88 @@ function openDB() {
     });
 }
 
-function dbPut(store, data) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(store, 'readwrite');
-        tx.objectStore(store).put(data);
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
+/* ============================================================
+ * STORAGE-ADAPTER (Persistenz-Schicht)
+ * ============================================================
+ *
+ * Aktueller Backend: IndexedDB (lokal im Browser des Nutzers)
+ * Daten verlassen NIE das Gerät, kein Server, kein Login nötig.
+ *
+ * Geplante Migration zu Cloud-Backend (z.B. Supabase):
+ *   1. Neues Modul WerkBankStorageCloud mit gleicher Signatur erstellen
+ *      (get / put / delete / getAll / clearAll)
+ *   2. Stores 1:1 als Postgres-Tabellen anlegen, RLS pro user_id
+ *   3. window.WerkBankStorage = WerkBankStorageCloud zuweisen
+ *   4. Migration läuft automatisch beim nächsten Login (Lokal → Cloud)
+ *
+ * Der Rest der App ruft nur dbGet/dbPut/dbDelete/dbGetAll auf — diese
+ * Wrapper sind die einzige Stelle, die das konkrete Backend kennt.
+ * Damit ist die Migration ohne flächendeckendes Refactoring möglich.
+ *
+ * STORES (Tabellen):
+ *   projekte, kunden, einstellungen, eigeneBeschlaege, eigeneOberflaechen,
+ *   eigeneMaterialien, zeiten, termine, mitarbeiter, importProfile
+ */
 
-function dbGet(store, key) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(store, 'readonly');
-        const req = tx.objectStore(store).get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = (e) => reject(e.target.error);
-    });
-}
+const STORAGE_BACKEND = 'indexeddb'; // Zukünftig: 'supabase' | 'firebase' | …
 
-function dbGetAll(store) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(store, 'readonly');
-        const req = tx.objectStore(store).getAll();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = (e) => reject(e.target.error);
-    });
-}
+// Adapter-Implementierung: IndexedDB
+const WerkBankStorageLocal = {
+    backend: 'indexeddb',
+    isReady: () => !!db,
+    put(store, data) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(store, 'readwrite');
+            tx.objectStore(store).put(data);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    },
+    get(store, key) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(store, 'readonly');
+            const req = tx.objectStore(store).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    },
+    getAll(store) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(store, 'readonly');
+            const req = tx.objectStore(store).getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    },
+    delete(store, key) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(store, 'readwrite');
+            tx.objectStore(store).delete(key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    },
+    // Komplett-Reset einer Tabelle (für Demo-Reset)
+    clearStore(store) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(store, 'readwrite');
+            tx.objectStore(store).clear();
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    }
+};
 
-function dbDelete(store, key) {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(store, 'readwrite');
-        tx.objectStore(store).delete(key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e.target.error);
-    });
-}
+// Aktiver Storage — wird hier gebunden, je nach STORAGE_BACKEND-Konstante.
+// Spätere Cloud-Variante hängt sich an dieser Stelle ein.
+window.WerkBankStorage = WerkBankStorageLocal;
+
+// Backwards-kompatible Wrapper — Rest der App ruft weiter dbGet/dbPut/etc. auf
+function dbPut(store, data)   { return window.WerkBankStorage.put(store, data); }
+function dbGet(store, key)    { return window.WerkBankStorage.get(store, key); }
+function dbGetAll(store)       { return window.WerkBankStorage.getAll(store); }
+function dbDelete(store, key) { return window.WerkBankStorage.delete(store, key); }
+function dbClearStore(store)  { return window.WerkBankStorage.clearStore(store); }
 
 // Settings helpers
 async function getSetting(key, defaultValue) {
@@ -6545,6 +6592,12 @@ function initEvents() {
         this.value = '';
     });
 
+    // Demo-Reset
+    const btnDemoReset = document.getElementById('btn-demo-reset');
+    if (btnDemoReset) {
+        btnDemoReset.addEventListener('click', () => withButtonLock(btnDemoReset, resetToDemoData, { busyText: 'Setze zurück…' }));
+    }
+
     // Logo upload
     document.getElementById('set-firma-logo').addEventListener('change', function () {
         const file = this.files[0];
@@ -6783,6 +6836,42 @@ function initEvents() {
 }
 
 // ==================== DEMO DATA SEED ====================
+// Setzt alle Datenbanken zurück und seedet Demo-Daten neu.
+// Nutzt den Storage-Adapter (clearStore), damit die Funktion auch nach
+// einem späteren Cloud-Backend-Wechsel automatisch funktioniert.
+async function resetToDemoData() {
+    const ok = await showConfirm(
+        'Auf Demo-Daten zurücksetzen?',
+        'Alle eigenen Projekte, Kunden, Zeiten, Termine und Materialien werden gelöscht. Anschließend werden Demo-Daten neu angelegt. Diese Aktion kann nicht rückgängig gemacht werden!',
+        { okLabel: 'Zurücksetzen', okClass: 'btn btn-danger btn-sm' }
+    );
+    if (!ok) return;
+    try {
+        // Alle Stores leeren — Reihenfolge unkritisch, sind separate Object-Stores
+        const stores = ['projekte', 'kunden', 'eigeneBeschlaege', 'eigeneOberflaechen', 'eigeneMaterialien', 'zeiten', 'termine', 'mitarbeiter', 'importProfile'];
+        // Einstellungen explizit ausgenommen — Firmenname, Logo, KLR-Sätze bleiben erhalten
+        for (const s of stores) {
+            await dbClearStore(s);
+        }
+        // In-Memory-State zurücksetzen
+        eigeneArtikelMaterialien = [];
+        if (typeof eigeneVorlagen !== 'undefined') eigeneVorlagen = [];
+        // Auto-Save-Drafts auch löschen
+        Object.keys(localStorage).filter(k => k.startsWith('werkbank_draft_')).forEach(k => localStorage.removeItem(k));
+        // Demo-Daten neu seeden
+        await seedDemoData();
+        await loadEigeneArtikel();
+        await loadEigeneVorlagen();
+        showToast('Demo-Daten wurden zurückgesetzt');
+        // Zur Dashboard-View springen, damit Render frisch läuft
+        window.location.hash = '#/dashboard';
+        setTimeout(() => router(), 100);
+    } catch (err) {
+        console.error('Reset-Fehler:', err);
+        showToast('Reset fehlgeschlagen: ' + err.message, 'error');
+    }
+}
+
 async function seedDemoData() {
     // Only seed if no data exists
     const existingKunden = await dbGetAll('kunden');
@@ -8469,6 +8558,7 @@ async function init() {
         initThemeSwitcher();
         initKeyboardShortcuts();
         initWorkflowChoice();
+        initWelcomeModal();
         try { initGlobalSearch(); } catch(e) { console.error('GlobalSearch init error:', e); }
         try { initZeiterfassung(); } catch(e) { console.error('Zeiterfassung init error:', e); }
         try { initKalender(); } catch(e) { console.error('Kalender init error:', e); }
@@ -9252,6 +9342,34 @@ async function openAddMaterialFromBom(name, dicke) {
             sessionStorage.removeItem('bomAddMatPrefill');
         }
     }, 200);
+}
+
+// ==================== WELCOME-MODAL (1. Besuch) ====================
+// Wird einmalig beim allerersten Öffnen angezeigt. localStorage-Flag merkt sich,
+// wenn der User "nicht mehr anzeigen" klickt — sonst wird das Modal nach jedem
+// Browser-Storage-Reset wieder gezeigt (was beim Demo-Reset gewollt ist).
+const WELCOME_LS_KEY = 'werkbank_welcome_seen';
+function initWelcomeModal() {
+    const modal = document.getElementById('modal-welcome');
+    if (!modal) return;
+    const close = () => {
+        const noShow = document.getElementById('welcome-noshow');
+        if (noShow && noShow.checked) {
+            try { localStorage.setItem(WELCOME_LS_KEY, '1'); } catch(_) {}
+        }
+        modal.classList.add('hidden');
+    };
+    modal.querySelector('#modal-welcome-close').addEventListener('click', close);
+    modal.querySelector('#modal-welcome-ok').addEventListener('click', close);
+    modal.querySelector('.modal-backdrop').addEventListener('click', close);
+
+    // Beim 1. Besuch (oder nach komplettem localStorage-Reset) anzeigen
+    let seen = false;
+    try { seen = localStorage.getItem(WELCOME_LS_KEY) === '1'; } catch(_) {}
+    if (!seen) {
+        // Mini-Delay, damit es nach dem Boot-Spinner kommt
+        setTimeout(() => modal.classList.remove('hidden'), 500);
+    }
 }
 
 // ==================== AUTO-SAVE PROJEKT-EDITOR ====================

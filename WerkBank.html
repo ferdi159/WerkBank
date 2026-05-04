@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WerkBank | Professionelle Tischlerei-Software</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M8 14 L18 50 L26 50 L32 30 L38 50 L46 50 L56 14 L48 14 L42 40 L36 20 L28 20 L22 40 L16 14 Z' fill='%23fff'/%3E%3Cg stroke='%231e3a8a' stroke-width='0.9' stroke-linecap='round'%3E%3Cline x1='9.5' y1='19.4' x2='12.0' y2='18.7'/%3E%3Cline x1='10.7' y1='23.72' x2='12.06' y2='23.34'/%3E%3Cline x1='12.0' y1='28.4' x2='14.5' y2='27.7'/%3E%3Cline x1='13.2' y1='32.72' x2='14.56' y2='32.34'/%3E%3Cline x1='14.5' y1='37.4' x2='17.0' y2='36.7'/%3E%3Cline x1='47.5' y1='44.6' x2='45.0' y2='43.9'/%3E%3Cline x1='48.7' y1='40.28' x2='47.34' y2='39.9'/%3E%3Cline x1='50.0' y1='35.6' x2='47.5' y2='34.9'/%3E%3Cline x1='51.2' y1='31.28' x2='49.84' y2='30.9'/%3E%3Cline x1='52.5' y1='26.6' x2='50.0' y2='25.9'/%3E%3C/g%3E%3C/svg%3E">
-    <link rel="stylesheet" href="style.css?v=20260503d">
+    <link rel="stylesheet" href="style.css?v=20260504a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -86,6 +86,58 @@
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
+
+    <!-- Welcome-Modal beim 1. Besuch — wird via initWelcomeModal in app.js getriggert -->
+    <div id="modal-welcome" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-welcome-content">
+            <div class="modal-header">
+                <h3 id="welcome-title">Willkommen bei WerkBank!</h3>
+                <button class="modal-close" id="modal-welcome-close" title="Schließen (Esc)" aria-label="Schließen">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="welcome-intro">
+                    <p>WerkBank ist die Kalkulations- und Projekt-App für Tischler und Yacht-Innenausbauer. Hier ist alles, was du wissen musst:</p>
+                </div>
+                <div class="welcome-points">
+                    <div class="welcome-point">
+                        <span class="welcome-point-icon">🔒</span>
+                        <div>
+                            <strong>Deine Daten bleiben bei dir</strong>
+                            <p>Alle Projekte, Kunden und Materialien werden nur lokal in deinem Browser gespeichert. Es gibt keinen Server, kein Konto, niemand kann sie sehen.</p>
+                        </div>
+                    </div>
+                    <div class="welcome-point">
+                        <span class="welcome-point-icon">📦</span>
+                        <div>
+                            <strong>Demo-Daten zum Ausprobieren</strong>
+                            <p>10 Beispiel-Kunden und 18 Projekte sind schon angelegt. Du kannst alles löschen, ändern oder ergänzen — nichts geht kaputt.</p>
+                        </div>
+                    </div>
+                    <div class="welcome-point">
+                        <span class="welcome-point-icon">💾</span>
+                        <div>
+                            <strong>Daten sichern oder mitnehmen</strong>
+                            <p>In den Einstellungen kannst du jederzeit alle Daten als JSON-Datei exportieren oder importieren. So bekommst du sie auch auf ein anderes Gerät.</p>
+                        </div>
+                    </div>
+                    <div class="welcome-point">
+                        <span class="welcome-point-icon">⚡</span>
+                        <div>
+                            <strong>Tipp: Mit Tastenkürzeln schneller</strong>
+                            <p><kbd>Strg+S</kbd> speichert · <kbd>Strg+N</kbd> neues Projekt · <kbd>/</kbd> Suche · <kbd>Esc</kbd> schließt</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <label class="welcome-no-show">
+                    <input type="checkbox" id="welcome-noshow"> Diese Info nicht mehr anzeigen
+                </label>
+                <button class="btn btn-primary" id="modal-welcome-ok">Loslegen!</button>
+            </div>
+        </div>
+    </div>
 
     <!-- App-Boot-Spinner (wird in init() ausgeblendet) -->
     <div id="app-boot-overlay" aria-live="polite" aria-busy="true">
@@ -1707,6 +1759,26 @@
                     </div>
                 </div>
 
+                <!-- Demo zurücksetzen -->
+                <div class="calc-card" style="border-color:#fbbf24">
+                    <div class="calc-header">
+                        <span class="calc-step" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        </span>
+                        <div><h3>Daten zurücksetzen</h3><p>Alle Projekte, Kunden und Einstellungen löschen — neue Demo-Daten laden</p></div>
+                    </div>
+                    <div class="calc-body">
+                        <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px">
+                            Setzt die App auf den Anfangszustand zurück. Alle eigenen Projekte, Kunden, Materialien usw. werden gelöscht. Anschließend werden die Demo-Daten neu angelegt.
+                            <strong style="color:#dc2626">Achtung:</strong> Vorher Daten exportieren, falls du sie behalten möchtest.
+                        </p>
+                        <button type="button" id="btn-demo-reset" class="btn" style="background:#fbbf24;color:#78350f;font-weight:600;width:100%">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            Auf Demo-Daten zurücksetzen
+                        </button>
+                    </div>
+                </div>
+
                 <button type="button" id="btn-settings-save" class="btn btn-primary" style="width:100%">Einstellungen speichern</button>
             </div>
         </div>
@@ -2137,20 +2209,40 @@
     <!-- ==================== DATENSCHUTZ ==================== -->
     <section id="view-datenschutz" class="view hidden">
         <div class="container view-container">
-            <div class="view-header"><h1>Datenschutzerklärung</h1></div>
+            <div class="view-header"><h1>Datenschutzerkl&auml;rung</h1></div>
             <div class="card legal-card">
-                <h2>1. Datenschutz auf einen Blick</h2>
-                <h3>Allgemeine Hinweise</h3>
-                <p>Diese Anwendung speichert alle Daten ausschließlich lokal in Ihrem Browser (IndexedDB). Es werden keine Daten an externe Server übertragen.</p>
-                <h3>Datenerfassung in dieser Anwendung</h3>
-                <p>Alle eingegebenen Daten (Kunden, Projekte, Einstellungen) werden lokal in Ihrem Browser gespeichert und verlassen Ihr Gerät nicht.</p>
-                <h2>2. Hosting</h2>
-                <p>[Informationen zum Hosting-Anbieter einfügen]</p>
-                <h2>3. Allgemeine Hinweise und Pflichtinformationen</h2>
-                <h3>Datenschutz</h3>
-                <p>Die Betreiber dieser Anwendung nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p>
-                <h3>Hinweis zur verantwortlichen Stelle</h3>
-                <p>[Name und Kontaktdaten der verantwortlichen Stelle einfügen]</p>
+                <h2>1. Daten bleiben bei dir &mdash; auf einen Blick</h2>
+                <p><strong>WerkBank ist eine reine Browser-Anwendung.</strong> Alle Eingaben (Kunden, Projekte, Stücklisten, Materialien, Einstellungen) werden ausschlie&szlig;lich <strong>lokal in deinem Browser</strong> gespeichert (Technologien: IndexedDB &amp; localStorage). Es gibt keinen Server, keine Datenbank in der Cloud und kein Benutzerkonto.</p>
+                <ul>
+                    <li>Keine Cookies fürs Tracking, kein Analytics, keine Werbung.</li>
+                    <li>Keine Anmeldung, kein Passwort &mdash; die App ist sofort nutzbar.</li>
+                    <li>Daten verlassen dein Ger&auml;t nur, wenn du sie selbst exportierst (JSON-Export in den Einstellungen) oder ein PDF herunterl&auml;dst.</li>
+                </ul>
+
+                <h2>2. Hosting der App</h2>
+                <p>Die statischen Dateien (HTML, CSS, JavaScript) werden &uuml;ber einen Webhoster ausgeliefert. Beim Aufruf der Seite werden technisch unvermeidbar deine IP-Adresse, Browser-Typ und Aufrufzeit kurzzeitig in den Server-Logs des Hosters protokolliert (Art. 6 Abs. 1 lit. f DSGVO &mdash; berechtigtes Interesse an der Bereitstellung der Website). Es werden keine Profile gebildet.</p>
+
+                <h2>3. Externe Bibliotheken (CDN)</h2>
+                <p>Zur PDF- und Tabellenverarbeitung werden drei Open-Source-Bibliotheken nachgeladen:</p>
+                <ul>
+                    <li><strong>jsPDF</strong> (cdnjs.cloudflare.com) &mdash; PDF-Generierung</li>
+                    <li><strong>SheetJS</strong> (cdnjs.cloudflare.com) &mdash; XLSX-Parser</li>
+                    <li><strong>PapaParse</strong> (cdnjs.cloudflare.com) &mdash; CSV-Parser</li>
+                </ul>
+                <p>Cloudflare als CDN-Anbieter verarbeitet beim Nachladen kurz deine IP-Adresse. Cloudflare ist nach EU-Standardvertragsklauseln zertifiziert.</p>
+
+                <h2>4. Deine Rechte</h2>
+                <p>Da keine personenbezogenen Daten serverseitig verarbeitet werden, sind Auskunft, L&ouml;schung und Berichtigung praktisch ohne unsere Mitwirkung m&ouml;glich:</p>
+                <ul>
+                    <li><strong>Daten exportieren</strong>: Einstellungen &rarr; Daten exportieren (JSON-Datei)</li>
+                    <li><strong>Daten l&ouml;schen</strong>: Einstellungen &rarr; Auf Demo-Daten zur&uuml;cksetzen, oder Browser-Speicher leeren (Strg+Shift+Entf)</li>
+                    <li><strong>Daten &uuml;bertragen</strong>: JSON-Export auf einem Ger&auml;t, JSON-Import auf einem anderen</li>
+                </ul>
+
+                <h2>5. Verantwortliche Stelle</h2>
+                <p>[Bitte vor Ver&ouml;ffentlichung Name &amp; Kontakt eintragen]</p>
+
+                <p style="margin-top:24px;color:var(--text-light);font-size:0.85rem">Stand: Mai 2026</p>
             </div>
         </div>
     </section>
@@ -2355,6 +2447,10 @@
         <div class="container">
             <div class="footer-inner">
                 <p>&copy; 2026 WerkBank. Alle Preise ohne Gew&auml;hr.</p>
+                <p class="footer-storage-hint" title="Daten werden ausschlie&szlig;lich lokal in deinem Browser gespeichert. Kein Server, kein Konto.">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Daten lokal &middot; 100&nbsp;% offline-f&auml;hig
+                </p>
                 <div class="footer-links">
                     <a href="#/impressum">Impressum</a>
                     <a href="#/datenschutz">Datenschutz</a>
@@ -2395,7 +2491,7 @@
             document.head.appendChild(sp);
         }
     </script>
-    <script src="stuecklistenImport.js?v=20260503d"></script>
-    <script src="app.js?v=20260503d"></script>
+    <script src="stuecklistenImport.js?v=20260504a"></script>
+    <script src="app.js?v=20260504a"></script>
 </body>
 </html>
